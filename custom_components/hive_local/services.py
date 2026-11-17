@@ -1,0 +1,76 @@
+"""hive_local.boost_heating / boost_water / cancel_boost_heating / cancel_boost_water."""
+
+from __future__ import annotations
+
+import voluptuous as vol
+
+from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import config_validation as cv, device_registry as dr
+
+from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, CHANNEL_WATER, DOMAIN, HEAT_MAX
+from .data import HiveConfigEntry
+from .schedule import ScheduleError
+from .z2m import BOOST_MAX_MINUTES
+
+ATTR_DEVICE_ID = "device_id"
+ATTR_MINUTES = "minutes"
+ATTR_TEMPERATURE = "temperature"
+
+_DEVICE = {vol.Optional(ATTR_DEVICE_ID): cv.string}
+_MINUTES = {
+    vol.Optional(ATTR_MINUTES): vol.All(vol.Coerce(int), vol.Range(1, BOOST_MAX_MINUTES))
+}
+BOOST_HEATING_SCHEMA = vol.Schema(
+    _DEVICE
+    | _MINUTES
+    | {
+        vol.Optional(ATTR_TEMPERATURE): vol.All(
+            vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)
+        )
+    }
+)
+BOOST_WATER_SCHEMA = vol.Schema(_DEVICE | _MINUTES)
+CANCEL_SCHEMA = vol.Schema(_DEVICE)
+
+
+def _entry(hass: HomeAssistant, call: ServiceCall) -> HiveConfigEntry:
+    """The entry for `device_id`, or the only receiver if there's just one."""
+    entries = hass.config_entries.async_loaded_entries(DOMAIN)
+    if device_id := call.data.get(ATTR_DEVICE_ID):
+        device = dr.async_get(hass).async_get(device_id)
+        entry_ids = {i[1] for i in device.identifiers if i[0] == DOMAIN} if device else set()
+        entries = [e for e in entries if e.entry_id in entry_ids]
+        if not entries:
+            raise ServiceValidationError(f"{device_id} is not a Hive Local receiver")
+    elif len(entries) != 1:
+        raise ServiceValidationError("More than one receiver: pass device_id")
+    return entries[0]
+
+
+@callback
+def async_register(hass: HomeAssistant) -> None:
+    def boost(channel: str):
+        async def handler(call: ServiceCall) -> None:
+            try:
+                await _entry(hass, call).runtime_data.async_boost(
+                    channel, call.data.get(ATTR_MINUTES), call.data.get(ATTR_TEMPERATURE)
+                )
+            except ScheduleError as err:
+                raise ServiceValidationError(str(err)) from err
+
+        return handler
+
+    def cancel(channel: str):
+        async def handler(call: ServiceCall) -> None:
+            try:
+                await _entry(hass, call).runtime_data.transport.async_cancel_boost(channel)
+            except ScheduleError as err:
+                raise ServiceValidationError(str(err)) from err
+
+        return handler
+
+    hass.services.async_register(DOMAIN, "boost_heating", boost(CHANNEL_HEAT), BOOST_HEATING_SCHEMA)
+    hass.services.async_register(DOMAIN, "boost_water", boost(CHANNEL_WATER), BOOST_WATER_SCHEMA)
+    hass.services.async_register(DOMAIN, "cancel_boost_heating", cancel(CHANNEL_HEAT), CANCEL_SCHEMA)
+    hass.services.async_register(DOMAIN, "cancel_boost_water", cancel(CHANNEL_WATER), CANCEL_SCHEMA)

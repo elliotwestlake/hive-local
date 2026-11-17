@@ -1,0 +1,29 @@
+{
+  "entity": {
+    "select": {
+      "heat_mode": { "default": "mdi:radiator" },
+      "water_mode": { "default": "mdi:water-boiler" }
+    },
+    "sensor": {
+      "heat_boost_remaining": { "default": "mdi:timer-sand" },
+      "water_boost_remaining": { "default": "mdi:timer-sand" }
+    },
+    "number": {
+      "heat_boost_minutes": { "default": "mdi:timer-cog-outline" },
+      "water_boost_minutes": { "default": "mdi:timer-cog-outline" },
+      "heat_boost_temperature": { "default": "mdi:thermometer-chevron-up" }
+    },
+    "button": {
+      "heat_boost": { "default": "mdi:fire" },
+      "water_boost": { "default": "mdi:water-boiler" },
+      "heat_cancel_boost": { "default": "mdi:fire-off" },
+      "water_cancel_boost": { "default": "mdi:water-boiler-off" }
+    }
+  },
+  "services": {
+    "boost_heating": { "service": "mdi:fire" },
+    "boost_water": { "service": "mdi:water-boiler" },
+    "cancel_boost_heating": { "service": "mdi:fire-off" },
+    "cancel_boost_water": { "service": "mdi:water-boiler-off" }
+  }
+}

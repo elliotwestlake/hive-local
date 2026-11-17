@@ -7,12 +7,12 @@ export default defineConfig({
   plugins: [react()],
   define: { "process.env.NODE_ENV": JSON.stringify("production") },
   build: {
-    outDir: "../custom_components/hive_schedule/frontend",
+    outDir: "../custom_components/hive_local/frontend",
     emptyOutDir: true,
     lib: {
       entry: "src/main.tsx",
       formats: ["es"],
-      fileName: () => "hive-schedule-panel.js",
+      fileName: () => "hive-local-panel.js",
     },
     rollupOptions: { output: { inlineDynamicImports: true } },
   },
