@@ -1,7 +1,7 @@
 import importlib.util, pathlib, pytest
 
 spec = importlib.util.spec_from_file_location(
-    "schedule", pathlib.Path(__file__).parents[1] / "custom_components/hive_schedule/schedule.py")
+    "schedule", pathlib.Path(__file__).parents[1] / "custom_components/hive_local/schedule.py")
 s = importlib.util.module_from_spec(spec); spec.loader.exec_module(s)
 
 LIM = dict(max_transitions=6, min_setpoint=1, max_setpoint=32)

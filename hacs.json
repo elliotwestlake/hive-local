@@ -1,5 +1,5 @@
 {
-  "name": "Hive Schedule",
+  "name": "Hive Local",
   "render_readme": true,
   "homeassistant": "2024.7.0"
 }

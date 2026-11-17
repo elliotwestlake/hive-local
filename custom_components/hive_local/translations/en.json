@@ -1,0 +1,136 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Hive receiver",
+        "description": "Hive Local looks up your Hive receivers in Zigbee2MQTT. Change the base topic only if you've changed it in Zigbee2MQTT.",
+        "data": {
+          "base_topic": "Zigbee2MQTT base topic"
+        }
+      },
+      "device": {
+        "title": "Choose receiver",
+        "description": "These are the Hive receivers Zigbee2MQTT knows about. Hot water is offered automatically on receivers that have it.",
+        "data": {
+          "device": "Receiver"
+        }
+      }
+    },
+    "error": {
+      "no_bridge": "Zigbee2MQTT didn't send its device list. Check that MQTT is set up, Zigbee2MQTT is running, and the base topic is right.",
+      "no_receivers": "Zigbee2MQTT has no Hive receivers that aren't already added."
+    },
+    "abort": {
+      "already_configured": "This receiver is already configured"
+    }
+  },
+  "entity": {
+    "select": {
+      "heat_mode": {
+        "name": "Heating mode",
+        "state": {
+          "schedule": "Schedule",
+          "manual": "Manual",
+          "off": "Off",
+          "boost": "Boost"
+        }
+      },
+      "water_mode": {
+        "name": "Hot water mode",
+        "state": {
+          "schedule": "Schedule",
+          "manual": "Always on",
+          "off": "Off",
+          "boost": "Boost"
+        }
+      }
+    },
+    "sensor": {
+      "heat_boost_remaining": {
+        "name": "Heating boost remaining"
+      },
+      "water_boost_remaining": {
+        "name": "Hot water boost remaining"
+      }
+    },
+    "number": {
+      "heat_boost_minutes": {
+        "name": "Heating boost duration"
+      },
+      "water_boost_minutes": {
+        "name": "Hot water boost duration"
+      },
+      "heat_boost_temperature": {
+        "name": "Heating boost temperature"
+      }
+    },
+    "button": {
+      "heat_boost": {
+        "name": "Boost heating"
+      },
+      "heat_cancel_boost": {
+        "name": "Cancel heating boost"
+      },
+      "water_boost": {
+        "name": "Boost hot water"
+      },
+      "water_cancel_boost": {
+        "name": "Cancel hot water boost"
+      }
+    }
+  },
+  "services": {
+    "boost_heating": {
+      "name": "Boost heating",
+      "description": "Heat to a temperature for a number of minutes, then go back to the previous mode.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Can be left out if you only have one."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "How long to boost (1-360). Defaults to the boost duration setting."
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Target temperature (5-32 °C). Defaults to the heating boost temperature setting."
+        }
+      }
+    },
+    "boost_water": {
+      "name": "Boost hot water",
+      "description": "Turn the hot water on for a number of minutes.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Can be left out if you only have one."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "How long to boost (1-360). Defaults to the boost duration setting."
+        }
+      }
+    },
+    "cancel_boost_heating": {
+      "name": "Cancel heating boost",
+      "description": "End a heating boost and go back to the previous mode.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Can be left out if you only have one."
+        }
+      }
+    },
+    "cancel_boost_water": {
+      "name": "Cancel hot water boost",
+      "description": "End a hot water boost and go back to the previous mode.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Can be left out if you only have one."
+        }
+      }
+    }
+  }
+}

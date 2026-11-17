@@ -38,4 +38,19 @@ select, input[type=time] { font: inherit; padding: 6px 8px; border-radius: 8px; 
 .setpoint { display: flex; align-items: center; gap: 4px; min-width: 120px; }
 .setpoint span { min-width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
 .transition .danger { margin-left: auto; }
+.tabs { display: flex; gap: 4px; padding: 0 16px; overflow-x: auto; background: var(--app-header-background-color, var(--primary-color)); }
+.tabs button { flex: none; border: 0; border-radius: 0; background: transparent; color: var(--app-header-text-color, #fff); opacity: .75; padding: 10px 14px; border-bottom: 2px solid transparent; }
+.tabs button.on { opacity: 1; border-bottom-color: var(--app-header-text-color, #fff); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.tile { text-align: left; display: flex; flex-direction: column; gap: 8px; font: inherit; color: inherit; }
+.big { font-size: 40px; font-weight: 300; font-variant-numeric: tabular-nums; }
+.facts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--divider-color); }
+.pill.boost { border-color: var(--state-climate-heat-color, #ff8100); color: var(--state-climate-heat-color, #ff8100); }
+.pill.off { opacity: .6; }
+.on-text { color: var(--state-climate-heat-color, #ff8100); }
+.control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--divider-color); }
+.control-row:last-of-type { border-bottom: 0; }
+.control-row .label { width: 56px; font-size: 14px; color: var(--secondary-text-color); }
+.card > .status { margin-top: 12px; }
 `;
