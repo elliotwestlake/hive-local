@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Hive receiver",
+        "description": "Use the receiver's friendly name exactly as it appears in Zigbee2MQTT (case sensitive).",
+        "data": {
+          "device": "Zigbee2MQTT friendly name",
+          "model": "Receiver type",
+          "base_topic": "Zigbee2MQTT base topic"
+        }
+      }
+    },
+    "error": { "required": "Required" },
+    "abort": { "already_configured": "This receiver is already configured" }
+  },
+  "selector": {
+    "model": {
+      "options": {
+        "slr1": "SLR1 / OTR1 (heating only)",
+        "slr2": "SLR2 (heating + hot water)"
+      }
+    }
+  }
+}
