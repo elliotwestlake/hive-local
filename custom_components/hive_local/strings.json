@@ -77,6 +77,22 @@
       "water_cancel_boost": {
         "name": "Cancel hot water boost"
       }
+    },
+    "climate": {
+      "heat_climate": {
+        "name": "Heating"
+      }
+    },
+    "water_heater": {
+      "water_water_heater": {
+        "name": "Hot water",
+        "state": {
+          "schedule": "Schedule",
+          "on": "On",
+          "off": "Off",
+          "boost": "Boost"
+        }
+      }
     }
   },
   "services": {
