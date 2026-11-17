@@ -8,7 +8,7 @@ import type { Hass } from "./types";
  * `route` and `panel` as properties. `hass` is reassigned on every state
  * change, so we keep it in a getter instead of re-rendering on each update.
  */
-class HiveSchedulePanel extends HTMLElement {
+class HiveLocalPanel extends HTMLElement {
   private _hass?: Hass;
   private _narrow = false;
   private _root?: Root;
@@ -60,6 +60,6 @@ class HiveSchedulePanel extends HTMLElement {
   }
 }
 
-if (!customElements.get("hive-schedule-panel")) {
-  customElements.define("hive-schedule-panel", HiveSchedulePanel);
+if (!customElements.get("hive-local-panel")) {
+  customElements.define("hive-local-panel", HiveLocalPanel);
 }
