@@ -26,7 +26,14 @@ Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 ## Entities and actions
 
-For each channel (heating, plus hot water on SLR2):
+**`climate.<receiver>_heating`**: the main heating control.
+- **HVAC modes:** `auto` follows the onboard schedule, `heat` holds the target temperature, `off` is off.
+- **Target temperature:** setting it switches to `heat` and holds that temperature, like turning the thermostat dial. During a schedule "off" period there's no target, because Hive uses 1 °C for those.
+- **Boost preset:** uses the boost defaults below. Clearing it goes back to the previous mode.
+
+**`water_heater.<receiver>_hot_water`** (SLR2 only): Schedule / On / Off / Boost. Turn on goes back to Schedule.
+
+Also, for each channel:
 
 | Entity | What it does |
 |---|---|
@@ -44,7 +51,9 @@ data:
   temperature: 21
 ```
 
-The Zigbee2MQTT integration already gives you a climate entity for the receiver. Hive Local adds to it and doesn't replace it.
+### Replacing Zigbee2MQTT's own entities
+
+Zigbee2MQTT's MQTT discovery also creates climate entities for the receiver. Those don't know about Hive's schedule/manual/boost behaviour. Once Hive Local is working, disable them in HA: **Settings → Devices & services → MQTT → the receiver → the climate entities → ⚙ → Enabled: off**. Zigbee2MQTT keeps handling the Zigbee side, and Hive Local's entities become the only ones you use.
 
 ### Hot water values
 

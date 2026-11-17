@@ -43,6 +43,10 @@ class Transport(ABC):
         async_dispatcher_send(self.hass, f"{SIGNAL_STATUS}_{self.entry_id}")
         async_dispatcher_send(self.hass, SIGNAL_STATUS)
 
+    def resume_mode(self, channel: str) -> str:
+        """The non-boost mode this channel was in last (what cancelling a boost returns to)."""
+        return self._resume.get(channel, (MODE_SCHEDULE, None))[0]
+
     async def async_set_mode(
         self, channel: str, mode: str, setpoint: float | None = None
     ) -> None:
