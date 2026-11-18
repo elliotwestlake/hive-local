@@ -1,4 +1,4 @@
-"""Transport interface: how we talk to a receiver (Z2M today, ZHA later)."""
+"""Transport interface: how we talk to a receiver (Z2M or ZHA)."""
 
 from __future__ import annotations
 

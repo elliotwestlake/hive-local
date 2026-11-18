@@ -5995,7 +5995,7 @@ function op({
       o(S.schedule), u(S.schedule);
       const R = Object.keys(S.schedule).length;
       h(
-        S.complete ? { kind: "ok", text: "Schedule read from receiver" } : R ? { kind: "error", text: `Only got ${R}/7 days — try reading again` } : { kind: "error", text: "No reply. Check the receiver's friendly name matches Zigbee2MQTT." }
+        S.complete ? { kind: "ok", text: "Schedule read from receiver" } : R ? { kind: "error", text: `Only got ${R}/7 days — try reading again` } : { kind: "error", text: "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." }
       );
     } catch (S) {
       h({ kind: "error", text: ol(S) });

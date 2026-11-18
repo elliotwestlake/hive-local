@@ -4,10 +4,16 @@ from datetime import timedelta
 
 DOMAIN = "hive_local"
 
+CONF_TRANSPORT = "transport"
 CONF_DEVICE = "device"
+CONF_DEVICE_ID = "device_id"  # ZHA: the HA device registry id
 CONF_MODEL = "model"
-CONF_Z2M_MODEL = "z2m_model"
+CONF_Z2M_MODEL = "z2m_model"  # the receiver's own model string (from Z2M or ZHA), e.g. SLR1c
 CONF_BASE_TOPIC = "base_topic"
+
+# Entries from before ZHA support have no CONF_TRANSPORT and are Z2M.
+TRANSPORT_Z2M = "z2m"
+TRANSPORT_ZHA = "zha"
 
 DEFAULT_BASE_TOPIC = "zigbee2mqtt"
 
@@ -55,5 +61,14 @@ READ_TIMEOUT = 4.0
 # How long the config flow waits for Z2M's retained bridge/devices list.
 DEVICES_TIMEOUT = 5.0
 
-# While boosting, ask Z2M to re-read the hold duration so the remaining time stays current.
+# SLR2 Thermostat endpoints. SLR1 has one; we use whichever endpoint has the cluster.
+ZHA_EP_HEAT = 5
+ZHA_EP_WATER = 6
+
+# ZHA doesn't set up reporting for the hold attributes, so re-read them this often.
+ZHA_REFRESH_INTERVAL = timedelta(minutes=5)
+# After a write or a reported mode/setpoint change, re-read the state this many seconds later.
+ZHA_REFRESH_DELAY = 3.0
+
+# While boosting, re-read the hold duration so the remaining time stays current.
 BOOST_POLL_INTERVAL = timedelta(seconds=60)

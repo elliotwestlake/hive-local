@@ -1,0 +1,252 @@
+"""ZHA transport: talks to the receiver's Thermostat clusters through zigpy.
+
+Imported only for ZHA entries, so Z2M-only installs don't need ZHA's requirements.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+from datetime import datetime
+from functools import partial
+from typing import Any
+
+from zigpy.exceptions import ZigbeeException
+from zigpy.zcl import (
+    AttributeReadEvent,
+    AttributeReportedEvent,
+    AttributeUpdatedEvent,
+    AttributeWrittenEvent,
+    Cluster,
+)
+from zigpy.zcl.clusters.hvac import Thermostat
+from zigpy.zcl.foundation import Status
+
+from homeassistant.components.zha.helpers import async_get_zha_device_proxy
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.event import async_call_later, async_track_time_interval
+
+from ..const import (
+    BOOST_POLL_INTERVAL,
+    CHANNEL_HEAT,
+    CHANNEL_WATER,
+    READ_TIMEOUT,
+    ZHA_EP_HEAT,
+    ZHA_EP_WATER,
+    ZHA_REFRESH_DELAY,
+    ZHA_REFRESH_INTERVAL,
+)
+from ..schedule import DAYS
+from ..z2m import MODE_BOOST
+from ..zcl import (
+    ALL_DAYS,
+    HOLD_ATTRS,
+    SEQ_MODE_HEAT,
+    STATE_ATTRS,
+    boost_attributes,
+    channel_status,
+    mode_attributes,
+    parse_schedule_response,
+    schedule_commands,
+    setpoint_attributes,
+)
+from .base import Schedule, Transport
+
+_LOGGER = logging.getLogger(__name__)
+
+SCHEDULE_RESPONSE = Thermostat.ClientCommandDefs.get_weekly_schedule_response.schema
+CACHE_EVENTS = (
+    AttributeReadEvent,
+    AttributeReportedEvent,
+    AttributeUpdatedEvent,
+    AttributeWrittenEvent,
+)
+# Only reports come from the receiver unasked (our own reads don't emit them, so
+# re-reading on one can't loop). A reported mode/setpoint change may mean the hold changed.
+REPORT_REFRESH_ATTRS = {"system_mode", "occupied_heating_setpoint"}
+
+
+def find_receiver(hass: HomeAssistant, device_id: str) -> tuple[Any, dict[str, Cluster]]:
+    """Return (zha device, {channel: Thermostat cluster}). LookupError if ZHA doesn't have it."""
+    try:
+        device = async_get_zha_device_proxy(hass, device_id).device
+    except (KeyError, ValueError, StopIteration) as err:
+        raise LookupError(f"ZHA doesn't know device {device_id}") from err
+    thermostats = {
+        ep_id: ep.in_clusters[Thermostat.cluster_id]
+        for ep_id, ep in device.device.endpoints.items()
+        if ep_id != 0 and Thermostat.cluster_id in ep.in_clusters
+    }
+    if ZHA_EP_HEAT in thermostats and ZHA_EP_WATER in thermostats:
+        return device, {CHANNEL_HEAT: thermostats[ZHA_EP_HEAT], CHANNEL_WATER: thermostats[ZHA_EP_WATER]}
+    if thermostats:
+        heat = thermostats.get(ZHA_EP_HEAT) or thermostats[min(thermostats)]
+        return device, {CHANNEL_HEAT: heat}
+    raise LookupError("Device has no Thermostat cluster")
+
+
+class _ScheduleListener:
+    """Legacy zigpy cluster listener: catches get_weekly_schedule_response commands."""
+
+    def __init__(self) -> None:
+        self.collected: Schedule = {}
+        self.all_days = asyncio.Event()
+
+    def cluster_command(self, tsn: int, command_id: int, args: Any) -> None:
+        if not isinstance(args, SCHEDULE_RESPONSE):
+            return
+        _LOGGER.debug("get_weekly_schedule_response: %s", args)
+        self.collected.update(
+            parse_schedule_response(
+                args.day_of_week_for_sequence, args.mode_for_sequence, list(args.values)
+            )
+        )
+        if all(day in self.collected for day in DAYS):
+            self.all_days.set()
+
+
+class ZHATransport(Transport):
+    def __init__(
+        self, hass: HomeAssistant, entry_id: str, clusters: dict[str, Cluster]
+    ) -> None:
+        super().__init__(hass, entry_id, tuple(clusters))
+        self._clusters = clusters
+        self._unsubs: list[CALLBACK_TYPE] = []
+        self._pending_refresh: dict[str, CALLBACK_TYPE] = {}
+
+    def _cluster(self, channel: str) -> Cluster:
+        self.check_channel(channel)
+        return self._clusters[channel]
+
+    async def async_start(self) -> None:
+        for channel, cluster in self._clusters.items():
+            for event in CACHE_EVENTS:
+                self._unsubs.append(
+                    cluster.on_event(event.event_type, partial(self._on_attribute, channel))
+                )
+            # ZHA may already have the reported attributes cached.
+            self._publish(channel)
+        self._unsubs.append(
+            async_track_time_interval(self.hass, self._poll_boost, BOOST_POLL_INTERVAL)
+        )
+        self._unsubs.append(
+            async_track_time_interval(self.hass, self._refresh_all, ZHA_REFRESH_INTERVAL)
+        )
+        # Don't hold up setup on the radio.
+        self.hass.async_create_background_task(
+            self._refresh_all(), f"hive_local refresh {self.entry_id}"
+        )
+
+    async def async_stop(self) -> None:
+        while self._unsubs:
+            self._unsubs.pop()()
+        while self._pending_refresh:
+            self._pending_refresh.popitem()[1]()
+
+    @callback
+    def _publish(self, channel: str) -> None:
+        cluster = self._clusters[channel]
+        status = channel_status({name: cluster.get(name) for name in STATE_ATTRS})
+        if status is not None:
+            self._update_status(channel, status)
+
+    @callback
+    def _on_attribute(self, channel: str, event: Any) -> None:
+        if event.attribute_name not in STATE_ATTRS:
+            return
+        self._publish(channel)
+        if isinstance(event, AttributeReportedEvent) and event.attribute_name in REPORT_REFRESH_ATTRS:
+            self._schedule_refresh(channel, HOLD_ATTRS)
+
+    @callback
+    def _schedule_refresh(self, channel: str, attrs: tuple[str, ...] = STATE_ATTRS) -> None:
+        """Read attrs shortly; repeated calls within the delay collapse into one read."""
+        if cancel := self._pending_refresh.pop(channel, None):
+            cancel()
+
+        @callback
+        def _run(_now: datetime) -> None:
+            self._pending_refresh.pop(channel, None)
+            self.hass.async_create_background_task(
+                self._refresh(channel, attrs), f"hive_local refresh {self.entry_id}"
+            )
+
+        self._pending_refresh[channel] = async_call_later(self.hass, ZHA_REFRESH_DELAY, _run)
+
+    async def _refresh(self, channel: str, attrs: tuple[str, ...] = STATE_ATTRS) -> None:
+        try:
+            await self._clusters[channel].read_attributes(list(attrs), allow_cache=False)
+        except (TimeoutError, ZigbeeException) as err:
+            _LOGGER.debug("Reading %s state failed: %s", channel, err)
+            return
+        self._publish(channel)
+
+    async def _refresh_all(self, _now: datetime | None = None) -> None:
+        for channel in self.channels:
+            await self._refresh(channel)
+
+    async def _poll_boost(self, _now: datetime) -> None:
+        for channel in self.channels:
+            if (self.status(channel) or {}).get("mode") == MODE_BOOST:
+                await self._refresh(channel, HOLD_ATTRS)
+
+    async def _write(self, channel: str, attrs: dict[str, int]) -> None:
+        """One Write Attributes command; Hive wants all of a mode change at once."""
+        _LOGGER.debug("%s write_attributes: %s", channel, attrs)
+        try:
+            result = await self._cluster(channel).write_attributes(attrs)
+        except (TimeoutError, ZigbeeException) as err:
+            raise HomeAssistantError(f"Receiver didn't respond: {err}") from err
+        failed = [r for r in result[0] if r.status != Status.SUCCESS]
+        if failed:
+            raise HomeAssistantError(f"Receiver rejected the change: {failed}")
+        # Check what the receiver actually did with it.
+        self._schedule_refresh(channel)
+
+    async def _async_set_mode(self, channel: str, mode: str, setpoint: float | None) -> None:
+        await self._write(channel, mode_attributes(mode, setpoint))
+
+    async def _async_set_setpoint(self, channel: str, setpoint: float) -> None:
+        await self._write(channel, setpoint_attributes(setpoint))
+
+    async def _async_boost(self, channel: str, minutes: int, setpoint: float | None) -> None:
+        await self._write(channel, boost_attributes(minutes, setpoint))
+
+    async def async_read(self, channel: str) -> tuple[Schedule, bool]:
+        cluster = self._cluster(channel)
+        listener = _ScheduleListener()
+        cluster.add_listener(listener)
+        try:
+            # The receiver answers with one response per day, all with our TSN. With
+            # expect_reply zigpy would swallow the first as the request's reply, so
+            # don't wait for one and collect them all through the listener instead.
+            await cluster.get_weekly_schedule(
+                days_to_return=ALL_DAYS, mode_to_return=SEQ_MODE_HEAT, expect_reply=False
+            )
+            try:
+                await asyncio.wait_for(listener.all_days.wait(), READ_TIMEOUT)
+            except TimeoutError:
+                pass
+        except ZigbeeException as err:
+            raise HomeAssistantError(f"Couldn't send the request: {err}") from err
+        finally:
+            cluster.remove_listener(listener)
+
+        schedule = {d: listener.collected[d] for d in DAYS if d in listener.collected}
+        return schedule, len(schedule) == len(DAYS)
+
+    async def async_write(self, channel: str, schedule: Schedule) -> int:
+        cluster = self._cluster(channel)
+        commands = schedule_commands(schedule)
+        for command in commands:
+            _LOGGER.debug("%s set_weekly_schedule: %s", channel, command)
+            try:
+                rsp = await cluster.set_weekly_schedule(**command)
+            except (TimeoutError, ZigbeeException) as err:
+                raise HomeAssistantError(f"Receiver didn't respond: {err}") from err
+            if (status := getattr(rsp, "status", Status.SUCCESS)) != Status.SUCCESS:
+                raise HomeAssistantError(f"Receiver rejected the schedule: {status}")
+            # Same pacing as Z2M writes.
+            await asyncio.sleep(0.5)
+        return len(commands)

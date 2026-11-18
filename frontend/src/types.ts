@@ -21,7 +21,7 @@ export type Schedule = Partial<Record<Day, Transition[]>>;
 export interface Device {
   entry_id: string;
   name: string;
-  model: string | null; // Z2M model, e.g. "SLR1c"
+  model: string | null; // receiver model from Z2M or ZHA, e.g. "SLR1c"
   channels: Channel[];
 }
 

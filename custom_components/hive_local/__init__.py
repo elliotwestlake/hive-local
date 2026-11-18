@@ -1,4 +1,4 @@
-"""Hive Local — local control of Hive receivers via Zigbee2MQTT."""
+"""Hive Local — local control of Hive receivers via Zigbee2MQTT or ZHA."""
 
 from __future__ import annotations
 
@@ -17,15 +17,19 @@ from . import services, websocket
 from .const import (
     CONF_BASE_TOPIC,
     CONF_DEVICE,
+    CONF_DEVICE_ID,
     CONF_MODEL,
+    CONF_TRANSPORT,
     DOMAIN,
     MODEL_SLR2,
     PANEL_COMPONENT,
     PANEL_URL,
     STATIC_URL,
+    TRANSPORT_Z2M,
+    TRANSPORT_ZHA,
 )
 from .data import HiveConfigEntry, HiveData
-from .transports import Z2MTransport
+from .transports import Transport, Z2MTransport
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,16 +57,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
-    if not await mqtt.async_wait_for_mqtt_client(hass):
-        raise ConfigEntryNotReady("MQTT is not connected")
-
-    transport = Z2MTransport(
-        hass,
-        entry.entry_id,
-        base_topic=entry.data[CONF_BASE_TOPIC],
-        device=entry.data[CONF_DEVICE],
-        multi_endpoint=entry.data[CONF_MODEL] == MODEL_SLR2,
-    )
+    transport = await _async_transport(hass, entry)
     await transport.async_start()
     entry.runtime_data = HiveData(transport)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -80,6 +75,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
             require_admin=False,
         )
     return True
+
+
+async def _async_transport(hass: HomeAssistant, entry: HiveConfigEntry) -> Transport:
+    if entry.data.get(CONF_TRANSPORT, TRANSPORT_Z2M) == TRANSPORT_ZHA:
+        # Only ZHA entries import zigpy / the ZHA integration.
+        from .transports.zha import ZHATransport, find_receiver
+
+        try:
+            _device, clusters = find_receiver(hass, entry.data[CONF_DEVICE_ID])
+        except LookupError as err:
+            raise ConfigEntryNotReady(f"ZHA isn't ready: {err}") from err
+        return ZHATransport(hass, entry.entry_id, clusters)
+
+    if not await mqtt.async_wait_for_mqtt_client(hass):
+        raise ConfigEntryNotReady("MQTT is not connected")
+    return Z2MTransport(
+        hass,
+        entry.entry_id,
+        base_topic=entry.data[CONF_BASE_TOPIC],
+        device=entry.data[CONF_DEVICE],
+        multi_endpoint=entry.data[CONF_MODEL] == MODEL_SLR2,
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:

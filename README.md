@@ -2,7 +2,7 @@
 
 Local control of Hive receivers from Home Assistant, with no Hive cloud involved. It adds a **Hive** sidebar panel and entities for boost and mode. Schedules are written to the receiver itself, so they keep running if HA is down.
 
-Works with Hive receivers paired to **Zigbee2MQTT** (SLR1, SLR1b/c/d, OTR1, SLR2, SLR2b/c/d). ZHA support is planned.
+Works with Hive receivers (SLR1, SLR1b/c/d, OTR1, SLR2, SLR2b/c/d) paired to **Zigbee2MQTT** or **ZHA**. ZHA support is new and hasn't been tried on a real receiver yet.
 
 > ⚠️ Early and experimental. Z2M includes the standard Zigbee `setWeeklySchedule` / `getWeeklySchedule` commands for these receivers but hides them from its UI. Reading works on a real SLR1-style receiver. Writing is still being tested, so read before you write, and check the change shows on the thermostat.
 
@@ -12,7 +12,12 @@ Works with Hive receivers paired to **Zigbee2MQTT** (SLR1, SLR1b/c/d, OTR1, SLR2
 
 **Manual:** copy `custom_components/hive_local` into your HA `config/custom_components/`, then restart.
 
-Then go to **Settings → Devices & services → Add integration → Hive Local**. Confirm the Z2M base topic (default `zigbee2mqtt`), then pick your receiver from the list. The receiver type (heating only, or heating + hot water) is detected from Zigbee2MQTT.
+Then go to **Settings → Devices & services → Add integration → Hive Local** and choose how the receiver is connected:
+
+- **Zigbee2MQTT:** confirm the base topic (default `zigbee2mqtt`), then pick your receiver from the list.
+- **ZHA:** pick the receiver from your ZHA devices (the SLR/OTR receiver, not the wall thermostat).
+
+The receiver type (heating only, or heating + hot water) is detected automatically.
 
 > Upgrading from **Hive Schedule**? The integration was renamed. Delete the old Hive Schedule entry and its `custom_components/hive_schedule` folder, then add Hive Local.
 
@@ -52,9 +57,9 @@ data:
   temperature: 21
 ```
 
-### Replacing Zigbee2MQTT's own entities
+### Replacing Zigbee2MQTT's or ZHA's own entities
 
-Zigbee2MQTT's MQTT discovery also creates climate entities for the receiver. Those don't know about Hive's schedule/manual/boost behaviour. Once Hive Local is working, disable them in HA: **Settings → Devices & services → MQTT → the receiver → the climate entities → ⚙ → Enabled: off**. Zigbee2MQTT keeps handling the Zigbee side, and Hive Local's entities become the only ones you use.
+Zigbee2MQTT's MQTT discovery and ZHA both create their own climate entities for the receiver. Those don't know about Hive's schedule/manual/boost behaviour. Once Hive Local is working, disable them in HA: **Settings → Devices & services → MQTT (or ZHA) → the receiver → the climate entities → ⚙ → Enabled: off**. Zigbee2MQTT or ZHA keeps handling the Zigbee side, and Hive Local's entities become the only ones you use.
 
 ### Hot water values
 
