@@ -6431,8 +6431,10 @@ select, input[type=time] { font: inherit; font-size: 14px; padding: 8px 10px; bo
   .mode-tile { flex-direction: row; align-items: center; gap: 10px; }
   .mode-tile .icon-wrap { margin: 0; }
   .mode-tile .small { margin-left: auto; text-align: right; }
-  .tabs button span { display: none; }
-  .tabs button.on span { display: inline; }
+  /* Labels always visible on phones; drop the icons to make room. */
+  .tabs { padding: 0 4px; }
+  .tabs button { padding: 12px 10px 10px; font-size: 13px; }
+  .tabs .icon-wrap { display: none; }
   .device-name { display: none; }
 }
 `
