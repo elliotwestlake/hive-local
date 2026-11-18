@@ -2,6 +2,8 @@
 
 from datetime import timedelta
 
+from .schedule import HEAT_MAX, HEAT_MIN  # 1 °C = "off" in a schedule
+
 DOMAIN = "hive_local"
 
 CONF_TRANSPORT = "transport"
@@ -34,8 +36,6 @@ SIGNAL_STATUS = f"{DOMAIN}_status"
 # Hive app allows ~6 events per day; Zigbee spec allows 10 per command.
 MAX_TRANSITIONS = 6
 
-HEAT_MIN = 1.0  # Hive uses 1°C for "off" periods
-HEAT_MAX = 32.0
 BOOST_MIN_TEMP = 5.0  # Z2M docs: boost/manual setpoint is 5-32°C
 MANUAL_DEFAULT_TEMP = 20.0
 

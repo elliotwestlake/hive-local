@@ -101,3 +101,7 @@ def test_receiver_endpoints(model, eps, expected):
 ])
 def test_is_hive_thermostat(manufacturer, model, expected):
     assert z.is_hive_thermostat(manufacturer, model) is expected
+
+def test_parse_schedule_response_zero_is_off():
+    parsed = z.parse_schedule_response(0x02, 0x01, [390, 2000, 1320, 0, 1320, 0])
+    assert parsed["monday"] == [{"time": "06:30", "setpoint": 20.0}, {"time": "22:00", "setpoint": 1.0}]
