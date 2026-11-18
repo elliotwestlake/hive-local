@@ -72,3 +72,7 @@ ZHA_REFRESH_DELAY = 3.0
 
 # While boosting, re-read the hold duration so the remaining time stays current.
 BOOST_POLL_INTERVAL = timedelta(seconds=60)
+
+# If a boost is still running this long after it should have ended, end it ourselves
+# (the receiver can lose the hold duration and boost indefinitely).
+BOOST_DEADLINE_GRACE = timedelta(minutes=2)
