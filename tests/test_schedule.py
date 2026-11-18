@@ -58,3 +58,22 @@ def test_tidy_keeps_first_entry_per_time():
     t = s.tidy_transitions([{"time": "22:00", "setpoint": 18.0}, {"time": "06:30", "setpoint": 20.0},
                             {"time": "22:00", "setpoint": 1.0}])
     assert t == [{"time": "06:30", "setpoint": 20.0}, {"time": "22:00", "setpoint": 18.0}]
+
+def test_read_edit_write_with_zero_degree_off():
+    # The receiver can report an "off" period as 0 °C. Read -> remove an event -> write must work.
+    reply = {"days": ["monday"], "transitions": [
+        {"time": 390, "heating_setpoint": 20}, {"time": 510, "heating_setpoint": 0},
+        {"time": 1020, "heating_setpoint": 21}, {"time": 1320, "heating_setpoint": 0}]}
+    day = s.parse_z2m_reply(reply)["monday"]
+    assert [t["setpoint"] for t in day] == [20.0, 1.0, 21.0, 1.0]
+    edited = {"monday": [t for t in day if t["time"] != "17:00"]}
+    s.validate(edited, max_transitions=6, min_setpoint=s.HEAT_MIN, max_setpoint=s.HEAT_MAX)
+
+def test_tidy_drops_impossible_setpoints():
+    t = s.tidy_transitions([{"time": "06:30", "setpoint": 20.0}, {"time": "07:00", "setpoint": 327.67}])
+    assert t == [{"time": "06:30", "setpoint": 20.0}]
+
+def test_validate_error_names_day_and_time():
+    with pytest.raises(s.ScheduleError, match=r"Monday 08:30: 0 °C is outside 1–32 °C"):
+        s.validate({"monday": [{"time": "08:30", "setpoint": 0}]}, max_transitions=6,
+                   min_setpoint=1.0, max_setpoint=32.0)

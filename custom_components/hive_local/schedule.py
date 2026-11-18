@@ -18,6 +18,7 @@ Z2M wire formats (zigbee-herdsman-converters thermostat_weekly_schedule):
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
 
@@ -32,6 +33,12 @@ DAYS: tuple[str, ...] = (
 )
 
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
+
+_LOGGER = logging.getLogger(__name__)
+
+# Hive heating setpoints (re-exported by const.py). 1 °C means "off" in a schedule.
+HEAT_MIN = 1.0
+HEAT_MAX = 32.0
 
 
 class ScheduleError(ValueError):
@@ -56,7 +63,13 @@ def schedule_key(channel: str | None) -> str:
 
 
 def tidy_transitions(transitions: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Drop repeated times and sort.
+    """Make a day read from the receiver safe to show and write back.
+
+    Setpoints below HEAT_MIN are "off" (the receiver can report 0 °C), so they
+    become HEAT_MIN. Ones above HEAT_MAX aren't real Hive setpoints and are
+    dropped. Otherwise validate() rejects the day on write-back.
+
+    Then repeated times are dropped and the day sorted.
 
     The receiver always answers with 6 transitions per day and pads a shorter day
     by repeating entries at the same time (e.g. 22:00 1 °C three times). Keep the
@@ -66,6 +79,11 @@ def tidy_transitions(transitions: list[dict[str, Any]]) -> list[dict[str, Any]]:
     seen: set[str] = set()
     out = []
     for t in transitions:
+        if t["setpoint"] > HEAT_MAX:
+            _LOGGER.warning("Ignoring %s °C at %s from the receiver (not a Hive setpoint)", t["setpoint"], t["time"])
+            continue
+        if t["setpoint"] < HEAT_MIN:
+            t = {**t, "setpoint": HEAT_MIN}
         if t["time"] not in seen:
             seen.add(t["time"])
             out.append(t)
@@ -125,7 +143,8 @@ def validate(
                 raise ScheduleError(f"{day}: invalid setpoint") from err
             if not min_setpoint <= setpoint <= max_setpoint:
                 raise ScheduleError(
-                    f"{day}: setpoint {setpoint} outside {min_setpoint}-{max_setpoint}"
+                    f"{day.capitalize()} {minutes_to_hhmm(minutes)}: {setpoint:g} °C is outside "
+                    f"{min_setpoint:g}–{max_setpoint:g} °C"
                 )
             out.append({"time": minutes_to_hhmm(minutes), "setpoint": setpoint})
         out.sort(key=lambda t: t["time"])
