@@ -55,6 +55,23 @@ def schedule_key(channel: str | None) -> str:
     return f"weekly_schedule_{channel}" if channel else "weekly_schedule"
 
 
+def tidy_transitions(transitions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop repeated times and sort.
+
+    The receiver always answers with 6 transitions per day and pads a shorter day
+    by repeating entries at the same time (e.g. 22:00 1 °C three times). Keep the
+    first entry for each time (the real one; padding comes after it). Without this
+    the panel shows duplicate events and validate() rejects the day on write-back.
+    """
+    seen: set[str] = set()
+    out = []
+    for t in transitions:
+        if t["time"] not in seen:
+            seen.add(t["time"])
+            out.append(t)
+    return sorted(out, key=lambda t: t["time"])
+
+
 def parse_z2m_reply(value: Any) -> dict[str, list[dict[str, Any]]]:
     """Turn one Z2M weekly_schedule reply into {day: transitions}."""
     if not isinstance(value, dict):
@@ -70,7 +87,7 @@ def parse_z2m_reply(value: Any) -> dict[str, list[dict[str, Any]]]:
         transitions.append(
             {"time": minutes_to_hhmm(item["time"]), "setpoint": float(setpoint)}
         )
-    transitions.sort(key=lambda t: t["time"])
+    transitions = tidy_transitions(transitions)
     return {day: list(transitions) for day in days if day in DAYS}
 
 

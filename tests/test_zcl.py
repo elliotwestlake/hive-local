@@ -72,7 +72,9 @@ def test_parse_schedule_response():
     assert list(parsed) == ["monday"]
     assert parsed["monday"][:2] == [{"time": "06:30", "setpoint": 20.0},
                                     {"time": "08:30", "setpoint": 16.0}]
-    assert len(parsed["monday"]) == 6
+    # The padding repeats 22:00 1 °C: one event, not three.
+    assert parsed["monday"] == [{"time": "06:30", "setpoint": 20.0}, {"time": "08:30", "setpoint": 16.0},
+                                {"time": "17:00", "setpoint": 21.0}, {"time": "22:00", "setpoint": 1.0}]
 
 def test_parse_schedule_response_days_and_modes():
     assert list(z.parse_schedule_response(0x41 | 0x80, 0x01, [480, 2150])) == ["saturday", "sunday"]
