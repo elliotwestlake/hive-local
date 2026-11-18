@@ -10,6 +10,7 @@ import {
   type Schedule,
   type Transition,
 } from "./types";
+import { Icon } from "./Icon";
 
 type Status = { kind: "idle" | "busy" | "ok" | "error"; text?: string };
 
@@ -109,103 +110,146 @@ export function ScheduleEditor({
     });
 
   const range = useMemo(() => {
-    const all = Object.values(schedule).flat().map((t) => t!.setpoint);
-    return { lo: Math.min(5, ...all), hi: Math.max(22, ...all) };
-  }, [schedule]);
+    // Leave out schedule "off" periods (1°C) so they don't stretch the colour scale.
+    const all = Object.values(schedule).flat().map((t) => t!.setpoint).filter((t) => t > limits.heat_min);
+    return { lo: Math.min(15, ...all), hi: Math.max(24, ...all) };
+  }, [schedule, limits.heat_min]);
+
+  const today = DAYS[(new Date().getDay() + 6) % 7];
+  const now = useNow();
 
   return (
-    <>
-      <div className="toolbar">
-        <span className="spacer" />
-        <button onClick={read} disabled={status.kind === "busy"}>
-          Read
-        </button>
-        <button className="primary" onClick={write} disabled={!dirty || status.kind === "busy"}>
-          Write to receiver
-        </button>
-      </div>
+    <div className="stack">
+      <section className={`card ${channel}`}>
+        <div className="card-head">
+          <div className="title">
+            <Icon name={isWater ? "water-boiler" : "radiator"} className="title-icon" />
+            <div>
+              <h2>{isWater ? "Hot water schedule" : "Heating schedule"}</h2>
+              <div className="muted small">Stored on the receiver, so it keeps running without HA.</div>
+            </div>
+          </div>
+          <div className="toolbar">
+            {dirty && <span className="chip unsaved">Unsaved changes</span>}
+            <button onClick={read} disabled={status.kind === "busy"}>
+              <Icon name="download" /> Read
+            </button>
+            <button className="primary" onClick={write} disabled={!dirty || status.kind === "busy"}>
+              <Icon name="upload" /> Write to receiver
+            </button>
+          </div>
+        </div>
 
-      {status.text && <div className={`status ${status.kind}`}>{status.text}</div>}
+        {status.text && <div className={`status ${status.kind}`}>{status.text}</div>}
 
-      <section className="card">
         <div className="week">
           {DAYS.map((d) => (
             <button key={d} className={`row ${d === day ? "selected" : ""}`} onClick={() => setDay(d)}>
-              <span className="day">{label(d)}</span>
-              <Timeline transitions={schedule[d]} isWater={isWater} limits={limits} range={range} />
+              <span className={`day ${d === today ? "today" : ""}`}>{label(d)}</span>
+              <Timeline
+                transitions={schedule[d]}
+                isWater={isWater}
+                limits={limits}
+                range={range}
+                now={d === today ? now : null}
+              />
             </button>
           ))}
-          <div className="hours">
-            {[0, 6, 12, 18, 24].map((h) => (
-              <span key={h} style={{ left: `${(h / 24) * 100}%` }}>
-                {String(h).padStart(2, "0")}
-              </span>
-            ))}
+          <div className="row hours-row">
+            <span className="day" />
+            <div className="hours">
+              {[0, 3, 6, 9, 12, 15, 18, 21, 24].map((h) => (
+                <span key={h} style={{ left: `${(h / 24) * 100}%` }}>
+                  {String(h).padStart(2, "0")}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
+        {!isWater && (
+          <div className="legend">
+            <span className="muted small">Cooler</span>
+            <span className="legend-bar" />
+            <span className="muted small">Warmer</span>
+            <span className="legend-off" />
+            <span className="muted small">Off (1°)</span>
+          </div>
+        )}
       </section>
 
       <section className="card">
         <div className="card-head">
           <h2>{day[0].toUpperCase() + day.slice(1)}</h2>
-          <span className="muted">
+          <span className="chip">
             {transitions.length}/{max} events
           </span>
         </div>
         {transitions.length === 0 && <p className="muted">No events for this day yet.</p>}
-        {transitions.map((t, i) => (
-          <div className="transition" key={i}>
-            <input
-              type="time"
-              value={t.time}
-              onChange={(e) =>
-                updateDay(transitions.map((x, j) => (j === i ? { ...x, time: e.target.value } : x)))
-              }
-            />
-            {isWater ? (
-              <div className="segmented">
-                {(["on", "off"] as const).map((v) => {
-                  const sp = v === "on" ? limits.water_on : limits.water_off;
-                  return (
-                    <button
-                      key={v}
-                      className={t.setpoint === sp ? "on" : ""}
-                      onClick={() => updateDay(transitions.map((x, j) => (j === i ? { ...x, setpoint: sp } : x)))}
-                    >
-                      {v === "on" ? "On" : "Off"}
-                    </button>
-                  );
-                })}
-                {t.setpoint !== limits.water_on && t.setpoint !== limits.water_off && (
-                  <span className="muted raw" title="Value read from the receiver doesn't match WATER_ON/WATER_OFF in const.py">
-                    {t.setpoint}°?
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div className="setpoint">
-                <button className="icon" onClick={() => bump(i, -0.5)}>−</button>
-                <span>{t.setpoint.toFixed(1)}°</span>
-                <button className="icon" onClick={() => bump(i, 0.5)}>+</button>
-              </div>
-            )}
-            <button className="icon danger" onClick={() => updateDay(transitions.filter((_, j) => j !== i))} aria-label="Remove">
-              ✕
-            </button>
-          </div>
-        ))}
+        <div className="events">
+          {transitions.map((t, i) => (
+            <div className="transition" key={i}>
+              <span
+                className="swatch"
+                style={{ background: isWater ? (t.setpoint >= limits.water_on ? "var(--hl-water)" : "var(--hl-off-fill)") : heatColor(t.setpoint, range, limits) }}
+              />
+              <input
+                type="time"
+                value={t.time}
+                onChange={(e) =>
+                  updateDay(transitions.map((x, j) => (j === i ? { ...x, time: e.target.value } : x)))
+                }
+              />
+              {isWater ? (
+                <div className="segmented">
+                  {(["on", "off"] as const).map((v) => {
+                    const sp = v === "on" ? limits.water_on : limits.water_off;
+                    return (
+                      <button
+                        key={v}
+                        className={t.setpoint === sp ? "on" : ""}
+                        onClick={() => updateDay(transitions.map((x, j) => (j === i ? { ...x, setpoint: sp } : x)))}
+                      >
+                        {v === "on" ? "On" : "Off"}
+                      </button>
+                    );
+                  })}
+                  {t.setpoint !== limits.water_on && t.setpoint !== limits.water_off && (
+                    <span className="muted raw" title="Value read from the receiver doesn't match WATER_ON/WATER_OFF in const.py">
+                      {t.setpoint}°?
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="stepper">
+                  <button className="round" onClick={() => bump(i, -0.5)} aria-label="Lower">
+                    <Icon name="minus" />
+                  </button>
+                  <span className="stepper-value">{t.setpoint <= limits.heat_min ? "Off" : `${t.setpoint.toFixed(1)}°`}</span>
+                  <button className="round" onClick={() => bump(i, 0.5)} aria-label="Raise">
+                    <Icon name="plus" />
+                  </button>
+                </div>
+              )}
+              <button className="round danger" onClick={() => updateDay(transitions.filter((_, j) => j !== i))} aria-label="Remove">
+                <Icon name="delete-outline" />
+              </button>
+            </div>
+          ))}
+        </div>
         <div className="actions">
           <button onClick={addTransition} disabled={transitions.length >= max}>
-            + Add event
+            <Icon name="plus" /> Add event
           </button>
           <span className="spacer" />
-          <span className="muted">Copy to:</span>
-          <button onClick={() => copyTo(WEEKDAYS)} disabled={!transitions.length}>Weekdays</button>
-          <button onClick={() => copyTo(WEEKEND)} disabled={!transitions.length}>Weekend</button>
-          <button onClick={() => copyTo([...DAYS])} disabled={!transitions.length}>All</button>
+          <span className="muted small">Copy this day to</span>
+          <div className="segmented">
+            <button onClick={() => copyTo(WEEKDAYS)} disabled={!transitions.length}>Weekdays</button>
+            <button onClick={() => copyTo(WEEKEND)} disabled={!transitions.length}>Weekend</button>
+            <button onClick={() => copyTo([...DAYS])} disabled={!transitions.length}>All</button>
+          </div>
         </div>
       </section>
-    </>
+    </div>
   );
 
   function bump(i: number, delta: number) {
@@ -226,18 +270,42 @@ function nextFreeTime(ts: Transition[], start: number) {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
 
+/** Minutes since midnight, refreshed every minute. */
+function useNow() {
+  const get = () => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  };
+  const [now, setNow] = useState(get);
+  useEffect(() => {
+    const id = setInterval(() => setNow(get()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+/** Soft amber for cooler setpoints through to deep orange-red for warmer; schedule "off" (1°C) is neutral. */
+function heatColor(setpoint: number, range: { lo: number; hi: number }, limits: Limits) {
+  if (setpoint <= limits.heat_min) return "var(--hl-off-fill)";
+  const f = Math.min(1, Math.max(0, (setpoint - range.lo) / Math.max(1, range.hi - range.lo)));
+  return `hsl(${Math.round(42 - 34 * f)} ${Math.round(88 + 4 * f)}% ${Math.round(64 - 14 * f)}%)`;
+}
+
 function Timeline({
   transitions,
   isWater,
   limits,
   range,
+  now,
 }: {
   transitions?: Transition[];
   isWater: boolean;
   limits: Limits;
   range: { lo: number; hi: number };
+  now: number | null;
 }) {
-  if (!transitions?.length) return <div className="timeline empty" />;
+  const marker = now != null && <i className="now" style={{ left: `${(now / 1440) * 100}%` }} />;
+  if (!transitions?.length) return <div className="timeline empty">{marker}</div>;
   const sorted = [...transitions].sort((a, b) => toMin(a.time) - toMin(b.time));
   // Before the first event of the day the previous day's last setpoint applies;
   // approximate with this day's last one.
@@ -248,22 +316,23 @@ function Timeline({
         const start = toMin(t.time);
         const end = i + 1 < segs.length ? toMin(segs[i + 1].time) : 1440;
         if (end <= start) return null;
-        const on = isWater ? t.setpoint >= limits.water_on : false;
-        const heat = (t.setpoint - range.lo) / Math.max(1, range.hi - range.lo);
+        const off = isWater ? t.setpoint < limits.water_on : t.setpoint <= limits.heat_min;
         return (
           <span
             key={i}
-            title={`${t.time} → ${isWater ? (on ? "On" : "Off") : `${t.setpoint}°`}`}
+            className={off ? "off" : ""}
+            title={`${t.time} → ${isWater ? (off ? "Off" : "On") : off ? "Off" : `${t.setpoint}°`}`}
             style={{
               left: `${(start / 1440) * 100}%`,
               width: `${((end - start) / 1440) * 100}%`,
-              opacity: isWater ? (on ? 1 : 0.12) : 0.15 + 0.85 * heat,
+              background: off ? undefined : isWater ? "var(--hl-water)" : heatColor(t.setpoint, range, limits),
             }}
           >
-            {!isWater && end - start >= 120 ? `${t.setpoint}°` : ""}
+            {!isWater && !off && end - start >= 120 ? `${t.setpoint}°` : ""}
           </span>
         );
       })}
+      {marker}
     </div>
   );
 }
