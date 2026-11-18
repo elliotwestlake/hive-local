@@ -69,6 +69,13 @@ class Transport(ABC):
         self.check_channel(channel)
         await self._async_boost(channel, minutes, setpoint if channel == CHANNEL_HEAT else None)
 
+    async def async_set_setpoint(self, channel: str, setpoint: float) -> None:
+        """Change only the heating setpoint; on schedule it lasts until the next change."""
+        self.check_channel(channel)
+        if channel != CHANNEL_HEAT:
+            raise ScheduleError("Hot water has no temperature")
+        await self._async_set_setpoint(channel, setpoint)
+
     async def async_cancel_boost(self, channel: str) -> None:
         """Go back to whatever the channel was doing before the boost."""
         mode, setpoint = self._resume.get(channel, (MODE_SCHEDULE, None))
@@ -93,6 +100,10 @@ class Transport(ABC):
     @abstractmethod
     async def _async_set_mode(self, channel: str, mode: str, setpoint: float | None) -> None:
         """Send a mode change."""
+
+    @abstractmethod
+    async def _async_set_setpoint(self, channel: str, setpoint: float) -> None:
+        """Send just a setpoint change."""
 
     @abstractmethod
     async def _async_boost(self, channel: str, minutes: int, setpoint: float | None) -> None:

@@ -2,7 +2,7 @@
 
 auto = follow the onboard schedule, heat = manual hold, off = off.
 Boost is a preset; clearing it goes back to whatever was running before.
-Changing the temperature on auto is a boost (a timed override back to the schedule).
+Changing the temperature on auto overrides it until the next scheduled change.
 """
 
 from __future__ import annotations
@@ -102,16 +102,23 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
         return max(setpoint, BOOST_MIN_TEMP)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
-        """On auto, a new temperature is a timed override (a boost) that then returns
-        to the schedule. Otherwise it's a manual hold, like turning the thermostat dial.
+        """Like turning the thermostat dial.
+
+        - Boosting: change the boost temperature, keeping the time left.
+        - auto: override until the next scheduled change (only the setpoint is sent).
+        - heat: change the manual hold.
         """
         hvac_mode = kwargs.get(ATTR_HVAC_MODE)
         if hvac_mode == HVACMode.OFF:
             await self.async_set_hvac_mode(HVACMode.OFF)
             return
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            if (hvac_mode or self.hvac_mode) == HVACMode.AUTO:
-                await self._run(self._data.async_boost(self._channel, self._override_minutes(), temperature))
+            if hvac_mode is None and self.preset_mode == PRESET_BOOST:
+                await self._run(self._data.async_boost(self._channel, self._boost_minutes_left(), temperature))
+            elif (hvac_mode or self.hvac_mode) == HVACMode.AUTO:
+                if hvac_mode is not None and self.hvac_mode != HVACMode.AUTO:
+                    await self.async_set_hvac_mode(HVACMode.AUTO)
+                await self._run(self._data.transport.async_set_setpoint(self._channel, temperature))
             else:
                 await self._run(self._data.transport.async_set_mode(self._channel, MODE_MANUAL, temperature))
         elif hvac_mode is not None:
@@ -126,8 +133,8 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
         elif self.preset_mode == PRESET_BOOST:
             await self._run(self._data.transport.async_cancel_boost(self._channel))
 
-    def _override_minutes(self) -> int | None:
-        """Changing the temperature mid-boost keeps the time left; otherwise use the default."""
+    def _boost_minutes_left(self) -> int | None:
+        """Changing the temperature mid-boost keeps the time left (None: use the default)."""
         if self._status and self._status["mode"] == MODE_BOOST and self._status["boost_remaining"]:
             return self._status["boost_remaining"]
         return None
