@@ -22,14 +22,17 @@ from zigpy.zcl import (
 from zigpy.zcl.clusters.hvac import Thermostat
 from zigpy.zcl.foundation import Status
 
-from homeassistant.components.zha.helpers import async_get_zha_device_proxy
+from homeassistant.components.zha.helpers import async_get_zha_device_proxy, get_zha_gateway
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
+from homeassistant.util import dt as dt_util
 
 from ..const import (
     BOOST_POLL_INTERVAL,
+    DOMAIN,
     READ_TIMEOUT,
+    THERMOSTAT_REPORTING_REFRESH,
     ZHA_REFRESH_DELAY,
     ZHA_REFRESH_INTERVAL,
 )
@@ -40,8 +43,10 @@ from ..zcl import (
     HOLD_ATTRS,
     SEQ_MODE_HEAT,
     STATE_ATTRS,
+    TEMPERATURE_REPORTING,
     boost_attributes,
     channel_status,
+    is_hive_thermostat,
     mode_attributes,
     parse_schedule_response,
     receiver_endpoints,
@@ -101,6 +106,96 @@ class _ScheduleListener:
             self.all_days.set()
 
 
+TEMPERATURE_CLUSTER = 0x0402
+# ieees of Hive thermostats some transport is already looking after (one per HA).
+THERMOSTATS_WATCHED = f"{DOMAIN}_thermostats_watched"
+
+
+class _ThermostatReporting:
+    """Keep Hive SLT thermostats on ZHA reporting temperature often enough (see zcl.py).
+
+    The thermostat sleeps, so we configure it right after it sends a report, when
+    it's awake. Once it has accepted, we leave it alone for a day, then do it again in
+    case ZHA reconfigured it.
+    """
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        self.hass = hass
+        self._unsubs: list[CALLBACK_TYPE] = []
+        self._watched: set[str] = hass.data.setdefault(THERMOSTATS_WATCHED, set())
+        self._mine: set[str] = set()
+        self._done: dict[str, datetime] = {}
+        self._busy: set[str] = set()
+
+    @callback
+    def start(self) -> None:
+        try:
+            devices = list(get_zha_gateway(self.hass).devices.values())
+        except ValueError:
+            return
+        for device in devices:
+            ieee = str(device.ieee)
+            if ieee in self._watched or not is_hive_thermostat(device.manufacturer, device.model):
+                continue
+            cluster = next(
+                (
+                    ep.in_clusters[TEMPERATURE_CLUSTER]
+                    for ep_id, ep in device.device.endpoints.items()
+                    if ep_id != 0 and TEMPERATURE_CLUSTER in ep.in_clusters
+                ),
+                None,
+            )
+            if cluster is None:
+                continue
+            self._watched.add(ieee)
+            self._mine.add(ieee)
+            for event in (AttributeReportedEvent, AttributeUpdatedEvent):
+                self._unsubs.append(
+                    cluster.on_event(event.event_type, partial(self._on_report, ieee, cluster))
+                )
+            # It might be awake now (e.g. just paired); otherwise its next report will do.
+            self._apply_soon(ieee, cluster)
+
+    @callback
+    def stop(self) -> None:
+        while self._unsubs:
+            self._unsubs.pop()()
+        self._watched.difference_update(self._mine)
+        self._mine.clear()
+
+    @callback
+    def _on_report(self, ieee: str, cluster: Cluster, event: Any) -> None:
+        done = self._done.get(ieee)
+        if done is None or dt_util.utcnow() - done >= THERMOSTAT_REPORTING_REFRESH:
+            self._apply_soon(ieee, cluster)
+
+    @callback
+    def _apply_soon(self, ieee: str, cluster: Cluster) -> None:
+        if ieee not in self._busy:
+            self._busy.add(ieee)
+            self.hass.async_create_background_task(
+                self._apply(ieee, cluster), f"hive_local thermostat reporting {ieee}"
+            )
+
+    async def _apply(self, ieee: str, cluster: Cluster) -> None:
+        min_s, max_s, change = TEMPERATURE_REPORTING
+        try:
+            records = await cluster.configure_reporting("measured_value", min_s, max_s, change)
+        except (TimeoutError, ZigbeeException) as err:
+            _LOGGER.debug("Thermostat %s asleep, will retry on its next report: %s", ieee, err)
+            return
+        finally:
+            self._busy.discard(ieee)
+        if all(r.status == Status.SUCCESS for r in records):
+            if ieee not in self._done:
+                _LOGGER.info(
+                    "Hive thermostat %s now reports temperature at least every %s s", ieee, max_s
+                )
+            self._done[ieee] = dt_util.utcnow()
+        else:
+            _LOGGER.warning("Hive thermostat %s refused the reporting change: %s", ieee, records)
+
+
 class ZHATransport(Transport):
     def __init__(
         self, hass: HomeAssistant, entry_id: str, clusters: dict[str, Cluster]
@@ -109,6 +204,7 @@ class ZHATransport(Transport):
         self._clusters = clusters
         self._unsubs: list[CALLBACK_TYPE] = []
         self._pending_refresh: dict[str, CALLBACK_TYPE] = {}
+        self._thermostats = _ThermostatReporting(hass)
 
     def _cluster(self, channel: str) -> Cluster:
         self.check_channel(channel)
@@ -132,8 +228,10 @@ class ZHATransport(Transport):
         self.hass.async_create_background_task(
             self._refresh_all(), f"hive_local refresh {self.entry_id}"
         )
+        self._thermostats.start()
 
     async def async_stop(self) -> None:
+        self._thermostats.stop()
         self._clear_deadlines()
         while self._unsubs:
             self._unsubs.pop()()
