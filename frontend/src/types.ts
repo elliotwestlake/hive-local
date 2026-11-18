@@ -49,6 +49,7 @@ export interface ChannelInfo {
   status: ChannelStatus | null; // null until the receiver has reported
   boost_minutes: number;
   boost_temperature: number;
+  frost_temperature: number; // HA-side setting, shown during schedule "off" periods
 }
 
 /** entry_id -> channel -> info, pushed by hive_local/subscribe. */

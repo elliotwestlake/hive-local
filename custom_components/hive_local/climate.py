@@ -23,7 +23,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, HEAT_MAX
+from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, HEAT_MAX, HEAT_MIN
 from .data import HiveConfigEntry
 from .entity import HiveStatusEntity
 from .schedule import ScheduleError
@@ -94,9 +94,11 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
         setpoint = self._status["setpoint"]
         if not isinstance(setpoint, (int, float)):
             return None
-        # Hive uses 1°C for "off" periods in a schedule. HA hides the target control
-        # when there's no target, so show the minimum instead: it stays adjustable
-        # (adjusting holds the new temperature, like turning the thermostat dial).
+        # Hive reports 1°C during a schedule "off" period, when the thermostat really
+        # holds its frost-protection temperature. Show that (set in HA to match the
+        # thermostat) so the target is meaningful and the control stays adjustable.
+        if setpoint <= HEAT_MIN:
+            return self._data.boost_defaults(self._channel).frost
         return max(setpoint, BOOST_MIN_TEMP)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
