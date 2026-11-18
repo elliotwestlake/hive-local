@@ -88,9 +88,15 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
 
     @property
     def target_temperature(self) -> float | None:
-        # Hive uses 1°C for "off" periods in a schedule; that's not a real target.
-        setpoint = self._status["setpoint"] if self._status else None
-        return setpoint if isinstance(setpoint, (int, float)) and setpoint >= BOOST_MIN_TEMP else None
+        if not self._status or self._status["mode"] == MODE_OFF:
+            return None
+        setpoint = self._status["setpoint"]
+        if not isinstance(setpoint, (int, float)):
+            return None
+        # Hive uses 1°C for "off" periods in a schedule. HA hides the target control
+        # when there's no target, so show the minimum instead: it stays adjustable
+        # (adjusting holds the new temperature, like turning the thermostat dial).
+        return max(setpoint, BOOST_MIN_TEMP)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Setting a temperature holds it (manual), like turning the thermostat dial."""
