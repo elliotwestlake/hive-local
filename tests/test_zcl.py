@@ -92,3 +92,10 @@ def test_parse_schedule_response_days_and_modes():
 ])
 def test_receiver_endpoints(model, eps, expected):
     assert z.receiver_endpoints(model, eps) == expected
+
+@pytest.mark.parametrize("manufacturer, model, expected", [
+    ("Computime", "SLT3d", True), ("Hive", "SLT6", True), (None, "SLT3", True),
+    ("Computime", "SLR1c", False), ("Computime", "OTR1", False), ("Acme", "SLT-9000", False),
+])
+def test_is_hive_thermostat(manufacturer, model, expected):
+    assert z.is_hive_thermostat(manufacturer, model) is expected

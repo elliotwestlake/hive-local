@@ -62,6 +62,14 @@ data:
 
 Zigbee2MQTT's MQTT discovery and ZHA both create their own climate entities for the receiver. Those don't know about Hive's schedule/manual/boost behaviour. Once Hive Local is working, disable them in HA: **Settings → Devices & services → MQTT (or ZHA) → the receiver → the climate entities → ⚙ → Enabled: off**. Zigbee2MQTT or ZHA keeps handling the Zigbee side, and Hive Local's entities become the only ones you use.
 
+### ZHA: receiver light goes red every few minutes
+
+On ZHA, a Hive receiver can lose its wall thermostat every few minutes: the light turns red, the boiler switches off, and the thermostat says "No signal". ZHA sets the thermostat to report its temperature only every 15 minutes, and the receiver gives up on it long before that ([zha-device-handlers#2776](https://github.com/zigpy/zha-device-handlers/issues/2776)).
+
+Hive Local fixes this for you on ZHA: it finds Hive SLT thermostats and sets them to report at least every 2 minutes. The thermostat sleeps, so this happens just after it next reports (within 15 minutes), and it's re-applied daily in case ZHA reconfigures it. The log shows `Hive thermostat … now reports temperature at least every 120 s` once it's done.
+
+If the thermostat says it isn't paired at all, re-pair it through the receiver: factory-reset the thermostat, then in ZHA open the receiver and use **Add devices via this device**.
+
 ### Hot water values
 
 The setpoints the receiver uses for hot water on/off in a schedule are **not yet confirmed**. They default to `WATER_ON = 22` and `WATER_OFF = 1` in `const.py`. Read your existing hot water schedule first. If the panel shows values like `22°?`, update the constants to match.
