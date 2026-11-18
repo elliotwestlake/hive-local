@@ -1,4 +1,9 @@
-# Hive Local
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/logo/logo-dark.png">
+    <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/logo/logo.png" alt="Hive Local" height="88">
+  </picture>
+</h1>
 
 <!-- ha-marketplace:exclude-start -->
 [![Open your Home Assistant instance and show Hive Local in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=elliotwestlake&repository=hive-local&category=integration)
@@ -6,7 +11,7 @@
 
 Local control of Hive heating and hot water from Home Assistant, with no Hive cloud and no Hive hub. It adds a **Hive** sidebar panel and entities for boost and mode. Schedules are written to the receiver itself, so they keep running if HA is down.
 
-![The Hive panel's Overview: heating following its schedule, and hot water on a boost.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/overview.png)
+![The Hive panel on a desktop and a phone: heating following its schedule, and hot water on a boost.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/hero.png)
 
 Works with Hive receivers (SLR1, SLR1b/c/d, OTR1, SLR2, SLR2b/c/d) paired to **Zigbee2MQTT** or **ZHA**.
 
@@ -43,10 +48,7 @@ Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 ![Boost & mode: Schedule, Manual or Off, and a boost with its length and temperature.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/controls.png)
 
-<p>
-  <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/phone.png" alt="The Overview on a phone." width="280">
-  <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/overview-dark.png" alt="The Overview in a dark theme." width="560">
-</p>
+![The Overview in a dark theme.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/overview-dark.png)
 
 ## Entities and actions
 
@@ -107,6 +109,11 @@ pytest -q tests                                # pure logic tests (no HA needed)
 
 The built bundle is committed so Marketplace users don't need a build step.
 
-### Screenshots
+### Screenshots and logo
 
-The README screenshots are the real panel bundle rendered with sample data: `docs/screenshots/harness/` has a page with a fake `hass` and HA's theme colours. To retake them after a panel change, serve that folder with the built `hive-local-panel.js` and an `icons.json` (from `build_icons.mjs`, which needs `@mdi/js`), then capture each tab with headless Chrome, e.g. `chrome-headless-shell --screenshot --window-size=900,620 --force-device-scale-factor=2 "http://127.0.0.1:8765/harness.html?tab=Overview"` (`tab=`, `narrow=1`, `theme=dark`).
+The README screenshots are the real panel bundle rendered with sample data. `docs/screenshots/harness/` has `harness.html` (a fake `hass` with HA's theme colours) and `compose.html` (the window frames, the desktop + phone hero and the social preview). To retake them after a panel change, serve that folder with the built `hive-local-panel.js` and an `icons.json` (from `build_icons.mjs`, which needs `@mdi/js`), then capture with headless Chrome:
+
+- **Raw tabs** (to `docs/screenshots/raw/`): `chrome-headless-shell --screenshot --window-size=900,620 --force-device-scale-factor=2 "http://127.0.0.1:8765/harness.html?tab=Overview"` (`tab=`, `narrow=1`, `theme=dark`).
+- **Framed:** `compose.html?kind=frame&img=schedule.png&w=900` (add `&theme=night` for the dark shot), `?kind=hero` and `?kind=social&logo=…/logo.svg`.
+
+The logo lives in `docs/logo/`: `icon.svg`, `logo.svg` and `logo-dark.svg` (for dark backgrounds), all with the text converted to outlines, plus PNG exports and `social-preview.png` (1280×640). `make_logo.py` regenerates the SVGs (`pip install fonttools`; the wordmark is Figtree, SIL Open Font License, and the script shows where to download it). The integration's `brand/` images are rendered from the same SVGs.
