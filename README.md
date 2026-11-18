@@ -1,8 +1,14 @@
 # Hive Local
 
-Local control of Hive receivers from Home Assistant, with no Hive cloud involved. It adds a **Hive** sidebar panel and entities for boost and mode. Schedules are written to the receiver itself, so they keep running if HA is down.
+<!-- ha-marketplace:exclude-start -->
+[![Open your Home Assistant instance and show Hive Local in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=elliotwestlake&repository=hive-local&category=integration)
+<!-- ha-marketplace:exclude-end -->
 
-Works with Hive receivers (SLR1, SLR1b/c/d, OTR1, SLR2, SLR2b/c/d) paired to **Zigbee2MQTT** or **ZHA**. ZHA support is new and hasn't been tried on a real receiver yet.
+Local control of Hive heating and hot water from Home Assistant, with no Hive cloud and no Hive hub. It adds a **Hive** sidebar panel and entities for boost and mode. Schedules are written to the receiver itself, so they keep running if HA is down.
+
+![The Hive panel's Overview: heating following its schedule, and hot water on a boost.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/overview.png)
+
+Works with Hive receivers (SLR1, SLR1b/c/d, OTR1, SLR2, SLR2b/c/d) paired to **Zigbee2MQTT** or **ZHA**.
 
 Hive Local is an independent community project. It isn't affiliated with, endorsed by or supported by Hive or Centrica. "Hive" is used only to describe the hardware it works with.
 
@@ -10,11 +16,15 @@ Hive Local is an independent community project. It isn't affiliated with, endors
 
 ## Install
 
-**Marketplace** (HA 2026.11+, formerly HACS): **Settings → Marketplace** → ⋮ → Custom repositories → add this repo as an *Integration* → install → restart HA. On older HA, use the same steps in HACS.
+**Marketplace** (HA 2026.11+, formerly HACS): use the **Open your Home Assistant instance** button above, or go to **Settings → Marketplace** → ⋮ → Custom repositories → add this repo as an *Integration*. Install it, then restart HA. On older HA, use the same steps in HACS.
 
 **Manual:** copy `custom_components/hive_local` into your HA `config/custom_components/`, then restart.
 
-Then go to **Settings → Devices & services → Add integration → Hive Local** and choose how the receiver is connected:
+Then add the integration:
+
+[![Open your Home Assistant instance and start setting up Hive Local.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hive_local)
+
+Or go to **Settings → Devices & services → Add integration → Hive Local**. Choose how the receiver is connected:
 
 - **Zigbee2MQTT:** confirm the base topic (default `zigbee2mqtt`), then pick your receiver from the list.
 - **ZHA:** pick the receiver from your ZHA devices (the SLR/OTR receiver, not the wall thermostat).
@@ -28,6 +38,15 @@ The receiver type (heating only, or heating + hot water) is detected automatical
 - **Boost & mode:** switch between Schedule, Manual (a fixed temperature) and Off, start a boost for a set time (and temperature, for heating), or cancel one.
 
 Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
+
+![The heating schedule: a week of colour-coded events, read from the receiver.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/schedule.png)
+
+![Boost & mode: Schedule, Manual or Off, and a boost with its length and temperature.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/controls.png)
+
+<p>
+  <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/phone.png" alt="The Overview on a phone." width="280">
+  <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/overview-dark.png" alt="The Overview in a dark theme." width="560">
+</p>
 
 ## Entities and actions
 
@@ -87,3 +106,7 @@ pytest -q tests                                # pure logic tests (no HA needed)
 ```
 
 The built bundle is committed so Marketplace users don't need a build step.
+
+### Screenshots
+
+The README screenshots are the real panel bundle rendered with sample data: `docs/screenshots/harness/` has a page with a fake `hass` and HA's theme colours. To retake them after a panel change, serve that folder with the built `hive-local-panel.js` and an `icons.json` (from `build_icons.mjs`, which needs `@mdi/js`), then capture each tab with headless Chrome, e.g. `chrome-headless-shell --screenshot --window-size=900,620 --force-device-scale-factor=2 "http://127.0.0.1:8765/harness.html?tab=Overview"` (`tab=`, `narrow=1`, `theme=dark`).
