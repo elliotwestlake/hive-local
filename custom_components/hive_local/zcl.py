@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .const import CHANNEL_HEAT, CHANNEL_WATER, ZHA_EP_HEAT, ZHA_EP_WATER
 from .schedule import DAYS, group_days, hhmm_to_minutes, minutes_to_hhmm
 from .z2m import BOOST_MAX_MINUTES, MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -51,6 +52,30 @@ STATE_ATTRS: tuple[str, ...] = (
 )
 # Not in ZHA's reporting config, so the transport has to read these itself.
 HOLD_ATTRS: tuple[str, ...] = ("system_mode", "temp_setpoint_hold", "temp_setpoint_hold_duration")
+
+
+# Like Z2M, the model decides how many channels a receiver has; some single-channel
+# receivers still list a Thermostat cluster on the hot water endpoint.
+SINGLE_CHANNEL_MODELS = ("SLR1", "OTR1")  # SLR1, SLR1b/c/d, OTR1
+DUAL_CHANNEL_MODELS = ("SLR2",)  # SLR2, SLR2b/c/d
+
+
+def receiver_endpoints(model: str | None, thermostat_eps: list[int]) -> dict[str, int]:
+    """{channel: endpoint} for a receiver, given the endpoints that have a Thermostat cluster.
+
+    Known single-channel models get heating only (endpoint 5), known dual-channel
+    models heating 5 + hot water 6. Unknown models go by the endpoints.
+    """
+    eps = sorted(thermostat_eps)
+    if not eps:
+        return {}
+    heat = ZHA_EP_HEAT if ZHA_EP_HEAT in eps else eps[0]
+    name = (model or "").upper()
+    if name.startswith(SINGLE_CHANNEL_MODELS):
+        return {CHANNEL_HEAT: heat}
+    if ZHA_EP_HEAT in eps and ZHA_EP_WATER in eps:
+        return {CHANNEL_HEAT: ZHA_EP_HEAT, CHANNEL_WATER: ZHA_EP_WATER}
+    return {CHANNEL_HEAT: heat}
 
 
 def _celsius(value: Any) -> float | None:

@@ -29,11 +29,7 @@ from homeassistant.helpers.event import async_call_later, async_track_time_inter
 
 from ..const import (
     BOOST_POLL_INTERVAL,
-    CHANNEL_HEAT,
-    CHANNEL_WATER,
     READ_TIMEOUT,
-    ZHA_EP_HEAT,
-    ZHA_EP_WATER,
     ZHA_REFRESH_DELAY,
     ZHA_REFRESH_INTERVAL,
 )
@@ -48,6 +44,7 @@ from ..zcl import (
     channel_status,
     mode_attributes,
     parse_schedule_response,
+    receiver_endpoints,
     schedule_commands,
     setpoint_attributes,
 )
@@ -78,12 +75,10 @@ def find_receiver(hass: HomeAssistant, device_id: str) -> tuple[Any, dict[str, C
         for ep_id, ep in device.device.endpoints.items()
         if ep_id != 0 and Thermostat.cluster_id in ep.in_clusters
     }
-    if ZHA_EP_HEAT in thermostats and ZHA_EP_WATER in thermostats:
-        return device, {CHANNEL_HEAT: thermostats[ZHA_EP_HEAT], CHANNEL_WATER: thermostats[ZHA_EP_WATER]}
-    if thermostats:
-        heat = thermostats.get(ZHA_EP_HEAT) or thermostats[min(thermostats)]
-        return device, {CHANNEL_HEAT: heat}
-    raise LookupError("Device has no Thermostat cluster")
+    channels = receiver_endpoints(device.model, list(thermostats))
+    if not channels:
+        raise LookupError("Device has no Thermostat cluster")
+    return device, {channel: thermostats[ep] for channel, ep in channels.items()}
 
 
 class _ScheduleListener:
@@ -243,11 +238,14 @@ class ZHATransport(Transport):
         for command in commands:
             _LOGGER.debug("%s set_weekly_schedule: %s", channel, command)
             try:
-                rsp = await cluster.set_weekly_schedule(**command)
+                # Z2M sends every command to Hive receivers with "disable default
+                # response" (meta.disableDefaultResponse), so don't wait for one either.
+                # Read the schedule back to check it.
+                await cluster.set_weekly_schedule(
+                    **command, disable_default_response=True, expect_reply=False
+                )
             except (TimeoutError, ZigbeeException) as err:
-                raise HomeAssistantError(f"Receiver didn't respond: {err}") from err
-            if (status := getattr(rsp, "status", Status.SUCCESS)) != Status.SUCCESS:
-                raise HomeAssistantError(f"Receiver rejected the schedule: {status}")
+                raise HomeAssistantError(f"Couldn't send the schedule: {err}") from err
             # Same pacing as Z2M writes.
             await asyncio.sleep(0.5)
         return len(commands)
