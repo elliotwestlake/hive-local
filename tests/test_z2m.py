@@ -45,3 +45,8 @@ def test_payloads():
         z.boost_payload(None, 0)
     with pytest.raises(ValueError):
         z.mode_payload(None, "boost")
+
+
+def test_setpoint_payload():
+    assert z.setpoint_payload(None, 18) == {"occupied_heating_setpoint": 18}
+    assert z.setpoint_payload("heat", 18.5) == {"occupied_heating_setpoint_heat": 18.5}

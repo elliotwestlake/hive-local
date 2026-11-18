@@ -28,7 +28,7 @@ Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 **`climate.<receiver>_heating`**: the main heating control.
 - **HVAC modes:** `auto` follows the onboard schedule, `heat` holds the target temperature, `off` is off.
-- **Target temperature:** on `auto`, setting it is a timed override. It boosts to that temperature for the heating boost duration (below), then goes back to the schedule. Changing it again mid-override keeps the time left. On `heat`, it changes the held temperature. During a schedule "off" period (Hive reports 1 °C) the target shows your frost protection temperature (below), so you can still adjust it.
+- **Target temperature:** works like turning the thermostat dial. On `auto`, it overrides the schedule until the next scheduled change (up or down). On `heat`, it changes the held temperature. During a boost, it changes the boost temperature and keeps the time left. During a schedule "off" period (Hive reports 1 °C) the target shows your frost protection temperature (below), so you can still adjust it.
 - **Boost preset:** uses the boost defaults below. Clearing it goes back to the previous mode.
 
 **`water_heater.<receiver>_hot_water`** (SLR2 only): Schedule / On / Off / Boost. Turn on goes back to Schedule.

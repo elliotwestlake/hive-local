@@ -20,6 +20,7 @@ from ..z2m import (
     channel_status,
     mode_payload,
     refresh_payload,
+    setpoint_payload,
     suffix,
 )
 from .base import Schedule, Transport
@@ -134,6 +135,9 @@ class Z2MTransport(Transport):
 
     async def _async_set_mode(self, channel: str, mode: str, setpoint: float | None) -> None:
         await self._publish("set", mode_payload(self._ep(channel), mode, setpoint))
+
+    async def _async_set_setpoint(self, channel: str, setpoint: float) -> None:
+        await self._publish("set", setpoint_payload(self._ep(channel), setpoint))
 
     async def _async_boost(self, channel: str, minutes: int, setpoint: float | None) -> None:
         await self._publish("set", boost_payload(self._ep(channel), minutes, setpoint))
