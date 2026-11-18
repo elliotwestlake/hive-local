@@ -139,6 +139,7 @@ class ZHATransport(Transport):
         )
 
     async def async_stop(self) -> None:
+        self._clear_deadlines()
         while self._unsubs:
             self._unsubs.pop()()
         while self._pending_refresh:
