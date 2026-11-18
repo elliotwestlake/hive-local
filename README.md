@@ -21,8 +21,6 @@ Then go to **Settings → Devices & services → Add integration → Hive Local*
 
 The receiver type (heating only, or heating + hot water) is detected automatically.
 
-> Upgrading from **Hive Schedule**? The integration was renamed. Delete the old Hive Schedule entry and its `custom_components/hive_schedule` folder, then add Hive Local.
-
 ## The Hive panel
 
 - **Overview:** each channel's current temperature, mode, heating/idle, and boost time left. Click a card to open its controls.
