@@ -11,7 +11,10 @@ import voluptuous as vol
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.selector import (
+    DeviceSelector,
+    DeviceSelectorConfig,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
@@ -22,13 +25,17 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_BASE_TOPIC,
     CONF_DEVICE,
+    CONF_DEVICE_ID,
     CONF_MODEL,
+    CONF_TRANSPORT,
     CONF_Z2M_MODEL,
     DEFAULT_BASE_TOPIC,
     DEVICES_TIMEOUT,
     DOMAIN,
     MODEL_SLR1,
     MODEL_SLR2,
+    TRANSPORT_Z2M,
+    TRANSPORT_ZHA,
 )
 from .devices import hive_receivers
 
@@ -67,6 +74,11 @@ class HiveScheduleConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        return self.async_show_menu(step_id="user", menu_options=[TRANSPORT_Z2M, TRANSPORT_ZHA])
+
+    async def async_step_z2m(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             self._base = user_input[CONF_BASE_TOPIC].strip().strip("/")
@@ -87,7 +99,7 @@ class HiveScheduleConfigFlow(ConfigFlow, domain=DOMAIN):
         schema = vol.Schema(
             {vol.Required(CONF_BASE_TOPIC, default=self._base): TextSelector()}
         )
-        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+        return self.async_show_form(step_id="z2m", data_schema=schema, errors=errors)
 
     async def async_step_device(
         self, user_input: dict[str, Any] | None = None
@@ -99,6 +111,7 @@ class HiveScheduleConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(
                 title=receiver["name"],
                 data={
+                    CONF_TRANSPORT: TRANSPORT_Z2M,
                     CONF_DEVICE: receiver["name"],
                     CONF_BASE_TOPIC: self._base,
                     # Z2M only suffixes keys (_heat/_water) for multi-endpoint receivers.
@@ -119,3 +132,40 @@ class HiveScheduleConfigFlow(ConfigFlow, domain=DOMAIN):
             }
         )
         return self.async_show_form(step_id="device", data_schema=schema)
+
+    async def async_step_zha(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if TRANSPORT_ZHA not in self.hass.config.components:
+            return self.async_abort(reason="no_zha")
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            from .transports.zha import find_receiver
+
+            device_id = user_input[CONF_DEVICE_ID]
+            try:
+                device, clusters = find_receiver(self.hass, device_id)
+            except LookupError:
+                errors["base"] = "not_hive"
+            else:
+                await self.async_set_unique_id(f"zha:{device.ieee}")
+                self._abort_if_unique_id_configured()
+                entry = dr.async_get(self.hass).async_get(device_id)
+                return self.async_create_entry(
+                    title=(entry and (entry.name_by_user or entry.name)) or device.model,
+                    data={
+                        CONF_TRANSPORT: TRANSPORT_ZHA,
+                        CONF_DEVICE_ID: device_id,
+                        CONF_MODEL: MODEL_SLR2 if len(clusters) > 1 else MODEL_SLR1,
+                        CONF_Z2M_MODEL: device.model,
+                    },
+                )
+
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_DEVICE_ID): DeviceSelector(
+                    DeviceSelectorConfig(integration=TRANSPORT_ZHA)
+                )
+            }
+        )
+        return self.async_show_form(step_id="zha", data_schema=schema, errors=errors)

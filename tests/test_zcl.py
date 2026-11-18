@@ -1,0 +1,82 @@
+import importlib, pathlib, sys, types, pytest
+
+# zcl.py imports its siblings, so load it as part of a bare package (skipping __init__.py,
+# which needs Home Assistant).
+pkg = types.ModuleType("hl"); pkg.__path__ = [str(pathlib.Path(__file__).parents[1] / "custom_components/hive_local")]
+sys.modules.setdefault("hl", pkg)
+z = importlib.import_module("hl.zcl")
+
+# The SLR1 state from test_z2m.py, as raw ZCL attributes.
+SLR1 = {"system_mode": 0x04, "temp_setpoint_hold": 0, "temp_setpoint_hold_duration": 0,
+        "occupied_heating_setpoint": 100, "local_temperature": 2005, "running_state": 0}
+
+def test_status_schedule():
+    assert z.channel_status(SLR1) == {"mode": "schedule", "boost_remaining": 0,
+        "current_temperature": 20.05, "setpoint": 1.0, "heating": False}
+
+def test_status_unknown():
+    assert z.channel_status({}) is None
+    assert z.channel_status(SLR1 | {"local_temperature": -0x8000})["current_temperature"] is None
+
+@pytest.mark.parametrize("patch, mode", [
+    ({"system_mode": 0x00}, "off"),
+    ({"temp_setpoint_hold": 1, "temp_setpoint_hold_duration": 0xFFFF}, "manual"),
+    ({"system_mode": 0x05, "temp_setpoint_hold": 1}, "boost"),
+])
+def test_status_modes(patch, mode):
+    assert z.channel_status(SLR1 | patch)["mode"] == mode
+
+def test_status_heating_and_boost_remaining():
+    boosting = SLR1 | {"system_mode": 0x05, "temp_setpoint_hold_duration": 42, "running_state": 0x0001}
+    status = z.channel_status(boosting)
+    assert status["boost_remaining"] == 42 and status["heating"] is True
+    assert z.channel_status(boosting | {"temp_setpoint_hold_duration": 0xFFFF})["boost_remaining"] is None
+
+def test_mode_attributes():
+    assert z.mode_attributes("schedule") == {"system_mode": 4, "temp_setpoint_hold": 0}
+    assert z.mode_attributes("off") == {"system_mode": 0, "temp_setpoint_hold": 0}
+    assert z.mode_attributes("manual", 19.5) == {
+        "system_mode": 4, "temp_setpoint_hold": 1, "occupied_heating_setpoint": 1950}
+    with pytest.raises(ValueError):
+        z.mode_attributes("boost")
+
+def test_setpoint_attributes():
+    assert z.setpoint_attributes(19.5) == {"occupied_heating_setpoint": 1950}
+
+def test_boost_attributes():
+    attrs = z.boost_attributes(30, 21)
+    assert attrs == {"system_mode": 5, "temp_setpoint_hold_duration": 30,
+                     "temp_setpoint_hold": 1, "occupied_heating_setpoint": 2100}
+    assert list(attrs) == ["system_mode", "temp_setpoint_hold_duration",
+                           "temp_setpoint_hold", "occupied_heating_setpoint"]
+    assert "occupied_heating_setpoint" not in z.boost_attributes(60)
+    with pytest.raises(ValueError):
+        z.boost_attributes(0)
+
+def test_schedule_commands():
+    weekday = [{"time": "06:30", "setpoint": 20.0}, {"time": "22:00", "setpoint": 1.0}]
+    weekend = [{"time": "08:00", "setpoint": 21.5}]
+    schedule = {d: weekday for d in ("monday", "tuesday", "wednesday", "thursday", "friday")}
+    schedule |= {"saturday": weekend, "sunday": weekend}
+    assert z.schedule_commands(schedule) == [
+        {"num_transitions_for_sequence": 2, "day_of_week_for_sequence": 0x3E,
+         "mode_for_sequence": 1, "values": [390, 2000, 1320, 100]},
+        {"num_transitions_for_sequence": 1, "day_of_week_for_sequence": 0x41,
+         "mode_for_sequence": 1, "values": [480, 2150]},
+    ]
+
+def test_parse_schedule_response():
+    # One day per reply, padded to 6 transitions with 1 °C, like the Z2M replies.
+    values = [390, 2000, 510, 1600, 1020, 2100, 1320, 100, 1320, 100, 1320, 100]
+    parsed = z.parse_schedule_response(0x02, 0x01, values)
+    assert list(parsed) == ["monday"]
+    assert parsed["monday"][:2] == [{"time": "06:30", "setpoint": 20.0},
+                                    {"time": "08:30", "setpoint": 16.0}]
+    assert len(parsed["monday"]) == 6
+
+def test_parse_schedule_response_days_and_modes():
+    assert list(z.parse_schedule_response(0x41 | 0x80, 0x01, [480, 2150])) == ["saturday", "sunday"]
+    # Heat + cool: (time, heat, cool) triplets.
+    assert z.parse_schedule_response(0x02, 0x03, [480, 2150, 2600]) == {
+        "monday": [{"time": "08:00", "setpoint": 21.5}]}
+    assert z.parse_schedule_response(0x02, 0x02, [480, 2600]) == {}
