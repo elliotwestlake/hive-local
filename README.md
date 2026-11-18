@@ -4,6 +4,8 @@ Local control of Hive receivers from Home Assistant, with no Hive cloud involved
 
 Works with Hive receivers (SLR1, SLR1b/c/d, OTR1, SLR2, SLR2b/c/d) paired to **Zigbee2MQTT** or **ZHA**. ZHA support is new and hasn't been tried on a real receiver yet.
 
+Hive Local is an independent community project. It isn't affiliated with, endorsed by or supported by Hive or Centrica. "Hive" is used only to describe the hardware it works with.
+
 > ⚠️ Early and experimental. Z2M includes the standard Zigbee `setWeeklySchedule` / `getWeeklySchedule` commands for these receivers but hides them from its UI. Reading works on a real SLR1-style receiver. Writing is still being tested, so read before you write, and check the change shows on the thermostat.
 
 ## Install
@@ -44,6 +46,7 @@ Also, for each channel:
 |---|---|
 | `select.<receiver>_heating_mode` | Schedule / Manual / Off / Boost. Picking Boost uses the boost defaults below. |
 | `sensor.<receiver>_heating_boost_remaining` | Minutes left on a boost, 0 when not boosting. |
+| `sensor.<receiver>_temperature` | Room temperature reported by the thermostat (heating only), with long-term statistics. |
 | `button.<receiver>_boost_heating` / `cancel_heating_boost` | Start or cancel a boost. |
 | `number.<receiver>_heating_boost_duration` / `heating_boost_temperature` | Defaults used by the button, the select and the actions. These are stored in HA, not on the receiver. |
 | `number.<receiver>_heating_frost_protection` | Set this to match the frost protection on your Hive thermostat (default 12 °C). During a schedule "off" period the receiver reports 1 °C, so this is shown as the target instead. Display only: it's never sent to the receiver. |

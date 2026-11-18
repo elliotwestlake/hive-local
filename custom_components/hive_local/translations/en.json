@@ -68,6 +68,9 @@
       },
       "water_boost_remaining": {
         "name": "Hot water boost remaining"
+      },
+      "heat_temperature": {
+        "name": "Temperature"
       }
     },
     "number": {
