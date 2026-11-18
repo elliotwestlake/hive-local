@@ -1,6 +1,6 @@
 # Hive Local — project notes
 
-A Home Assistant Marketplace (formerly HACS) custom integration, domain `hive_local` (renamed from `hive_schedule`), for local control of Hive receivers on Zigbee2MQTT or ZHA. It adds a **Hive** sidebar panel with tabs, in the style of the Wiser integration, plus boost/mode entities and actions. Built for Elliot's own Hive setup. Local-first and no cloud.
+A Home Assistant Marketplace (formerly HACS) custom integration, domain `hive_local`, for local control of Hive receivers on Zigbee2MQTT or ZHA. It adds a **Hive** sidebar panel with tabs, in the style of the Wiser integration, plus boost/mode entities and actions. Built for Elliot's own Hive setup. Local-first and no cloud.
 
 Don't use the domain `hive`: HA core's cloud Hive integration already has it, and a custom integration with the same domain would override it.
 
@@ -47,7 +47,7 @@ Don't use the domain `hive`: HA core's cloud Hive integration already has it, an
 - [x] Read works against a real receiver, once the friendly name was right.
 - [x] Rename to `hive_local`, transports, entities, services and tabbed panel. Checked end to end with `pytest-homeassistant-custom-component` (HA 2026.2.3, mocked MQTT): config flow, entity states from Z2M state messages, exact boost/cancel/mode payloads, and the websocket API including a 7-day read. That test isn't in the repo, because CI only installs `pytest`.
 - [x] Climate (heating) and water_heater (hot water) entities, so Z2M's discovered climate entities can be disabled. Covered by the end-to-end test.
-- [ ] On real HA: add Hive Local (delete the old Hive Schedule entry first) and check the entities and the panel's Overview and Boost & mode tabs against the receiver.
+- [ ] On real HA: add Hive Local and check the entities and the panel's Overview and Boost & mode tabs against the receiver.
 - [ ] Check boost-remaining counts down. We poll `temperature_setpoint_hold_duration` every 60 s while boosting; unverified that Hive reports a decreasing value.
 - [ ] Change one day, **Write**, then **Read** again, and confirm on the SLT thermostat screen.
 - [ ] SLR2: read the hot water schedule and set `WATER_ON` / `WATER_OFF` to match.
