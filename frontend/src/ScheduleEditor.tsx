@@ -58,7 +58,7 @@ export function ScheduleEditor({
           ? { kind: "ok", text: "Schedule read from receiver" }
           : n
             ? { kind: "error", text: `Only got ${n}/7 days — try reading again` }
-            : { kind: "error", text: "No reply. Check the receiver's friendly name matches Zigbee2MQTT." },
+            : { kind: "error", text: "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." },
       );
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
