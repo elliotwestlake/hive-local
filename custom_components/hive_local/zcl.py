@@ -78,6 +78,20 @@ def receiver_endpoints(model: str | None, thermostat_eps: list[int]) -> dict[str
     return {CHANNEL_HEAT: heat}
 
 
+# Hive SLT wall thermostats. ZHA sets their temperature reporting to at most every
+# 15 minutes, but the receiver drops a thermostat it hasn't heard from for a few
+# minutes: red light, boiler off, "No signal" on the thermostat, every ~6 minutes
+# (zigpy/zha-device-handlers#2776). Reporting at least every 2 minutes fixes it.
+THERMOSTAT_MODELS = ("SLT",)  # SLT2, SLT3, SLT3b/c/d, SLT6 ...
+TEMPERATURE_REPORTING = (5, 120, 50)  # min s, max s, change (centi-°C)
+
+
+def is_hive_thermostat(manufacturer: str | None, model: str | None) -> bool:
+    return (model or "").upper().startswith(THERMOSTAT_MODELS) and (
+        manufacturer or ""
+    ).lower() in ("computime", "hive", "")
+
+
 def _celsius(value: Any) -> float | None:
     if not isinstance(value, int) or value == TEMP_INVALID:
         return None

@@ -70,6 +70,10 @@ ZHA_REFRESH_INTERVAL = timedelta(minutes=5)
 # After a write or a reported mode/setpoint change, re-read the state this many seconds later.
 ZHA_REFRESH_DELAY = 3.0
 
+# How often to re-apply the Hive thermostat's temperature reporting (see zcl.py),
+# in case ZHA reconfigured it.
+THERMOSTAT_REPORTING_REFRESH = timedelta(hours=24)
+
 # While boosting, re-read the hold duration so the remaining time stays current.
 BOOST_POLL_INTERVAL = timedelta(seconds=60)
 
