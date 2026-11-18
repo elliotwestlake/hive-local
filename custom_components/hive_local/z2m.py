@@ -99,6 +99,12 @@ def mode_payload(ep: str | None, mode: str, setpoint: float | None = None) -> di
     raise ValueError(f"Unknown mode '{mode}'")
 
 
+def setpoint_payload(ep: str | None, setpoint: float) -> dict[str, Any]:
+    """Just the setpoint, mode untouched. While following the schedule this is a
+    temporary override until the next scheduled change, like turning the dial."""
+    return {f"occupied_heating_setpoint{suffix(ep)}": setpoint}
+
+
 def boost_payload(ep: str | None, minutes: int, setpoint: float | None = None) -> dict[str, Any]:
     """One payload: Hive needs all boost fields in a single command."""
     if not 1 <= minutes <= BOOST_MAX_MINUTES:
