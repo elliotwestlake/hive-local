@@ -1,4 +1,5 @@
-"""Default boost duration (and heating boost temperature), per channel.
+"""Default boost duration (and heating boost temperature), per channel, plus the
+heating frost-protection temperature shown during schedule "off" periods.
 
 These live in HA, not on the receiver: they're what the Boost button, the mode
 select and the services use when no value is given.
@@ -11,7 +12,7 @@ from homeassistant.const import EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, HEAT_MAX
+from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, FROST_MAX, FROST_MIN, HEAT_MAX
 from .data import HiveConfigEntry
 from .entity import HiveEntity, channels
 from .z2m import BOOST_MAX_MINUTES
@@ -25,6 +26,7 @@ async def async_setup_entry(
     entities: list[RestoreNumber] = [BoostMinutes(entry, c) for c in channels(entry)]
     if CHANNEL_HEAT in channels(entry):
         entities.append(BoostTemperature(entry, CHANNEL_HEAT))
+        entities.append(FrostTemperature(entry, CHANNEL_HEAT))
     async_add_entities(entities)
 
 
@@ -74,3 +76,16 @@ class BoostTemperature(_BoostNumber):
 
     def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
         super().__init__(entry, channel, "boost_temperature")
+
+
+class FrostTemperature(_BoostNumber):
+    """Match this to the thermostat's frost protection; it's only used for display."""
+
+    _field = "frost"
+    _attr_native_min_value = FROST_MIN
+    _attr_native_max_value = FROST_MAX
+    _attr_native_step = 0.5
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+
+    def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
+        super().__init__(entry, channel, "frost_temperature")

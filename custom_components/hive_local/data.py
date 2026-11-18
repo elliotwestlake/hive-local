@@ -7,16 +7,21 @@ from dataclasses import dataclass, field
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import DEFAULT_BOOST_MINUTES, DEFAULT_BOOST_TEMP, SIGNAL_STATUS
+from .const import DEFAULT_BOOST_MINUTES, DEFAULT_BOOST_TEMP, DEFAULT_FROST_TEMP, SIGNAL_STATUS
 from .transports import Transport
 
 
 @dataclass
 class BoostDefaults:
-    """Set by the boost number entities; used when a boost doesn't say otherwise."""
+    """Per-channel settings kept in HA, set by the number entities.
+
+    minutes/temperature are used when a boost doesn't say otherwise; frost is the
+    heating frost-protection temperature shown during schedule "off" periods.
+    """
 
     minutes: int = DEFAULT_BOOST_MINUTES
     temperature: float = DEFAULT_BOOST_TEMP
+    frost: float = DEFAULT_FROST_TEMP
 
 
 @dataclass
@@ -28,7 +33,8 @@ class HiveData:
         return self.boost.setdefault(channel, BoostDefaults())
 
     def notify_settings(self) -> None:
-        """Tell open panels the boost defaults changed."""
+        """Tell entities and open panels the settings changed."""
+        async_dispatcher_send(self.transport.hass, f"{SIGNAL_STATUS}_{self.transport.entry_id}")
         async_dispatcher_send(self.transport.hass, SIGNAL_STATUS)
 
     async def async_boost(

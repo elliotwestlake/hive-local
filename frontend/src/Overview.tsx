@@ -70,8 +70,10 @@ function ChannelCard({
   // Hot water has no temperature sensor (Z2M always reports 21°C), so it's just on/off.
   const active = !!s && s.mode !== "off" && s.heating;
   const state = !s || s.mode === "off" ? "off" : active ? "heating" : "idle";
-  // Hive uses 1°C as "off" inside a schedule.
-  const target = !water && s?.setpoint != null && s.setpoint > 1 ? s.setpoint : null;
+  // Hive reports 1°C during a schedule "off" period, when the thermostat holds its
+  // frost-protection temperature (set in HA to match), so show that instead.
+  const frostPeriod = !water && s?.setpoint != null && s.setpoint <= 1;
+  const target = water || s?.setpoint == null ? null : frostPeriod ? info?.frost_temperature ?? null : s.setpoint;
 
   const modes: { id: Exclude<Mode, "boost">; label: string }[] = [
     { id: "schedule", label: "Schedule" },
@@ -84,7 +86,7 @@ function ChannelCard({
   if (s) {
     if (s.mode === "off") caption = "Off";
     else if (water) caption = active ? "Heating water" : "Not heating";
-    else caption = `${active ? "Heating" : "Idle"}${target != null ? ` · target ${target}°` : ""}`;
+    else caption = `${active ? "Heating" : "Idle"}${target != null ? ` · ${frostPeriod ? "frost" : "target"} ${target}°` : ""}`;
   }
 
   return (

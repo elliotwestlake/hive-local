@@ -1,7 +1,7 @@
 var yc = Object.defineProperty;
 var xc = (e, t, n) => t in e ? yc(e, t, { enumerable: !0, configurable: !0, writable: !0, value: n }) : e[t] = n;
 var or = (e, t, n) => xc(e, typeof t != "symbol" ? t + "" : t, n);
-var ts = { exports: {} }, ul = {}, ns = { exports: {} }, M = {};
+var ts = { exports: {} }, ul = {}, ns = { exports: {} }, L = {};
 /**
  * @license React
  * react.production.min.js
@@ -123,7 +123,7 @@ var fe = { current: null }, Er = { transition: null }, Oc = { ReactCurrentDispat
 function cs() {
   throw Error("act(...) is not supported in production builds of React.");
 }
-M.Children = { map: ir, forEach: function(e, t, n) {
+L.Children = { map: ir, forEach: function(e, t, n) {
   ir(e, function() {
     t.apply(this, arguments);
   }, n);
@@ -140,15 +140,15 @@ M.Children = { map: ir, forEach: function(e, t, n) {
   if (!Jo(e)) throw Error("React.Children.only expected to receive a single React element child.");
   return e;
 } };
-M.Component = dn;
-M.Fragment = kc;
-M.Profiler = _c;
-M.PureComponent = Xo;
-M.StrictMode = Sc;
-M.Suspense = jc;
-M.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = Oc;
-M.act = cs;
-M.cloneElement = function(e, t, n) {
+L.Component = dn;
+L.Fragment = kc;
+L.Profiler = _c;
+L.PureComponent = Xo;
+L.StrictMode = Sc;
+L.Suspense = jc;
+L.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = Oc;
+L.act = cs;
+L.cloneElement = function(e, t, n) {
   if (e == null) throw Error("React.cloneElement(...): The argument must be a React element, but you passed " + e + ".");
   var r = ls({}, e.props), l = e.key, o = e.ref, i = e._owner;
   if (t != null) {
@@ -164,28 +164,28 @@ M.cloneElement = function(e, t, n) {
   }
   return { $$typeof: qn, type: e.type, key: l, ref: o, props: r, _owner: i };
 };
-M.createContext = function(e) {
+L.createContext = function(e) {
   return e = { $$typeof: Nc, _currentValue: e, _currentValue2: e, _threadCount: 0, Provider: null, Consumer: null, _defaultValue: null, _globalName: null }, e.Provider = { $$typeof: Ec, _context: e }, e.Consumer = e;
 };
-M.createElement = as;
-M.createFactory = function(e) {
+L.createElement = as;
+L.createFactory = function(e) {
   var t = as.bind(null, e);
   return t.type = e, t;
 };
-M.createRef = function() {
+L.createRef = function() {
   return { current: null };
 };
-M.forwardRef = function(e) {
+L.forwardRef = function(e) {
   return { $$typeof: Cc, render: e };
 };
-M.isValidElement = Jo;
-M.lazy = function(e) {
+L.isValidElement = Jo;
+L.lazy = function(e) {
   return { $$typeof: Pc, _payload: { _status: -1, _result: e }, _init: Rc };
 };
-M.memo = function(e, t) {
+L.memo = function(e, t) {
   return { $$typeof: zc, type: e, compare: t === void 0 ? null : t };
 };
-M.startTransition = function(e) {
+L.startTransition = function(e) {
   var t = Er.transition;
   Er.transition = {};
   try {
@@ -194,53 +194,53 @@ M.startTransition = function(e) {
     Er.transition = t;
   }
 };
-M.unstable_act = cs;
-M.useCallback = function(e, t) {
+L.unstable_act = cs;
+L.useCallback = function(e, t) {
   return fe.current.useCallback(e, t);
 };
-M.useContext = function(e) {
+L.useContext = function(e) {
   return fe.current.useContext(e);
 };
-M.useDebugValue = function() {
+L.useDebugValue = function() {
 };
-M.useDeferredValue = function(e) {
+L.useDeferredValue = function(e) {
   return fe.current.useDeferredValue(e);
 };
-M.useEffect = function(e, t) {
+L.useEffect = function(e, t) {
   return fe.current.useEffect(e, t);
 };
-M.useId = function() {
+L.useId = function() {
   return fe.current.useId();
 };
-M.useImperativeHandle = function(e, t, n) {
+L.useImperativeHandle = function(e, t, n) {
   return fe.current.useImperativeHandle(e, t, n);
 };
-M.useInsertionEffect = function(e, t) {
+L.useInsertionEffect = function(e, t) {
   return fe.current.useInsertionEffect(e, t);
 };
-M.useLayoutEffect = function(e, t) {
+L.useLayoutEffect = function(e, t) {
   return fe.current.useLayoutEffect(e, t);
 };
-M.useMemo = function(e, t) {
+L.useMemo = function(e, t) {
   return fe.current.useMemo(e, t);
 };
-M.useReducer = function(e, t, n) {
+L.useReducer = function(e, t, n) {
   return fe.current.useReducer(e, t, n);
 };
-M.useRef = function(e) {
+L.useRef = function(e) {
   return fe.current.useRef(e);
 };
-M.useState = function(e) {
+L.useState = function(e) {
   return fe.current.useState(e);
 };
-M.useSyncExternalStore = function(e, t, n) {
+L.useSyncExternalStore = function(e, t, n) {
   return fe.current.useSyncExternalStore(e, t, n);
 };
-M.useTransition = function() {
+L.useTransition = function() {
   return fe.current.useTransition();
 };
-M.version = "18.3.1";
-ns.exports = M;
+L.version = "18.3.1";
+ns.exports = L;
 var $ = ns.exports;
 /**
  * @license React
@@ -315,7 +315,7 @@ var p = ts.exports, fs = { exports: {} }, _e = {}, ps = { exports: {} }, ms = {}
       return i.now() - u;
     };
   }
-  var s = [], d = [], v = 1, h = null, m = 3, x = !1, _ = !1, k = !1, L = typeof setTimeout == "function" ? setTimeout : null, c = typeof clearTimeout == "function" ? clearTimeout : null, a = typeof setImmediate < "u" ? setImmediate : null;
+  var s = [], d = [], v = 1, h = null, m = 3, x = !1, _ = !1, k = !1, M = typeof setTimeout == "function" ? setTimeout : null, c = typeof clearTimeout == "function" ? clearTimeout : null, a = typeof setImmediate < "u" ? setImmediate : null;
   typeof navigator < "u" && navigator.scheduling !== void 0 && navigator.scheduling.isInputPending !== void 0 && navigator.scheduling.isInputPending.bind(navigator.scheduling);
   function f(N) {
     for (var P = n(d); P !== null; ) {
@@ -381,13 +381,13 @@ var p = ts.exports, fs = { exports: {} }, _e = {}, ps = { exports: {} }, ms = {}
       _l.postMessage(null);
     };
   } else J = function() {
-    L(V, 0);
+    M(V, 0);
   };
   function El(N) {
     j = N, C || (C = !0, J());
   }
   function Nl(N, P) {
-    z = L(function() {
+    z = M(function() {
       N(e.unstable_now());
     }, P);
   }
@@ -2107,12 +2107,12 @@ function Hl(e, t, n, r, l) {
           case "pointerup":
             x = iu;
         }
-        var k = (t & 4) !== 0, L = !k && e === "scroll", c = k ? m !== null ? m + "Capture" : null : m;
+        var k = (t & 4) !== 0, M = !k && e === "scroll", c = k ? m !== null ? m + "Capture" : null : m;
         k = [];
         for (var a = d, f; a !== null; ) {
           f = a;
           var g = f.stateNode;
-          if (f.tag === 5 && g !== null && (f = g, c !== null && (g = In(a, c), g != null && k.push(Wn(a, g, f)))), L) break;
+          if (f.tag === 5 && g !== null && (f = g, c !== null && (g = In(a, c), g != null && k.push(Wn(a, g, f)))), M) break;
           a = a.return;
         }
         0 < k.length && (m = new x(m, _, null, n, v), h.push({ event: m, listeners: k }));
@@ -2121,8 +2121,8 @@ function Hl(e, t, n, r, l) {
     if (!(t & 7)) {
       e: {
         if (m = e === "mouseover" || e === "pointerover", x = e === "mouseout" || e === "pointerout", m && n !== po && (_ = n.relatedTarget || n.fromElement) && (Nt(_) || _[Ze])) break e;
-        if ((x || m) && (m = v.window === v ? v : (m = v.ownerDocument) ? m.defaultView || m.parentWindow : window, x ? (_ = n.relatedTarget || n.toElement, x = d, _ = _ ? Nt(_) : null, _ !== null && (L = It(_), _ !== L || _.tag !== 5 && _.tag !== 6) && (_ = null)) : (x = null, _ = d), x !== _)) {
-          if (k = lu, g = "onMouseLeave", c = "onMouseEnter", a = "mouse", (e === "pointerout" || e === "pointerover") && (k = iu, g = "onPointerLeave", c = "onPointerEnter", a = "pointer"), L = x == null ? m : Wt(x), f = _ == null ? m : Wt(_), m = new k(g, a + "leave", x, n, v), m.target = L, m.relatedTarget = f, g = null, Nt(v) === d && (k = new k(c, a + "enter", _, n, v), k.target = f, k.relatedTarget = L, g = k), L = g, x && _) t: {
+        if ((x || m) && (m = v.window === v ? v : (m = v.ownerDocument) ? m.defaultView || m.parentWindow : window, x ? (_ = n.relatedTarget || n.toElement, x = d, _ = _ ? Nt(_) : null, _ !== null && (M = It(_), _ !== M || _.tag !== 5 && _.tag !== 6) && (_ = null)) : (x = null, _ = d), x !== _)) {
+          if (k = lu, g = "onMouseLeave", c = "onMouseEnter", a = "mouse", (e === "pointerout" || e === "pointerover") && (k = iu, g = "onPointerLeave", c = "onPointerEnter", a = "pointer"), M = x == null ? m : Wt(x), f = _ == null ? m : Wt(_), m = new k(g, a + "leave", x, n, v), m.target = M, m.relatedTarget = f, g = null, Nt(v) === d && (k = new k(c, a + "enter", _, n, v), k.target = f, k.relatedTarget = M, g = k), M = g, x && _) t: {
             for (k = x, c = _, a = 0, f = k; f; f = Ft(f)) a++;
             for (f = 0, g = c; g; g = Ft(g)) f++;
             for (; 0 < a - f; ) k = Ft(k), a--;
@@ -2134,7 +2134,7 @@ function Hl(e, t, n, r, l) {
             k = null;
           }
           else k = null;
-          x !== null && gu(h, m, x, k, !1), _ !== null && L !== null && gu(h, L, _, k, !0);
+          x !== null && gu(h, m, x, k, !1), _ !== null && M !== null && gu(h, M, _, k, !0);
         }
       }
       e: {
@@ -2649,7 +2649,7 @@ function ma(e) {
       return t(c, V);
     }), H && _t(c, z), y;
   }
-  function L(c, a, f, g) {
+  function M(c, a, f, g) {
     if (typeof f == "object" && f !== null && f.type === At && f.key === null && (f = f.props.children), typeof f == "object" && f !== null) {
       switch (f.$$typeof) {
         case ur:
@@ -2690,7 +2690,7 @@ function ma(e) {
           }
           return i(c);
         case tt:
-          return C = f._init, L(c, a, C(f._payload), g);
+          return C = f._init, M(c, a, C(f._payload), g);
       }
       if (_n(f)) return _(c, a, f, g);
       if (mn(f)) return k(c, a, f, g);
@@ -2698,7 +2698,7 @@ function ma(e) {
     }
     return typeof f == "string" && f !== "" || typeof f == "number" ? (f = "" + f, a !== null && a.tag === 6 ? (n(c, a.sibling), a = l(a, f), a.return = c, c = a) : (n(c, a), a = Jl(f, c.mode, g), a.return = c, c = a), i(c)) : n(c, a);
   }
-  return L;
+  return M;
 }
 var un = ma(!0), ha = ma(!1), Xr = xt(null), Gr = null, Xt = null, gi = null;
 function yi() {
@@ -4040,7 +4040,7 @@ function zf(e, t) {
           break;
         case 1:
           if (_ !== null) {
-            var k = _.memoizedProps, L = _.memoizedState, c = t.stateNode, a = c.getSnapshotBeforeUpdate(t.elementType === t.type ? k : Me(t.type, k), L);
+            var k = _.memoizedProps, M = _.memoizedState, c = t.stateNode, a = c.getSnapshotBeforeUpdate(t.elementType === t.type ? k : Me(t.type, k), M);
             c.__reactInternalSnapshotBeforeUpdate = a;
           }
           break;
@@ -4892,9 +4892,9 @@ function nc(e, t) {
             s = Error(w(426));
           }
         } else if (H && u.mode & 1) {
-          var L = Ru(i);
-          if (L !== null) {
-            !(L.flags & 65536) && (L.flags |= 256), Ou(L, i, u, o, t), vi(an(s, u));
+          var M = Ru(i);
+          if (M !== null) {
+            !(M.flags & 65536) && (M.flags |= 256), Ou(M, i, u, o, t), vi(an(s, u));
             break e;
           }
         }
@@ -5065,8 +5065,8 @@ function nn() {
                 if (k !== null) {
                   _.child = null;
                   do {
-                    var L = k.sibling;
-                    k.sibling = null, k = L;
+                    var M = k.sibling;
+                    k.sibling = null, k = M;
                   } while (k !== null);
                 }
               }
@@ -5757,7 +5757,7 @@ function Gf({
   }, [l == null ? void 0 : l.boost_temperature]), $.useEffect(() => {
     (i == null ? void 0 : i.mode) === "manual" && i.setpoint != null && i.setpoint >= r.boost_min_temp && h(i.setpoint);
   }, [i == null ? void 0 : i.mode, i == null ? void 0 : i.setpoint]);
-  const L = (y) => d(
+  const M = (y) => d(
     { type: "hive_local/mode", mode: y, ...y === "manual" && !o ? { setpoint: v } : {} },
     y === "schedule" ? "Following the schedule" : y === "off" ? "Turned off" : o ? "Always on" : `Holding ${v}°`
   ), c = [
@@ -5779,7 +5779,7 @@ function Gf({
       {
         className: `mode-tile ${(i == null ? void 0 : i.mode) === y.id ? "on" : ""}`,
         disabled: u,
-        onClick: () => L(y.id),
+        onClick: () => M(y.id),
         children: [
           /* @__PURE__ */ p.jsx(B, { name: y.icon }),
           /* @__PURE__ */ p.jsx("span", { className: "mode-label", children: y.label }),
@@ -5791,7 +5791,7 @@ function Gf({
     !o && (i == null ? void 0 : i.mode) === "manual" && /* @__PURE__ */ p.jsxs("div", { className: "inline-row", children: [
       /* @__PURE__ */ p.jsx("span", { className: "muted", children: "Hold at" }),
       /* @__PURE__ */ p.jsx(Ju, { value: v, onChange: (y) => h(f(y)) }),
-      i.setpoint !== v && /* @__PURE__ */ p.jsx("button", { className: "primary", disabled: u, onClick: () => L("manual"), children: "Apply" })
+      i.setpoint !== v && /* @__PURE__ */ p.jsx("button", { className: "primary", disabled: u, onClick: () => M("manual"), children: "Apply" })
     ] }),
     /* @__PURE__ */ p.jsx("h3", { children: "Boost" }),
     a ? /* @__PURE__ */ p.jsxs("div", { className: "boost-live", children: [
@@ -5913,14 +5913,14 @@ function tp({
   showDevice: l,
   onOpen: o
 }) {
-  var c;
-  const i = n === "water", u = (r == null ? void 0 : r.status) ?? null, { busy: s, result: d, send: v } = hc(e, t.entry_id, n), h = !!u && u.mode !== "off" && u.heating, m = !u || u.mode === "off" ? "off" : h ? "heating" : "idle", x = !i && (u == null ? void 0 : u.setpoint) != null && u.setpoint > 1 ? u.setpoint : null, _ = [
+  var a;
+  const i = n === "water", u = (r == null ? void 0 : r.status) ?? null, { busy: s, result: d, send: v } = hc(e, t.entry_id, n), h = !!u && u.mode !== "off" && u.heating, m = !u || u.mode === "off" ? "off" : h ? "heating" : "idle", x = !i && (u == null ? void 0 : u.setpoint) != null && u.setpoint <= 1, _ = i || (u == null ? void 0 : u.setpoint) == null ? null : x ? (r == null ? void 0 : r.frost_temperature) ?? null : u.setpoint, k = [
     { id: "schedule", label: "Schedule" },
     { id: "manual", label: i ? "Always on" : "Manual" },
     { id: "off", label: "Off" }
-  ], k = (r == null ? void 0 : r.boost_minutes) ?? 30;
-  let L = "Waiting for the receiver…";
-  return u && (u.mode === "off" ? L = "Off" : i ? L = h ? "Heating water" : "Not heating" : L = `${h ? "Heating" : "Idle"}${x != null ? ` · target ${x}°` : ""}`), /* @__PURE__ */ p.jsxs("section", { className: `card channel ${n} ${m}`, children: [
+  ], M = (r == null ? void 0 : r.boost_minutes) ?? 30;
+  let c = "Waiting for the receiver…";
+  return u && (u.mode === "off" ? c = "Off" : i ? c = h ? "Heating water" : "Not heating" : c = `${h ? "Heating" : "Idle"}${_ != null ? ` · ${x ? "frost" : "target"} ${_}°` : ""}`), /* @__PURE__ */ p.jsxs("section", { className: `card channel ${n} ${m}`, children: [
     /* @__PURE__ */ p.jsxs("div", { className: "card-head", children: [
       /* @__PURE__ */ p.jsxs("div", { className: "title", children: [
         /* @__PURE__ */ p.jsx(B, { name: i ? "water-boiler" : "radiator", className: "title-icon" }),
@@ -5931,22 +5931,22 @@ function tp({
       ] }),
       u && /* @__PURE__ */ p.jsxs("span", { className: `chip mode-${u.mode}`, children: [
         /* @__PURE__ */ p.jsx(B, { name: ep[u.mode] }),
-        u.mode === "boost" ? u.boost_remaining != null ? `Boost · ${zt(u.boost_remaining)} left` : "Boost" : (c = _.find((a) => a.id === u.mode)) == null ? void 0 : c.label
+        u.mode === "boost" ? u.boost_remaining != null ? `Boost · ${zt(u.boost_remaining)} left` : "Boost" : (a = k.find((f) => f.id === u.mode)) == null ? void 0 : a.label
       ] })
     ] }),
     i ? /* @__PURE__ */ p.jsxs("div", { className: `water-state ${m}`, children: [
       /* @__PURE__ */ p.jsx("div", { className: "water-orb", children: /* @__PURE__ */ p.jsx(B, { name: m === "off" ? "water-boiler-off" : "water-boiler" }) }),
-      /* @__PURE__ */ p.jsx("div", { className: "dial-caption", children: L })
-    ] }) : /* @__PURE__ */ p.jsx(qf, { current: (u == null ? void 0 : u.current_temperature) ?? null, target: x, state: m, caption: L }),
-    /* @__PURE__ */ p.jsx("div", { className: "segmented full", children: _.map((a) => /* @__PURE__ */ p.jsx(
+      /* @__PURE__ */ p.jsx("div", { className: "dial-caption", children: c })
+    ] }) : /* @__PURE__ */ p.jsx(qf, { current: (u == null ? void 0 : u.current_temperature) ?? null, target: _, state: m, caption: c }),
+    /* @__PURE__ */ p.jsx("div", { className: "segmented full", children: k.map((f) => /* @__PURE__ */ p.jsx(
       "button",
       {
-        className: (u == null ? void 0 : u.mode) === a.id ? "on" : "",
+        className: (u == null ? void 0 : u.mode) === f.id ? "on" : "",
         disabled: s || !u,
-        onClick: () => v({ type: "hive_local/mode", mode: a.id }, a.id === "schedule" ? "Following the schedule" : a.label),
-        children: a.label
+        onClick: () => v({ type: "hive_local/mode", mode: f.id }, f.id === "schedule" ? "Following the schedule" : f.label),
+        children: f.label
       },
-      a.id
+      f.id
     )) }),
     /* @__PURE__ */ p.jsxs("div", { className: "card-actions", children: [
       (u == null ? void 0 : u.mode) === "boost" ? /* @__PURE__ */ p.jsxs("button", { className: "boost-btn cancel", disabled: s, onClick: () => v({ type: "hive_local/cancel_boost" }, "Boost cancelled"), children: [
@@ -5957,11 +5957,11 @@ function tp({
         {
           className: "boost-btn",
           disabled: s || !u,
-          onClick: () => v({ type: "hive_local/boost" }, `Boosting for ${zt(k)}`),
+          onClick: () => v({ type: "hive_local/boost" }, `Boosting for ${zt(M)}`),
           children: [
             /* @__PURE__ */ p.jsx(B, { name: "rocket-launch" }),
             " Boost ",
-            zt(k),
+            zt(M),
             !i && r ? ` · ${r.boost_temperature}°` : ""
           ]
         }
@@ -6004,7 +6004,7 @@ function op({
   $.useEffect(() => {
     k();
   }, [k]);
-  const L = async () => {
+  const M = async () => {
     h({ kind: "busy", text: "Writing to receiver…" });
     try {
       const S = await e().callWS({
@@ -6047,7 +6047,7 @@ function op({
             /* @__PURE__ */ p.jsx(B, { name: "download" }),
             " Read"
           ] }),
-          /* @__PURE__ */ p.jsxs("button", { className: "primary", onClick: L, disabled: !_ || v.kind === "busy", children: [
+          /* @__PURE__ */ p.jsxs("button", { className: "primary", onClick: M, disabled: !_ || v.kind === "busy", children: [
             /* @__PURE__ */ p.jsx(B, { name: "upload" }),
             " Write to receiver"
           ] })
@@ -6230,7 +6230,7 @@ function cp({ getHass: e, narrow: t, onToggleMenu: n }) {
       });
     };
   }, [e]);
-  const k = r.find((a) => a.entry_id === d), L = r.some((a) => a.channels.includes("water")), c = ap.filter((a) => a.id !== "water" || L);
+  const k = r.find((a) => a.entry_id === d), M = r.some((a) => a.channels.includes("water")), c = ap.filter((a) => a.id !== "water" || M);
   return /* @__PURE__ */ p.jsxs("div", { className: "panel", children: [
     /* @__PURE__ */ p.jsxs("header", { children: [
       /* @__PURE__ */ p.jsxs("div", { className: "toolbar-row", children: [

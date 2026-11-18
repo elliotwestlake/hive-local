@@ -36,6 +36,13 @@ MANUAL_DEFAULT_TEMP = 20.0
 DEFAULT_BOOST_MINUTES = 30
 DEFAULT_BOOST_TEMP = 21.0
 
+# The receiver reports 1°C during a schedule "off" period and doesn't expose its
+# frost-protection temperature, so the user sets it in HA to match the thermostat.
+# Display only: it's never sent to the receiver. Same default as Hive Local Thermostat.
+FROST_MIN = 5.0
+FROST_MAX = 16.0
+DEFAULT_FROST_TEMP = 12.0
+
 # UNVERIFIED: values the receiver uses for hot water on/off in a schedule.
 # Z2M reports occupied_heating_setpoint_water as always 22.
 # Read your existing water schedule first and adjust these to match.
