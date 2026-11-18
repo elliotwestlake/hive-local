@@ -2,6 +2,7 @@
 
 auto = follow the onboard schedule, heat = manual hold, off = off.
 Boost is a preset; clearing it goes back to whatever was running before.
+Changing the temperature on auto is a boost (a timed override back to the schedule).
 """
 
 from __future__ import annotations
@@ -99,13 +100,19 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
         return max(setpoint, BOOST_MIN_TEMP)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
-        """Setting a temperature holds it (manual), like turning the thermostat dial."""
-        if kwargs.get(ATTR_HVAC_MODE) == HVACMode.OFF:
+        """On auto, a new temperature is a timed override (a boost) that then returns
+        to the schedule. Otherwise it's a manual hold, like turning the thermostat dial.
+        """
+        hvac_mode = kwargs.get(ATTR_HVAC_MODE)
+        if hvac_mode == HVACMode.OFF:
             await self.async_set_hvac_mode(HVACMode.OFF)
             return
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            await self._run(self._data.transport.async_set_mode(self._channel, MODE_MANUAL, temperature))
-        elif (hvac_mode := kwargs.get(ATTR_HVAC_MODE)) is not None:
+            if (hvac_mode or self.hvac_mode) == HVACMode.AUTO:
+                await self._run(self._data.async_boost(self._channel, self._override_minutes(), temperature))
+            else:
+                await self._run(self._data.transport.async_set_mode(self._channel, MODE_MANUAL, temperature))
+        elif hvac_mode is not None:
             await self.async_set_hvac_mode(hvac_mode)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
@@ -116,6 +123,12 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
             await self._run(self._data.async_boost(self._channel))
         elif self.preset_mode == PRESET_BOOST:
             await self._run(self._data.transport.async_cancel_boost(self._channel))
+
+    def _override_minutes(self) -> int | None:
+        """Changing the temperature mid-boost keeps the time left; otherwise use the default."""
+        if self._status and self._status["mode"] == MODE_BOOST and self._status["boost_remaining"]:
+            return self._status["boost_remaining"]
+        return None
 
     async def async_turn_on(self) -> None:
         await self.async_set_hvac_mode(HVACMode.AUTO)
