@@ -68,6 +68,7 @@ class Z2MTransport(Transport):
             await self._publish("get", refresh_payload(self._ep(channel)))
 
     async def async_stop(self) -> None:
+        self._clear_deadlines()
         while self._unsubs:
             self._unsubs.pop()()
 
