@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Controls } from "./Controls";
+import { Icon } from "./Icon";
 import { Overview } from "./Overview";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { errorText, type Device, type Hass, type Limits, type StatusMap } from "./types";
@@ -12,11 +13,11 @@ interface Props {
 
 type Tab = "overview" | "heat" | "water" | "controls";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "heat", label: "Heating" },
-  { id: "water", label: "Hot water" },
-  { id: "controls", label: "Boost & mode" },
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: "overview", label: "Overview", icon: "view-dashboard-outline" },
+  { id: "heat", label: "Heating", icon: "radiator" },
+  { id: "water", label: "Hot water", icon: "water-boiler" },
+  { id: "controls", label: "Boost & mode", icon: "tune-variant" },
 ];
 
 export function App({ getHass, narrow, onToggleMenu }: Props) {
@@ -53,47 +54,55 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   return (
     <div className="panel">
       <header>
-        {narrow && (
-          <button className="icon" onClick={onToggleMenu} aria-label="Menu">
-            ☰
-          </button>
-        )}
-        <h1>Hive</h1>
-      </header>
-
-      <nav className="tabs">
-        {tabs.map((t) => (
-          <button key={t.id} className={t.id === tab ? "on" : ""} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
-      </nav>
-
-      <main>
-        {error && <div className="status error">{error}</div>}
-        {!devices.length && !error && (
-          <p className="muted">No receivers configured. Add one under Settings → Devices & services.</p>
-        )}
-
-        {tab !== "overview" && devices.length > 1 && (
-          <div className="toolbar">
-            <select value={entryId} onChange={(e) => setEntryId(e.target.value)}>
+        <div className="toolbar-row">
+          {narrow && (
+            <button className="menu" onClick={onToggleMenu} aria-label="Menu">
+              <Icon name="menu" />
+            </button>
+          )}
+          <Icon name="hexagon-multiple-outline" className="brand" />
+          <h1>Hive</h1>
+          <span className="spacer" />
+          {devices.length > 1 && tab !== "overview" && (
+            <select className="device-select" value={entryId} onChange={(e) => setEntryId(e.target.value)}>
               {devices.map((d) => (
                 <option key={d.entry_id} value={d.entry_id}>
                   {d.name}
                 </option>
               ))}
             </select>
+          )}
+          {devices.length === 1 && <span className="device-name">{devices[0].name}</span>}
+        </div>
+        <nav className="tabs" role="tablist">
+          {tabs.map((t) => (
+            <button key={t.id} role="tab" aria-selected={t.id === tab} className={t.id === tab ? "on" : ""} onClick={() => setTab(t.id)}>
+              <Icon name={t.icon} />
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      <main>
+        {error && <div className="status error">{error}</div>}
+        {!devices.length && !error && (
+          <div className="empty-state">
+            <Icon name="hexagon-multiple-outline" />
+            <p>No receivers yet. Add one under Settings → Devices & services → Add integration → Hive Local.</p>
           </div>
         )}
 
-        {tab === "overview" && <Overview devices={devices} status={status} onOpen={(id) => { setEntryId(id); setTab("controls"); }} />}
+        {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} onOpen={(id) => { setEntryId(id); setTab("controls"); }} />}
 
         {(tab === "heat" || tab === "water") && device && limits &&
           (device.channels.includes(tab) ? (
             <ScheduleEditor key={`${device.entry_id}-${tab}`} getHass={getHass} device={device} channel={tab} limits={limits} />
           ) : (
-            <p className="muted">{device.name} has no hot water (it's a heating-only receiver).</p>
+            <div className="empty-state">
+              <Icon name="water-off" />
+              <p>{device.name} is heating-only, so it has no hot water.</p>
+            </div>
           ))}
 
         {tab === "controls" && device && limits && (

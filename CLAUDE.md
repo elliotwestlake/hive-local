@@ -17,7 +17,7 @@ Don't use the domain `hive`: HA core's cloud Hive integration already has it, an
   - Pure helpers with no HA imports, unit-tested in `tests/`: `schedule.py` (schedule parse/validate/group/payloads), `z2m.py` (state → mode/status, and mode/boost payloads) and `devices.py` (filter `bridge/devices`).
   - `const.py`: limits, boost defaults, and the **unverified** `WATER_ON` / `WATER_OFF`.
   - `frontend/hive-local-panel.js`: **built artifact**. Don't edit it. Run `npm run build` in `/frontend`.
-- `frontend/src/`: React 18 panel. `main.tsx` defines the custom element (shadow DOM; `hass` kept in a getter so we don't re-render on every state change). `App.tsx` has the tabs and the status subscription. `Overview.tsx`, `ScheduleEditor.tsx` (used for both heating and hot water) and `Controls.tsx` (Boost & mode). `styles.ts` uses HA theme vars.
+- `frontend/src/`: React 18 panel. `main.tsx` defines the custom element (shadow DOM; `hass` kept in a getter so we don't re-render on every state change). `App.tsx` has the header, tabs and status subscription. `Overview.tsx` (dial cards with quick mode/boost buttons; `Dial.tsx` is the ring), `ScheduleEditor.tsx` (used for both heating and hot water; timelines are coloured by setpoint and today has a "now" marker) and `Controls.tsx` (Boost & mode). `api.ts` has `useSender` for websocket commands. Icons use HA's own `<ha-icon>` via `Icon.tsx`. `styles.ts` uses HA theme vars, with `--hl-*` accents layered on top.
 
 ## Key facts
 
