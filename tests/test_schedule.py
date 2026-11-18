@@ -42,3 +42,19 @@ def test_grouping_and_payloads():
     assert first["dayofweek"] == ["monday", "tuesday", "wednesday", "thursday", "friday"]
     assert first["transitions"][0] == {"heatSetpoint": 16.0, "transitionTime": "00:00"}
     assert "weekly_schedule" in s.to_z2m_payloads(sched, None)[0]
+
+def test_parse_drops_padding_repeats():
+    # A day written with 3 events reads back padded to 6, repeating the last time.
+    reply = {"days": ["monday"], "transitions": [
+        {"time": 390, "heating_setpoint": 20}, {"time": 510, "heating_setpoint": 16},
+        {"time": 1320, "heating_setpoint": 1}, {"time": 1320, "heating_setpoint": 1},
+        {"time": 1320, "heating_setpoint": 1}, {"time": 1320, "heating_setpoint": 1}]}
+    day = s.parse_z2m_reply(reply)["monday"]
+    assert [t["time"] for t in day] == ["06:30", "08:30", "22:00"]
+    # ...and it can be written straight back (validate rejects duplicate times).
+    s.validate({"monday": day}, max_transitions=6, min_setpoint=1, max_setpoint=32)
+
+def test_tidy_keeps_first_entry_per_time():
+    t = s.tidy_transitions([{"time": "22:00", "setpoint": 18.0}, {"time": "06:30", "setpoint": 20.0},
+                            {"time": "22:00", "setpoint": 1.0}])
+    assert t == [{"time": "06:30", "setpoint": 20.0}, {"time": "22:00", "setpoint": 18.0}]
