@@ -77,6 +77,8 @@ Goal: one integration that works whether the receiver is on Z2M or ZHA. It shoul
 
 ## Conventions
 
+- **Brand images** (`custom_components/hive_local/brand/`): our own icon (a rounded hexagon, amber→orange, white MDI flame) and `logo`/`dark_logo` wordmarks. Don't use Hive's logo: we say we're not affiliated, and it's their trademark.
+- **README screenshots** are the real built panel rendered with sample data (`docs/screenshots/harness/`, see README → Development → Screenshots). Retake them when the panel changes noticeably.
 - **Shipping an update:** bump `version` in `manifest.json` (semver), push, then `gh release create vX.Y.Z --target main` with short notes. The Marketplace (formerly HACS) offers updates from GitHub releases; without a new release, **Update** stays greyed out and users can only Redownload.
 - Python: HA style, type hints, `from __future__ import annotations`. Keep `schedule.py`, `z2m.py` and `devices.py` free of HA imports so it stays testable.
 - Run `pytest -q tests` and `cd frontend && npm run build` before committing, and commit the rebuilt bundle.

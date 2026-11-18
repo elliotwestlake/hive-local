@@ -6375,6 +6375,8 @@ select, input[type=time] { font: inherit; font-size: 14px; padding: 8px 10px; bo
 .dial.heating .dial-caption { color: var(--hl-heat); font-weight: 500; }
 .water-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: 200px; }
 .water-orb { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--hl-soft); color: var(--hl-off); --mdc-icon-size: 52px; transition: background .3s, color .3s, box-shadow .3s; }
+/* The icon's own wrapper sets 20px, so size it there. */
+.water-orb .icon-wrap { --mdc-icon-size: 52px; }
 .water-state.idle .water-orb { background: color-mix(in srgb, var(--hl-water) 12%, transparent); color: var(--hl-water); }
 .water-state.heating .water-orb { background: var(--hl-water); color: #fff; box-shadow: 0 0 0 10px color-mix(in srgb, var(--hl-water) 15%, transparent); }
 .water-state.heating .dial-caption { color: var(--hl-water); font-weight: 500; }
