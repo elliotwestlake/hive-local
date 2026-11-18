@@ -80,6 +80,7 @@ def _status(hass: HomeAssistant) -> dict[str, Any]:
                 "status": data.transport.status(channel),
                 "boost_minutes": data.boost_defaults(channel).minutes,
                 "boost_temperature": data.boost_defaults(channel).temperature,
+                "frost_temperature": data.boost_defaults(channel).frost,
             }
             for channel in data.transport.channels
         }

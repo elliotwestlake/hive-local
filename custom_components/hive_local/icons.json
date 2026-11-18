@@ -11,7 +11,8 @@
     "number": {
       "heat_boost_minutes": { "default": "mdi:timer-cog-outline" },
       "water_boost_minutes": { "default": "mdi:timer-cog-outline" },
-      "heat_boost_temperature": { "default": "mdi:thermometer-chevron-up" }
+      "heat_boost_temperature": { "default": "mdi:thermometer-chevron-up" },
+      "heat_frost_temperature": { "default": "mdi:snowflake-thermometer" }
     },
     "button": {
       "heat_boost": { "default": "mdi:fire" },
