@@ -64,7 +64,7 @@ async def _async_fetch_z2m_devices(hass: HomeAssistant, base: str) -> Any:
         return None
 
 
-class HiveScheduleConfigFlow(ConfigFlow, domain=DOMAIN):
+class HiveLocalConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     def __init__(self) -> None:
