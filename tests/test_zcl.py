@@ -80,3 +80,15 @@ def test_parse_schedule_response_days_and_modes():
     assert z.parse_schedule_response(0x02, 0x03, [480, 2150, 2600]) == {
         "monday": [{"time": "08:00", "setpoint": 21.5}]}
     assert z.parse_schedule_response(0x02, 0x02, [480, 2600]) == {}
+
+@pytest.mark.parametrize("model, eps, expected", [
+    ("SLR1c", [5, 6], {"heat": 5}),          # single-channel, even if it lists endpoint 6
+    ("OTR1", [5], {"heat": 5}),
+    ("SLR2b", [5, 6], {"heat": 5, "water": 6}),
+    ("SLR2", [5], {"heat": 5}),               # water endpoint missing: heating only
+    (None, [5, 6], {"heat": 5, "water": 6}),  # unknown model: by endpoints
+    ("Mystery", [1], {"heat": 1}),
+    ("SLR1", [], {}),
+])
+def test_receiver_endpoints(model, eps, expected):
+    assert z.receiver_endpoints(model, eps) == expected

@@ -37,6 +37,8 @@ Don't use the domain `hive`: HA core's cloud Hive integration already has it, an
 - **Reading the schedule:** the receiver answers with one `get_weekly_schedule_response` per day, all with the request's TSN. With `expect_reply=True`, zigpy hands the first one to the request future and never shows it to listeners, so we send with `expect_reply=False` and collect every reply with a legacy `cluster.add_listener` (`cluster_command`). The scratch e2e test fails if this is flipped back.
 - **State:** we listen to the cluster's `attribute_read/report/updated/written` events and rebuild status from the attribute cache. ZHA configures reporting for `system_mode`, `occupied_heating_setpoint`, `local_temperature` and `running_state`, but **not** the hold attributes. So we read all state on start and every 5 min, re-read the hold attributes 3 s after a reported mode or setpoint change (and after each of our writes), and poll while boosting.
 - Modes and boost are one `write_attributes` call, in the same field order as the Z2M payload.
+- **Channels come from the model, like Z2M:** SLR1* / OTR1 are heating only (endpoint 5), SLR2* are heating 5 + hot water 6, and unknown models go by which endpoints have a Thermostat cluster (`zcl.receiver_endpoints`). A single-channel receiver on ZHA was reported showing hot water, so it probably lists a Thermostat cluster on endpoint 6 too.
+- Z2M's definitions give every Hive receiver `meta: {disableDefaultResponse: true}`, so `set_weekly_schedule` is sent the same way (`disable_default_response=True, expect_reply=False`). Errors only show up when the schedule is read back.
 - If the ZHA integration reloads, it rebuilds its devices and our cluster references go stale until Hive Local is reloaded. Not handled yet.
 
 ## Status
