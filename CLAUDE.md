@@ -53,7 +53,8 @@ Don't use the domain `hive`: HA core's cloud Hive integration already has it, an
 - [ ] SLR2: read the hot water schedule and set `WATER_ON` / `WATER_OFF` to match.
 - [x] GitHub repo renamed to `elliotwestlake/hive-local`, and the `manifest.json` links updated.
 - [x] ZHA transport and config flow. Checked end to end (HA 2026.2.3 + zha 0.0.90) against a real zigpy `Device` with a fake radio that decodes every ZCL frame and answers like the receiver: config flow, initial reads, exact Write Attributes for boost/cancel/water boost, report → hold re-read, 7-day read, write and partial read. Also a Z2M regression test (menu flow, legacy entry without `transport`). Neither is in the repo, because CI only installs `pytest`.
-- [ ] ZHA on a real receiver: add it, check the mode/boost entities, then **Read**, then **Write** one day. Also check whether Hive's Default Response to `set_weekly_schedule` is `SUCCESS`.
+- [x] ZHA on a real receiver, first step: Elliot's **OTR1** (now on ZHA with a Home Assistant Connect ZBT-2, alongside the **SLT3d** wall thermostat) set up via the ZHA flow. It showed hot water until channels were decided by model; now heating only.
+- [ ] ZHA on the OTR1: check the mode/boost entities and Overview, boost countdown, then **Read**, then **Write** one day.
 
 ## Roadmap: ZHA support + Hive Local Thermostat feature parity
 
