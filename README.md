@@ -52,14 +52,14 @@ Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 ## Rooms and radiator valves
 
-The **Rooms** tab groups your radiator valves (TRVs) into rooms. Any valve Home Assistant knows about works, whichever integration it comes from (ZHA, Zigbee2MQTT, Tuya and so on), because Hive Local uses the valves' own climate entities.
+The **Rooms** tab groups your **Hive radiator valves** (UK7004240) into rooms, whether they're paired with ZHA or Zigbee2MQTT. Hive Local recognises them by model and uses their climate entities.
 
 - **Add room:** name it, tick its valves (grouped by area), and optionally pick a temperature sensor. Without one, the room shows the average of its valves' readings.
 - Each room shows its temperature, whether any valve is heating, each valve's reading, target and battery (low batteries are flagged), and one **target** that sets all the room's valves at once.
 
 ![Rooms: each room's temperature, target and valves, with batteries.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/rooms.png)
 
-Coming next: Hive and Danfoss valves getting the room sensor's reading (their external sensor setting), and, optionally, rooms calling for heat from the boiler.
+Coming next: the valves using the room sensor's reading (their external sensor setting), and, optionally, rooms calling for heat from the boiler.
 
 ## Entities and actions
 
@@ -130,9 +130,12 @@ The built bundle is committed so Marketplace users don't need a build step.
 
 ### Screenshots and logo
 
-The README screenshots are the real panel bundle rendered with sample data. `docs/screenshots/harness/` has `harness.html` (a fake `hass` with HA's theme colours) and `compose.html` (the window frames, the desktop + phone hero and the social preview). To retake them after a panel change, serve that folder with the built `hive-local-panel.js` and an `icons.json` (from `build_icons.mjs`, which needs `@mdi/js`), then capture with headless Chrome:
+The README screenshots are the real panel bundle rendered with sample data. `docs/screenshots/harness/` has `harness.html` (a fake `hass` with HA's theme colours and sample rooms), `compose.html` (window frames, the desktop + phone hero and the social preview) and `shoot.sh`, which retakes all of them after `npm run build`:
 
-- **Raw tabs** (to `docs/screenshots/raw/`): `chrome-headless-shell --screenshot --window-size=900,620 --force-device-scale-factor=2 "http://127.0.0.1:8765/harness.html?tab=Overview"` (`tab=`, `narrow=1`, `theme=dark`).
-- **Framed:** `compose.html?kind=frame&img=schedule.png&w=900` (add `&theme=night` for the dark shot), `?kind=hero` and `?kind=social&logo=…/logo.svg`.
+```bash
+CHROME=/path/to/chrome-headless-shell PYTHON=python3 docs/screenshots/harness/shoot.sh   # PYTHON needs Pillow
+```
+
+If the panel uses new icons, regenerate `icons.json` first: `node build_icons.mjs ../../../frontend/src icons.json` (needs `@mdi/js`).
 
 The logo lives in `docs/logo/`: `icon.svg`, `logo.svg` and `logo-dark.svg` (for dark backgrounds), all with the text converted to outlines, plus PNG exports and `social-preview.png` (1280×640). `make_logo.py` regenerates the SVGs (`pip install fonttools`; the wordmark is Figtree, SIL Open Font License, and the script shows where to download it). The integration's `brand/` images are rendered from the same SVGs.

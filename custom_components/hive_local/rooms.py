@@ -1,7 +1,7 @@
 """Pure room helpers (no Home Assistant imports, so they're unit-testable).
 
-A room is a set of radiator valves (any HA climate entity, from any integration)
-plus an optional temperature sensor:
+A room is a set of Hive radiator valves (their HA climate entities, on ZHA or
+Zigbee2MQTT) plus an optional temperature sensor:
 
     {"id": "a1b2c3", "name": "Lounge", "valves": ["climate.lounge_trv"], "sensor": "sensor.lounge_temp"}
 
@@ -16,6 +16,16 @@ import secrets
 from typing import Any
 
 LOW_BATTERY = 20  # % at or below which a valve's battery is flagged
+
+# The Hive radiator valve (UK7004240) is a rebadged Danfoss Ally. ZHA reports it as
+# manufacturer "Danfoss" with Hive's own model ids TRV001/TRV003; Zigbee2MQTT as
+# vendor Hive, model "Radiator valve (UK7004240)".
+HIVE_VALVE_IDS = ("TRV001", "TRV003", "UK7004240")
+
+
+def is_hive_valve(model: str | None, model_id: str | None = None) -> bool:
+    text = f"{model or ''} {model_id or ''}".upper()
+    return any(valve_id in text for valve_id in HIVE_VALVE_IDS)
 NAME_MAX = 40
 
 
@@ -38,9 +48,9 @@ def clean_room(raw: dict[str, Any], *, known_valves: set[str], known_sensors: se
         raise RoomError(f"Room names can be at most {NAME_MAX} characters")
     valves = list(dict.fromkeys(raw.get("valves") or []))
     if not valves:
-        raise RoomError("Pick at least one radiator valve")
+        raise RoomError("Pick at least one Hive radiator valve")
     if unknown := [v for v in valves if v not in known_valves]:
-        raise RoomError(f"Not a radiator valve: {', '.join(unknown)}")
+        raise RoomError(f"Not a Hive radiator valve: {', '.join(unknown)}")
     sensor = raw.get("sensor") or None
     if sensor is not None and sensor not in known_sensors:
         raise RoomError(f"Not a temperature sensor: {sensor}")

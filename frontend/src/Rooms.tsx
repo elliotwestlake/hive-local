@@ -36,8 +36,8 @@ export function Rooms({ getHass, device }: Props) {
     <div className="stack">
       <div className="rooms-head">
         <p className="muted">
-          Group your radiator valves into rooms. Any valve Home Assistant knows about works, from any integration. Add a
-          temperature sensor to a room for a better reading than the valves' own.
+          Group your Hive radiator valves into rooms, on ZHA or Zigbee2MQTT. Add a temperature sensor to a room for a
+          better reading than the valves' own.
         </p>
         {editing !== "new" && (
           <button className="primary" onClick={() => setEditing("new")}>
@@ -53,7 +53,7 @@ export function Rooms({ getHass, device }: Props) {
       {!rooms.length && editing !== "new" && (
         <div className="empty-state">
           <Icon name="home-thermometer-outline" />
-          <p>No rooms yet. Add a room and pick its radiator valves.</p>
+          <p>No rooms yet. Add a room and pick its Hive radiator valves.</p>
         </div>
       )}
 
@@ -242,10 +242,10 @@ function RoomEditor({ getHass, device, room, onDone }: EditorProps) {
         </label>
 
         <fieldset className="field">
-          <legend>Radiator valves</legend>
+          <legend>Hive radiator valves</legend>
           {!candidates && !error && <span className="muted small">Loading…</span>}
           {candidates && !candidates.valves.length && (
-            <span className="muted small">Home Assistant has no radiator valves yet. Pair them with ZHA or Zigbee2MQTT first.</span>
+            <span className="muted small">No Hive radiator valves found. Pair them with ZHA or Zigbee2MQTT first.</span>
           )}
           {[...byArea].map(([area, list]) => (
             <div key={area} className="checklist">

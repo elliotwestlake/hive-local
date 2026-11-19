@@ -26,6 +26,8 @@ header { position: sticky; top: 0; z-index: 2; background: var(--app-header-back
 .toolbar-row { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 16px; }
 .toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; }
 .toolbar-row .brand { --mdc-icon-size: 24px; opacity: .9; }
+.logo-mark { display: block; flex: none; }
+.empty-state .logo-mark { opacity: .9; }
 .toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; border-radius: 50%; }
 .toolbar-row .menu:hover { background: rgba(255,255,255,.12); }
 .device-name { font-size: 14px; opacity: .8; }
@@ -193,7 +195,8 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
   .mode-tile .small { margin-left: auto; text-align: right; }
   /* Labels always visible on phones; drop the icons to make room. */
   .tabs { padding: 0 4px; }
-  .tabs button { padding: 12px 10px 10px; font-size: 13px; }
+  .tabs { gap: 0; }
+  .tabs button { padding: 12px 7px 10px; font-size: 12.5px; letter-spacing: 0; }
   .tabs .icon-wrap { display: none; }
   .device-name { display: none; }
 }
