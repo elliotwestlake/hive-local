@@ -6498,8 +6498,7 @@ function Sp({ getHass: e, narrow: t, onToggleMenu: n }) {
         t && /* @__PURE__ */ u.jsx("button", { className: "menu", onClick: n, "aria-label": "Menu", children: /* @__PURE__ */ u.jsx(F, { name: "menu" }) }),
         /* @__PURE__ */ u.jsx(ba, {}),
         /* @__PURE__ */ u.jsx("h1", { children: "Hive Local" }),
-        /* @__PURE__ */ u.jsx("span", { className: "spacer" }),
-        r.length === 1 && /* @__PURE__ */ u.jsx("span", { className: "device-name", children: r[0].name })
+        /* @__PURE__ */ u.jsx("span", { className: "spacer" })
       ] }),
       /* @__PURE__ */ u.jsx("nav", { className: "tabs", role: "tablist", children: f.map((c) => /* @__PURE__ */ u.jsxs("button", { role: "tab", "aria-selected": c.id === d, className: c.id === d ? "on" : "", onClick: () => v(c.id), children: [
         /* @__PURE__ */ u.jsx(F, { name: c.icon }),
@@ -6558,9 +6557,6 @@ header { position: sticky; top: 0; z-index: 2; background: var(--app-header-back
 .empty-state .logo-mark { opacity: .9; }
 .toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; border-radius: 50%; }
 .toolbar-row .menu:hover { background: rgba(255,255,255,.12); }
-.device-name { font-size: 14px; opacity: .8; }
-.device-select { background: rgba(255,255,255,.14); color: inherit; border-color: transparent; }
-.device-select option { color: var(--primary-text-color); background: var(--card-background-color); }
 .tabs { display: flex; gap: 2px; padding: 0 8px; overflow-x: auto; scrollbar-width: none; }
 .tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 0; background: transparent; color: inherit; opacity: .72; padding: 12px 14px 10px; border-bottom: 2px solid transparent; font-weight: 500; letter-spacing: .01em; }
 .tabs button:hover { opacity: .95; background: rgba(255,255,255,.06); }
@@ -6739,7 +6735,6 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
   .tabs { gap: 0; }
   .tabs button { padding: 12px 7px 10px; font-size: 12.5px; letter-spacing: 0; }
   .tabs .icon-wrap { display: none; }
-  .device-name { display: none; }
 }
 `
 );
