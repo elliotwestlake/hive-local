@@ -7,6 +7,11 @@ hive_local/set   {entry_id, channel, schedule}
 hive_local/mode  {entry_id, channel, mode, setpoint?}   mode = schedule | manual | off
 hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
+hive_local/rooms/subscribe {entry_id}              -> pushes {"rooms": [...]} on any valve/sensor/battery change
+hive_local/rooms/candidates {entry_id}             -> {"valves": [...], "sensors": [...]} that can go in a room
+hive_local/rooms/save {entry_id, room_id?, name, valves, sensor?}
+hive_local/rooms/delete {entry_id, room_id}
+hive_local/rooms/set_target {entry_id, room_id, temperature}  -> {"failed": [valves that refused]}
 """
 
 from __future__ import annotations
@@ -20,6 +25,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.event import async_track_state_change_event
 
 from .const import (
     BOOST_MIN_TEMP,
@@ -35,6 +41,7 @@ from .const import (
     WATER_ON,
 )
 from .data import HiveConfigEntry
+from .room_manager import signal_rooms
 from .schedule import ScheduleError, validate
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -44,7 +51,20 @@ ENTRY = {vol.Required("entry_id"): str}
 
 @callback
 def async_register(hass: HomeAssistant) -> None:
-    for command in (ws_devices, ws_subscribe, ws_get, ws_set, ws_mode, ws_boost, ws_cancel_boost):
+    for command in (
+        ws_devices,
+        ws_subscribe,
+        ws_get,
+        ws_set,
+        ws_mode,
+        ws_boost,
+        ws_cancel_boost,
+        ws_rooms_subscribe,
+        ws_rooms_candidates,
+        ws_rooms_save,
+        ws_rooms_delete,
+        ws_rooms_set_target,
+    ):
         websocket_api.async_register_command(hass, command)
 
 
@@ -193,3 +213,96 @@ async def ws_boost(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
 async def ws_cancel_boost(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
     await entry.runtime_data.transport.async_cancel_boost(msg["channel"])
     connection.send_result(msg["id"], {"ok": True})
+
+
+ROOM = {vol.Required("room_id"): str}
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/subscribe"} | ENTRY)
+@callback
+def ws_rooms_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    entry = next((e for e in _entries(hass) if e.entry_id == msg["entry_id"]), None)
+    if entry is None:
+        connection.send_error(msg["id"], "not_found", "Unknown receiver")
+        return
+    rooms = entry.runtime_data.rooms
+    unsub_states = None
+
+    @callback
+    def _send(*_args: Any) -> None:
+        connection.send_message(websocket_api.event_message(msg["id"], {"rooms": rooms.status()}))
+
+    @callback
+    def _track() -> None:
+        # Follow exactly the entities the rooms use; re-done whenever rooms change.
+        nonlocal unsub_states
+        if unsub_states:
+            unsub_states()
+        unsub_states = async_track_state_change_event(hass, list(rooms.tracked_entities()), _send)
+
+    @callback
+    def _rooms_changed() -> None:
+        _track()
+        _send()
+
+    unsub_rooms = async_dispatcher_connect(hass, signal_rooms(entry.entry_id), _rooms_changed)
+    _track()
+
+    @callback
+    def _unsubscribe() -> None:
+        unsub_rooms()
+        if unsub_states:
+            unsub_states()
+
+    connection.subscriptions[msg["id"]] = _unsubscribe
+    connection.send_result(msg["id"])
+    _send()
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/candidates"} | ENTRY)
+@websocket_api.async_response
+@_with_entry
+async def ws_rooms_candidates(hass, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    connection.send_result(msg["id"], entry.runtime_data.rooms.candidates())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/rooms/save",
+        vol.Optional("room_id"): str,
+        vol.Required("name"): str,
+        vol.Required("valves"): [str],
+        vol.Optional("sensor"): vol.Any(str, None),
+    }
+    | ENTRY
+)
+@websocket_api.async_response
+@_with_entry
+async def ws_rooms_save(hass, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    room = await entry.runtime_data.rooms.async_save_room(
+        {"name": msg["name"], "valves": msg["valves"], "sensor": msg.get("sensor")}, msg.get("room_id")
+    )
+    connection.send_result(msg["id"], {"room": room})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/delete"} | ENTRY | ROOM)
+@websocket_api.async_response
+@_with_entry
+async def ws_rooms_delete(hass, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    await entry.runtime_data.rooms.async_delete_room(msg["room_id"])
+    connection.send_result(msg["id"], {"ok": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/rooms/set_target",
+        vol.Required("temperature"): vol.All(vol.Coerce(float), vol.Range(4, 35)),
+    }
+    | ENTRY
+    | ROOM
+)
+@websocket_api.async_response
+@_with_entry
+async def ws_rooms_set_target(hass, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    failed = await entry.runtime_data.rooms.async_set_target(msg["room_id"], msg["temperature"])
+    connection.send_result(msg["id"], {"failed": failed})

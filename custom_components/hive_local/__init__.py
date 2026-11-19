@@ -29,6 +29,7 @@ from .const import (
     TRANSPORT_ZHA,
 )
 from .data import HiveConfigEntry, HiveData
+from .room_manager import RoomManager
 from .transports import Transport, Z2MTransport
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,7 +60,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     transport = await _async_transport(hass, entry)
     await transport.async_start()
-    entry.runtime_data = HiveData(transport)
+    rooms = RoomManager(hass, entry.entry_id)
+    await rooms.async_load()
+    entry.runtime_data = HiveData(transport, rooms)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if PANEL_URL not in hass.data.get(frontend.DATA_PANELS, {}):

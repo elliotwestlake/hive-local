@@ -61,7 +61,7 @@ button.primary:hover:not(:disabled) { background: var(--hl-accent, var(--primary
 button.ghost { border-color: transparent; background: transparent; color: var(--secondary-text-color); padding-right: 6px; }
 button.round { width: 36px; height: 36px; padding: 0; border-radius: 50%; }
 button.danger { color: var(--error-color); border-color: transparent; background: transparent; }
-select, input[type=time] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }
+select, input[type=time], input[type=text] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }
 .toolbar, .actions, .inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .inline-row { gap: 12px; }
 
@@ -155,6 +155,33 @@ select, input[type=time] { font: inherit; font-size: 14px; padding: 8px 10px; bo
 .transition:last-child { border-bottom: 0; }
 .transition .danger { margin-left: auto; }
 .swatch { width: 10px; height: 32px; border-radius: 5px; flex: none; }
+
+/* Rooms */
+.rooms-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.rooms-head p { margin: 0; max-width: 65ch; }
+.room.heating { --hl-accent: var(--hl-heat); }
+.chip.heating { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }
+.room-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.room-temp { font-size: 44px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+.room-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }
+.room-target { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.valves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.valve { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--divider-color); font-size: 14px; }
+.valve.off { opacity: .6; }
+.valve-icon { color: var(--secondary-text-color); --mdc-icon-size: 18px; }
+.valve-icon.heating { color: var(--hl-heat); }
+.valve-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.valve-temps { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.battery { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+.battery .icon-wrap { --mdc-icon-size: 16px; }
+.battery.low { color: var(--warning-color, #ffa600); font-weight: 500; }
+.room-editor h2 { margin: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.field > span, .field legend { font-size: 13px; font-weight: 500; color: var(--secondary-text-color); padding: 0; margin-bottom: 6px; }
+.field input[type=text], .field select { width: 100%; max-width: 420px; }
+.checklist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 0; }
+.checklist > .muted { width: 100%; }
+.pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
 
 @media (max-width: 600px) {
   main { padding: 12px 8px 24px; gap: 12px; }

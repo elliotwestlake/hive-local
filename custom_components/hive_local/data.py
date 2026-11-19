@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import DEFAULT_BOOST_MINUTES, DEFAULT_BOOST_TEMP, DEFAULT_FROST_TEMP, SIGNAL_STATUS
+from .room_manager import RoomManager
 from .transports import Transport
 
 
@@ -27,6 +28,7 @@ class BoostDefaults:
 @dataclass
 class HiveData:
     transport: Transport
+    rooms: RoomManager
     boost: dict[str, BoostDefaults] = field(default_factory=dict)
 
     def boost_defaults(self, channel: str) -> BoostDefaults:
