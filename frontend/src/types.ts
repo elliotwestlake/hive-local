@@ -67,3 +67,38 @@ export interface Hass {
 export const CHANNEL_LABEL: Record<Channel, string> = { heat: "Heating", water: "Hot water" };
 
 export const errorText = (e: any) => String(e?.message ?? e);
+
+/** A radiator valve's live state, as the backend reads it from its HA entity. */
+export interface ValveState {
+  entity_id: string;
+  name: string;
+  available: boolean;
+  current_temperature: number | null;
+  target: number | null;
+  hvac_action: string | null;
+  battery: string | null; // the battery sensor's state, e.g. "85"
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  valves: string[];
+  sensor: string | null;
+  sensor_name: string | null;
+  valve_states: ValveState[];
+  current_temperature: number | null;
+  temperature_source: "sensor" | "valves" | null;
+  target: number | null; // when all valves agree
+  target_range: [number, number] | null; // when they don't
+  heating: boolean;
+  heating_valves: string[];
+  unavailable: string[];
+  lowest_battery: number | null;
+  battery_low: boolean;
+}
+
+export interface Candidate {
+  entity_id: string;
+  name: string;
+  area: string | null;
+}

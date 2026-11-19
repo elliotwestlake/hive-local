@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Controls } from "./Controls";
 import { Icon } from "./Icon";
 import { Overview } from "./Overview";
+import { Rooms } from "./Rooms";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { errorText, type Device, type Hass, type Limits, type StatusMap } from "./types";
 
@@ -11,10 +12,11 @@ interface Props {
   onToggleMenu: () => void;
 }
 
-type Tab = "overview" | "heat" | "water" | "controls";
+type Tab = "overview" | "rooms" | "heat" | "water" | "controls";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Overview", icon: "view-dashboard-outline" },
+  { id: "rooms", label: "Rooms", icon: "home-thermometer-outline" },
   { id: "heat", label: "Heating", icon: "radiator" },
   { id: "water", label: "Hot water", icon: "water-boiler" },
   { id: "controls", label: "Boost & mode", icon: "tune-variant" },
@@ -94,6 +96,8 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
         )}
 
         {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} onOpen={(id) => { setEntryId(id); setTab("controls"); }} />}
+
+        {tab === "rooms" && device && <Rooms key={device.entry_id} getHass={getHass} device={device} />}
 
         {(tab === "heat" || tab === "water") && device && limits &&
           (device.channels.includes(tab) ? (

@@ -14,7 +14,8 @@ Don't use the domain `hive`: HA core's cloud Hive integration already has it, an
   - `data.py`: `HiveData` (transport + per-channel boost defaults); `HiveConfigEntry`.
   - `climate.py` (heating: auto = schedule, heat = manual hold, off; boost is a preset; schedule "off" periods (1 °C) show the HA-side frost protection number (default 12 °C, display only, like Hive Local Thermostat) so the target stays adjustable; no target when off; setting a temperature on auto sends only `occupied_heating_setpoint` (override until the next scheduled change, as Hive Local Thermostat did; **unverified** on Elliot's receiver), mid-boost re-boosts keeping the time left, and on heat changes the hold), `water_heater.py` (hot water: schedule/on/off/boost, no temperatures) and `entity.py` + `select.py` (mode), `sensor.py` (boost remaining), `number.py` (boost duration/temperature and heating frost protection, restored, stored in HA only) and `button.py` (boost/cancel).
   - `services.py` / `services.yaml`: `boost_heating`, `boost_water`, `cancel_boost_heating`, `cancel_boost_water`. `device_id` is optional when there's only one receiver.
-  - `websocket.py`: `hive_local/devices|subscribe|get|set|mode|boost|cancel_boost`.
+  - `websocket.py`: `hive_local/devices|subscribe|get|set|mode|boost|cancel_boost`, plus `hive_local/rooms/subscribe|candidates|save|delete|set_target`.
+  - `rooms.py` (pure, unit-tested): validate a room, and summarise its valves (room temperature from the sensor or the valves' average, one target or the spread, heating, lowest battery). `room_manager.py`: `RoomManager` per receiver (`HiveData.rooms`). It stores rooms in `.storage/hive_local.rooms.<entry_id>`, reads valves as HA climate entities (any integration; excludes our own), finds each valve's battery sensor on the same device, and sets targets with `climate.set_temperature`. `frontend/src/Rooms.tsx` is the Rooms tab.
   - Pure helpers with no HA imports, unit-tested in `tests/`: `schedule.py` (schedule parse/validate/group/payloads), `z2m.py` (state → mode/status, and mode/boost payloads), `zcl.py` (the same for raw ZCL attributes and set/get_weekly_schedule args, for ZHA) and `devices.py` (filter `bridge/devices`).
   - `const.py`: limits, boost defaults, and the **unverified** `WATER_ON` / `WATER_OFF`.
   - `frontend/hive-local-panel.js`: **built artifact**. Don't edit it. Run `npm run build` in `/frontend`.
@@ -74,6 +75,14 @@ Goal: one integration that works whether the receiver is on Z2M or ZHA. It shoul
    - Check whether ZHA's existing climate entity for Hive needs a quirk. Don't fight it; add our own entities alongside.
 4. ~~**Parity entities and actions**~~ Done for Z2M: services, boost-remaining sensors, a mode select (instead of a "follow schedule" switch), boost buttons and default boost time/temperature numbers. They're written against `Transport`, so ZHA gets them for free.
 5. ~~Panel: boost controls and mode indicator~~ Done. These are the Overview and Boost & mode tabs. Future tabs could cover settings or devices.
+
+## Roadmap: rooms and radiator valves (TRVs)
+
+Goal: one system of receiver (boiler) plus rooms of valves, on ZHA or Z2M. Everything works through HA entities where possible, so it's brand-agnostic.
+
+1. ~~**Rooms (any valve)**~~ Done (0.3.0): rooms of climate entities plus an optional sensor, a Rooms tab, room target → every valve, batteries. Tested end to end with fake valves from "another integration" (scratch e2e `test_rooms_e2e.py`). Not yet tried on real valves.
+2. **Hive / Danfoss Ally valves (Hive UK7004240 = TRV001/TRV003)**: push the room sensor into the valve's `external_measured_room_sensor` (Danfoss 0x4015, centi-°C), at least every 3 h / at most every 30 min in auto-offset mode (`radiator_covered` off), or at least every 30 min / at most every 5 min in room-sensor mode (`radiator_covered` on). The valve drops it (-8000) if not refreshed. Z2M and ZHA both expose it as a number entity, so this can be entity-level too. Later: the valve's onboard weekly schedule (same ZCL commands as the receiver; endpoint 1; clock sync matters on ZHA).
+3. **Boiler demand (opt-in)**: when a room is below target (or a valve heating) and the receiver isn't, ask the receiver for heat (manual/boost); otherwise leave it on its own schedule. This is the one HA-dependent part, so it must fail safe.
 
 ## Conventions
 

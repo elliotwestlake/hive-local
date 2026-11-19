@@ -71,6 +71,34 @@ const STATUS = {
   },
 };
 
+const valve = (id, name, temp, target, action, battery, available = true) =>
+  ({ entity_id: id, name, available, current_temperature: temp, target, hvac_action: action, battery: String(battery) });
+const ROOMS = [
+  {
+    id: "a1", name: "Lounge", valves: ["climate.lounge_bay", "climate.lounge_door"], sensor: "sensor.lounge",
+    sensor_name: "Lounge temperature",
+    valve_states: [valve("climate.lounge_bay", "Bay window valve", 19.2, 21, "heating", 78), valve("climate.lounge_door", "Door valve", 20.4, 21, "idle", 14)],
+    current_temperature: 19.8, temperature_source: "sensor", target: 21, target_range: null, heating: true,
+    heating_valves: ["climate.lounge_bay"], unavailable: [], lowest_battery: 14, battery_low: true,
+  },
+  {
+    id: "b2", name: "Bedroom", valves: ["climate.bedroom"], sensor: null, sensor_name: null,
+    valve_states: [valve("climate.bedroom", "Bedroom valve", 17.6, 17, "idle", 91), valve("climate.ensuite", "En-suite valve", 18.1, 19, "idle", 66)],
+    current_temperature: 17.9, temperature_source: "valves", target: null, target_range: [17, 19], heating: false,
+    heating_valves: [], unavailable: [], lowest_battery: 66, battery_low: false,
+  },
+];
+const CANDIDATES = {
+  valves: [
+    { entity_id: "climate.bedroom", name: "Bedroom valve", area: "Bedroom" },
+    { entity_id: "climate.ensuite", name: "En-suite valve", area: "Bedroom" },
+    { entity_id: "climate.kitchen", name: "Kitchen valve", area: "Kitchen" },
+    { entity_id: "climate.lounge_bay", name: "Bay window valve", area: "Lounge" },
+    { entity_id: "climate.lounge_door", name: "Door valve", area: "Lounge" },
+  ],
+  sensors: [{ entity_id: "sensor.lounge", name: "Lounge temperature", area: "Lounge" }],
+};
+
 const hass = {
   async callWS(msg) {
     switch (msg.type) {
@@ -79,6 +107,8 @@ const hass = {
           devices: [{ entry_id: "e1", name: "Hive Receiver", model: "SLR2b", channels: ["heat", "water"] }],
           limits: { max_transitions: 6, heat_min: 1, heat_max: 32, boost_min_temp: 5, boost_max_minutes: 360, water_on: 22, water_off: 1 },
         };
+      case "hive_local/rooms/candidates":
+        return CANDIDATES;
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
       default:
@@ -86,8 +116,8 @@ const hass = {
     }
   },
   connection: {
-    subscribeMessage(cb) {
-      setTimeout(() => cb({ status: STATUS }), 0);
+    subscribeMessage(cb, msg) {
+      setTimeout(() => cb(msg.type === "hive_local/rooms/subscribe" ? { rooms: ROOMS } : { status: STATUS }), 0);
       return Promise.resolve(() => Promise.resolve());
     },
   },
@@ -108,4 +138,9 @@ if (tab) {
   button?.click();
 }
 await wait(500);
+const click = params.get("click");
+if (click) {
+  [...panel.shadowRoot.querySelectorAll("button")].find((b) => b.textContent.trim() === click)?.click();
+  await wait(400);
+}
 document.title = "ready";
