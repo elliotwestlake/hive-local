@@ -1,7 +1,8 @@
-"""Rooms for one receiver: radiator valves (any climate entity) plus an optional sensor.
+"""Rooms for one receiver: Hive radiator valves plus an optional temperature sensor.
 
-Everything goes through Home Assistant entities, so valves from any integration
-(Zigbee2MQTT, ZHA, Tuya, ...) work. Rooms are kept in HA storage per receiver.
+Valves are used through their Home Assistant climate entities, so they work on ZHA
+and Zigbee2MQTT alike. Only Hive valves are offered (rooms.is_hive_valve). Rooms
+are kept in HA storage per receiver.
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
-from .rooms import RoomError, clean_room, new_room_id, summarise
+from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, summarise
 
 STORAGE_VERSION = 1
 
@@ -60,15 +61,18 @@ class RoomManager:
         area = ar.async_get(self.hass).async_get_area(area_id) if area_id else None
         return area.name if area else None
 
+    def _is_hive_valve(self, entity_id: str) -> bool:
+        entry = er.async_get(self.hass).async_get(entity_id)
+        device = dr.async_get(self.hass).async_get(entry.device_id) if entry and entry.device_id else None
+        return device is not None and is_hive_valve(device.model, device.model_id)
+
     @callback
     def candidates(self) -> dict[str, list[dict[str, Any]]]:
-        """Climate entities that could be valves (not ours), and temperature sensors."""
-        registry = er.async_get(self.hass)
+        """Hive radiator valves' climate entities, and temperature sensors."""
         valves, sensors = [], []
         for state in self.hass.states.async_all("climate"):
-            entry = registry.async_get(state.entity_id)
-            if entry and entry.platform == DOMAIN:
-                continue  # Hive Local's own heating entity
+            if not self._is_hive_valve(state.entity_id):
+                continue
             valves.append({"entity_id": state.entity_id, "name": state.name, "area": self._area(state.entity_id)})
         for state in self.hass.states.async_all("sensor"):
             if state.attributes.get("device_class") == "temperature":

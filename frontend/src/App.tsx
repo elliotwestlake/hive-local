@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Controls } from "./Controls";
 import { Icon } from "./Icon";
+import { Logo } from "./Logo";
 import { Overview } from "./Overview";
 import { Rooms } from "./Rooms";
 import { ScheduleEditor } from "./ScheduleEditor";
@@ -62,8 +63,8 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
               <Icon name="menu" />
             </button>
           )}
-          <Icon name="hexagon-multiple-outline" className="brand" />
-          <h1>Hive</h1>
+          <Logo />
+          <h1>Hive Local</h1>
           <span className="spacer" />
           {devices.length > 1 && tab !== "overview" && (
             <select className="device-select" value={entryId} onChange={(e) => setEntryId(e.target.value)}>
@@ -90,7 +91,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
         {error && <div className="status error">{error}</div>}
         {!devices.length && !error && (
           <div className="empty-state">
-            <Icon name="hexagon-multiple-outline" />
+            <Logo size={56} />
             <p>No receivers yet. Add one under Settings → Devices & services → Add integration → Hive Local.</p>
           </div>
         )}

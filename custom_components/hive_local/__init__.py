@@ -70,8 +70,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
             hass,
             webcomponent_name=PANEL_COMPONENT,
             frontend_url_path=PANEL_URL,
-            sidebar_title="Hive",
-            sidebar_icon="mdi:hexagon-multiple-outline",
+            sidebar_title="Hive Local",
+            sidebar_icon="mdi:home-thermometer",
             # Query string busts the browser cache when the bundle changes.
             module_url=f"{STATIC_URL}/{BUNDLE}?v={_bundle_mtime()}",
             embed_iframe=False,
