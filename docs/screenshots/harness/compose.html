@@ -44,7 +44,7 @@
   const q = new URLSearchParams(location.search);
   const kind = q.get("kind");
   const theme = q.get("theme") === "night" ? "night" : "warm";
-  const win = (src, w, title = "Home Assistant · Hive") =>
+  const win = (src, w, title = "Home Assistant · Hive Local") =>
     `<div class="window" style="width:${w}px"><div class="bar"><i></i><i></i><i></i><span>${title}</span></div><img src="${src}" width="${w}"></div>`;
 
   if (kind === "frame") {

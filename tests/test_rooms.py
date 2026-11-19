@@ -40,6 +40,18 @@ def test_clean_room():
         with pytest.raises(r.RoomError):
             r.clean_room(bad, known_valves=known, known_sensors={"sensor.ok"})
 
+@pytest.mark.parametrize("model, model_id, expected", [
+    ("TRV001", None, True),                          # ZHA (manufacturer reads "Danfoss")
+    ("TRV003", None, True),
+    ("Radiator valve (UK7004240)", None, True),      # Zigbee2MQTT
+    ("Radiator valve", "UK7004240", True),
+    ("eTRV0100", None, False),                       # a Danfoss-branded Ally
+    ("TRVZB", None, False),                          # Sonoff
+    ("SLR2b", None, False), (None, None, False),
+])
+def test_is_hive_valve(model, model_id, expected):
+    assert r.is_hive_valve(model, model_id) is expected
+
 def test_new_room_id_is_unique():
     ids = set()
     for _ in range(50):
