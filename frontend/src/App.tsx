@@ -95,7 +95,6 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
           <Logo />
           <h1>Hive Local</h1>
           <span className="spacer" />
-          {devices.length === 1 && <span className="device-name">{devices[0].name}</span>}
         </div>
         <nav className="tabs" role="tablist">
           {tabs.map((t) => (
