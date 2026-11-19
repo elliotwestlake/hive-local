@@ -50,6 +50,17 @@ Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 ![The Overview in a dark theme.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/overview-dark.png)
 
+## Rooms and radiator valves
+
+The **Rooms** tab groups your radiator valves (TRVs) into rooms. Any valve Home Assistant knows about works, whichever integration it comes from (ZHA, Zigbee2MQTT, Tuya and so on), because Hive Local uses the valves' own climate entities.
+
+- **Add room:** name it, tick its valves (grouped by area), and optionally pick a temperature sensor. Without one, the room shows the average of its valves' readings.
+- Each room shows its temperature, whether any valve is heating, each valve's reading, target and battery (low batteries are flagged), and one **target** that sets all the room's valves at once.
+
+![Rooms: each room's temperature, target and valves, with batteries.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/rooms.png)
+
+Coming next: Hive and Danfoss valves getting the room sensor's reading (their external sensor setting), and, optionally, rooms calling for heat from the boiler.
+
 ## Entities and actions
 
 **`climate.<receiver>_heating`**: the main heating control.

@@ -176,7 +176,7 @@ function ChannelControls({
   );
 }
 
-function Stepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+export function Stepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
     <div className="stepper">
       <button className="round" onClick={() => onChange(value - 0.5)} aria-label="Lower">
