@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { Stepper } from "./Controls";
 import { Icon } from "./Icon";
-import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveState } from "./types";
+import { ScheduleEditor } from "./ScheduleEditor";
+import { errorText, type Candidate, type Hass, type Limits, type Receiver, type Room, type ValveState } from "./types";
 
 interface Props {
   getHass: () => Hass;
+  limits: Limits;
 }
 
 const LOW_BATTERY = 20;
 const fmt = (t: number | null) => (t == null ? "–" : `${t.toFixed(1)}°`);
 
 /** House-wide rooms of Hive radiator valves, grouped by the receiver (zone) that heats them. */
-export function Rooms({ getHass }: Props) {
+export function Rooms({ getHass, limits }: Props) {
   const [rooms, setRooms] = useState<Room[] | null>(null);
+  const [scheduling, setScheduling] = useState<string | null>(null); // room whose schedule is open
   const [receivers, setReceivers] = useState<Receiver[]>([]);
   const [editing, setEditing] = useState<Room | "new" | null>(null);
   const [error, setError] = useState("");
@@ -33,6 +36,26 @@ export function Rooms({ getHass }: Props) {
 
   if (error) return <div className="status error">{error}</div>;
   if (!rooms) return null;
+
+  const open = rooms.find((r) => r.id === scheduling);
+  if (open)
+    return (
+      <section className="receiver-section">
+        <div className="receiver-crumb">
+          <button className="ghost" onClick={() => setScheduling(null)}>
+            <Icon name="chevron-left" /> All rooms
+          </button>
+          <h2>{open.name}</h2>
+        </div>
+        <ScheduleEditor
+          key={open.id}
+          getHass={getHass}
+          target={{ kind: "room", roomId: open.id, name: open.name, saved: open.schedule }}
+          // The valves' own range: "off" in a valve schedule is its minimum.
+          limits={{ ...limits, heat_min: limits.valve_min, heat_max: limits.valve_max }}
+        />
+      </section>
+    );
 
   return (
     <div className="stack">
@@ -65,7 +88,7 @@ export function Rooms({ getHass }: Props) {
               editing !== "new" && editing?.id === room.id ? (
                 <RoomEditor key={room.id} getHass={getHass} room={room} onDone={() => setEditing(null)} />
               ) : (
-                <RoomCard key={room.id} getHass={getHass} room={room} onEdit={() => setEditing(room)} />
+                <RoomCard key={room.id} getHass={getHass} room={room} onEdit={() => setEditing(room)} onSchedule={() => setScheduling(room.id)} />
               ),
             )}
           </div>
@@ -86,7 +109,14 @@ function groups(rooms: Room[], receivers: Receiver[]): [string | null, Room[]][]
   return out;
 }
 
-function RoomCard({ getHass, room, onEdit }: { getHass: () => Hass; room: Room; onEdit: () => void }) {
+interface CardProps {
+  getHass: () => Hass;
+  room: Room;
+  onEdit: () => void;
+  onSchedule: () => void;
+}
+
+function RoomCard({ getHass, room, onEdit, onSchedule }: CardProps) {
   // The stepper moves straight away; the valves are told after a short pause.
   const [pending, setPending] = useState<number | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -168,6 +198,12 @@ function RoomCard({ getHass, room, onEdit }: { getHass: () => Hass; room: Room; 
           <ValveRow key={v.entity_id} valve={v} heating={room.heating_valves.includes(v.entity_id)} />
         ))}
       </ul>
+
+      <div className="card-actions">
+        <button className="ghost" onClick={onSchedule}>
+          <Icon name="calendar-clock" /> {room.schedule ? "Schedule" : "Set a schedule"}
+        </button>
+      </div>
 
       {message && <div className={`status ${message.kind}`}>{message.text}</div>}
     </section>

@@ -106,3 +106,33 @@ def test_is_hive_thermostat(manufacturer, model, expected):
 def test_parse_schedule_response_zero_is_off():
     parsed = z.parse_schedule_response(0x02, 0x01, [390, 2000, 1320, 0, 1320, 0])
     assert parsed["monday"] == [{"time": "06:30", "setpoint": 20.0}, {"time": "22:00", "setpoint": 1.0}]
+
+
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+Z2000 = datetime(2000, 1, 1, tzinfo=timezone.utc)
+secs = lambda *a: int((datetime(*a, tzinfo=timezone.utc) - Z2000).total_seconds())
+
+def test_time_attributes_london():
+    # 2026: BST from 29 Mar 01:00 UTC to 25 Oct 01:00 UTC.
+    now = datetime(2026, 11, 19, 12, 0, tzinfo=timezone.utc)
+    a = z.time_attributes(now, ZoneInfo("Europe/London"))
+    assert a["time"] == secs(2026, 11, 19, 12, 0) and a["time_status"] == 0x02
+    assert a["time_zone"] == 0 and a["dst_shift"] == 3600
+    assert a["dst_start"] == secs(2026, 3, 29, 1, 0)
+    assert a["dst_end"] == secs(2026, 10, 25, 1, 0) - 1  # last second of BST
+    # In summer the standard offset is still 0, not +1 h.
+    assert z.time_attributes(datetime(2026, 7, 1, tzinfo=timezone.utc), ZoneInfo("Europe/London"))["time_zone"] == 0
+
+def test_time_attributes_no_dst():
+    a = z.time_attributes(datetime(2026, 7, 1, tzinfo=timezone.utc), ZoneInfo("Asia/Tokyo"))
+    assert a["time_zone"] == 9 * 3600 and a["dst_start"] == a["dst_end"] == 0xFFFFFFFF and a["dst_shift"] == 0
+
+def test_time_attributes_southern_hemisphere():
+    # Sydney: AEDT (+11) Oct -> Apr, standard +10.
+    tz = ZoneInfo("Australia/Sydney")
+    jan = z.time_attributes(datetime(2026, 1, 15, tzinfo=timezone.utc), tz)  # in DST that began Oct 2025
+    assert jan["time_zone"] == 10 * 3600 and jan["dst_shift"] == 3600
+    assert jan["dst_start"] < secs(2026, 1, 15) < jan["dst_end"]
+    jun = z.time_attributes(datetime(2026, 6, 15, tzinfo=timezone.utc), tz)  # next DST: Oct 2026 -> Apr 2027
+    assert secs(2026, 6, 15) < jun["dst_start"] < secs(2026, 12, 31) < jun["dst_end"]

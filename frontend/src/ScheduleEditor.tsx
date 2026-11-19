@@ -22,40 +22,52 @@ const toMin = (t: string) => {
   return h * 60 + m;
 };
 
+/** Where a schedule lives: a receiver's channel, or a room's valves. */
+export type ScheduleTarget =
+  | { kind: "receiver"; device: Device; channel: Channel }
+  | { kind: "room"; roomId: string; name: string; saved?: Schedule };
+
 export function ScheduleEditor({
   getHass,
-  device,
-  channel,
+  target,
   limits,
 }: {
   getHass: () => Hass;
-  device: Device;
-  channel: Channel;
-  limits: Limits;
+  target: ScheduleTarget;
+  limits: Limits; // for a room: heat_min/heat_max are the valve's range
 }) {
-  const [schedule, setSchedule] = useState<Schedule>({});
-  const [loaded, setLoaded] = useState<Schedule>({});
+  const room = target.kind === "room";
+  const channel: Channel = target.kind === "receiver" ? target.channel : "heat";
+  const where = room ? "the valves" : "the receiver";
+  // A room opens on the schedule it last read or wrote; valves are slow to wake.
+  const initial = target.kind === "room" ? target.saved ?? {} : {};
+  const [schedule, setSchedule] = useState<Schedule>(initial);
+  const [loaded, setLoaded] = useState<Schedule>(initial);
   const [day, setDay] = useState<Day>("monday");
-  const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [status, setStatus] = useState<Status>(
+    room && Object.keys(initial).length
+      ? { kind: "idle", text: "Last schedule written to or read from the valves. Read to check them now." }
+      : { kind: "idle" },
+  );
 
-  const entryId = device.entry_id;
+  const key = target.kind === "receiver" ? `${target.device.entry_id}-${target.channel}` : target.roomId;
   const isWater = channel === "water";
   const dirty = JSON.stringify(schedule) !== JSON.stringify(loaded);
 
   const read = useCallback(async () => {
-    setStatus({ kind: "busy", text: "Reading from receiver…" });
+    setStatus({ kind: "busy", text: room ? "Reading from the valves. They can take up to a minute to wake…" : "Reading from receiver…" });
     try {
-      const r = await getHass().callWS<{ schedule: Schedule; complete: boolean }>({
-        type: "hive_local/get",
-        entry_id: entryId,
-        channel,
-      });
+      const r = await getHass().callWS<{ schedule: Schedule; complete: boolean; valve?: string }>(
+        target.kind === "room"
+          ? { type: "hive_local/rooms/schedule/get", room_id: target.roomId }
+          : { type: "hive_local/get", entry_id: target.device.entry_id, channel },
+      );
       setSchedule(r.schedule);
       setLoaded(r.schedule);
       const n = Object.keys(r.schedule).length;
       setStatus(
         r.complete
-          ? { kind: "ok", text: "Schedule read from receiver" }
+          ? { kind: "ok", text: r.valve ? `Schedule read from ${r.valve}` : "Schedule read from receiver" }
           : n
             ? { kind: "error", text: `Only got ${n}/7 days — try reading again` }
             : { kind: "error", text: "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." },
@@ -63,10 +75,13 @@ export function ScheduleEditor({
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
     }
-  }, [entryId, channel, getHass]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, getHass]);
 
   useEffect(() => {
-    read();
+    // Receivers answer quickly, so read on open. A room reads only when it has nothing saved.
+    if (!room || !Object.keys(initial).length) read();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [read]);
 
   const write = async () => {
@@ -76,22 +91,28 @@ export function ScheduleEditor({
       DAYS.filter((d) => JSON.stringify(schedule[d]) !== JSON.stringify(loaded[d]) && schedule[d]?.length).map((d) => [d, schedule[d]]),
     ) as Schedule;
     if (!Object.keys(changed).length) return;
-    setStatus({ kind: "busy", text: "Writing to receiver…" });
+    setStatus({ kind: "busy", text: `Writing to ${where}…` });
     try {
-      const r = await getHass().callWS<{ commands: number; schedule: Schedule }>({
-        type: "hive_local/set",
-        entry_id: entryId,
-        channel,
-        schedule: changed,
-      });
+      const r = await getHass().callWS<{ schedule: Schedule; results?: Record<string, string> }>(
+        target.kind === "room"
+          ? { type: "hive_local/rooms/schedule/set", room_id: target.roomId, schedule: changed }
+          : { type: "hive_local/set", entry_id: target.device.entry_id, channel, schedule: changed },
+      );
+      const names = Object.keys(r.schedule).map((d) => d[0].toUpperCase() + d.slice(1, 3)).join(", ");
+      const failed = Object.entries(r.results ?? {}).filter(([, v]) => v !== "ok");
+      const wrote = Object.entries(r.results ?? {}).filter(([, v]) => v === "ok").map(([k]) => k);
+      if (r.results && !wrote.length) {
+        setStatus({ kind: "error", text: `No valve took it. ${failed.map(([k, v]) => `${k}: ${v}`).join("; ")}` });
+        return;
+      }
       const merged = { ...schedule, ...r.schedule };
       setSchedule(merged);
       setLoaded(merged);
-      const names = Object.keys(r.schedule).map((d) => d[0].toUpperCase() + d.slice(1, 3));
-      setStatus({
-        kind: "ok",
-        text: `Wrote ${names.join(", ")}. Read back to confirm the receiver kept it.`,
-      });
+      setStatus(
+        failed.length
+          ? { kind: "error", text: `Wrote ${names} to ${wrote.join(", ")}, but not ${failed.map(([k, v]) => `${k} (${v})`).join(", ")}. Write again once it's awake.` }
+          : { kind: "ok", text: `Wrote ${names}${room ? ` to ${wrote.join(", ")}` : ""}. Read back to confirm ${where} kept it.` },
+      );
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
     }
@@ -118,7 +139,7 @@ export function ScheduleEditor({
     });
 
   const range = useMemo(() => {
-    // Leave out schedule "off" periods (1°C) so they don't stretch the colour scale.
+    // Leave out schedule "off" periods (heat_min: 1°C on a receiver, 5°C on a valve) so they don't stretch the colour scale.
     const all = Object.values(schedule).flat().map((t) => t!.setpoint).filter((t) => t > limits.heat_min);
     return { lo: Math.min(15, ...all), hi: Math.max(24, ...all) };
   }, [schedule, limits.heat_min]);
@@ -133,8 +154,8 @@ export function ScheduleEditor({
           <div className="title">
             <Icon name={isWater ? "water-boiler" : "radiator"} className="title-icon" />
             <div>
-              <h2>{isWater ? "Hot water schedule" : "Heating schedule"}</h2>
-              <div className="muted small">Stored on the receiver, so it keeps running without HA.</div>
+              <h2>{target.kind === "room" ? `${target.name} schedule` : isWater ? "Hot water schedule" : "Heating schedule"}</h2>
+              <div className="muted small">Stored on {where}, so it keeps running without HA.</div>
             </div>
           </div>
           <div className="toolbar">
@@ -143,7 +164,7 @@ export function ScheduleEditor({
               <Icon name="download" /> Read
             </button>
             <button className="primary" onClick={write} disabled={!dirty || status.kind === "busy"}>
-              <Icon name="upload" /> Write to receiver
+              <Icon name="upload" /> {room ? "Write to valves" : "Write to receiver"}
             </button>
           </div>
         </div>
@@ -180,7 +201,7 @@ export function ScheduleEditor({
             <span className="legend-bar" />
             <span className="muted small">Warmer</span>
             <span className="legend-off" />
-            <span className="muted small">Off (1°)</span>
+            <span className="muted small">Off ({limits.heat_min}°)</span>
           </div>
         )}
       </section>

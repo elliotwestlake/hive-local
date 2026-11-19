@@ -8,6 +8,8 @@ RoomManager per HA, in hass.data[DATA_ROOMS], stored in .storage/hive_local.room
 
 from __future__ import annotations
 
+import logging
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.components.climate import ATTR_CURRENT_TEMPERATURE, ATTR_HVAC_ACTION
@@ -18,10 +20,18 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN
+from .const import DOMAIN, MAX_TRANSITIONS
 from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, summarise
+from .schedule import validate
+from .valves import async_valve
+from .zcl import VALVE_MAX, VALVE_MIN
+
+_LOGGER = logging.getLogger(__name__)
+# ZHA only sets a valve's clock at pairing, without daylight saving; refresh it.
+CLOCK_INTERVAL = timedelta(hours=12)
 
 STORAGE_VERSION = 1
 DATA_ROOMS = f"{DOMAIN}_rooms"
@@ -197,3 +207,67 @@ class RoomManager:
             except HomeAssistantError:
                 failed.append(entity_id)
         return failed
+
+    # --- schedules on the valves -------------------------------------------------
+
+    async def async_read_schedule(self, room_id: str) -> dict[str, Any]:
+        """Read the room's schedule from its first valve that answers."""
+        room = self._room(room_id)
+        problems = []
+        for entity_id in room["valves"]:
+            try:
+                valve = async_valve(self.hass, entity_id)
+                schedule, complete = await valve.async_read_schedule()
+            except HomeAssistantError as err:
+                problems.append(str(err))
+                continue
+            if schedule:
+                room["schedule"] = schedule
+                await self._async_save()
+                return {"schedule": schedule, "complete": complete, "valve": valve.name}
+            problems.append(f"{valve.name} didn't answer")
+        raise HomeAssistantError(
+            "No valve answered. Battery valves can take a minute to wake up; try again. "
+            + "; ".join(problems)
+        )
+
+    async def async_write_schedule(self, room_id: str, schedule: dict[str, Any]) -> dict[str, Any]:
+        """Write the given days to every valve in the room and make them follow it.
+
+        Each valve gets its clock set first (it runs the schedule on its own clock).
+        Returns per-valve results; one asleep valve doesn't stop the others.
+        """
+        room = self._room(room_id)
+        clean = validate(
+            schedule, max_transitions=MAX_TRANSITIONS, min_setpoint=VALVE_MIN, max_setpoint=VALVE_MAX
+        )
+        results: dict[str, str] = {}
+        for entity_id in room["valves"]:
+            name = entity_id
+            try:
+                valve = async_valve(self.hass, entity_id)
+                name = valve.name
+                await valve.async_set_clock()
+                await valve.async_write_schedule(clean)
+                await valve.async_follow_schedule()
+                results[name] = "ok"
+            except HomeAssistantError as err:
+                results[name] = str(err)
+        if any(r == "ok" for r in results.values()):
+            room["schedule"] = {**room.get("schedule", {}), **clean}
+            await self._async_save()
+        return {"schedule": clean, "results": results}
+
+    @callback
+    def async_start(self) -> None:
+        """Keep ZHA valves' clocks right: shortly after start, then every 12 hours."""
+        async_call_later(self.hass, 120, self._async_set_clocks)
+        async_track_time_interval(self.hass, self._async_set_clocks, CLOCK_INTERVAL)
+
+    async def _async_set_clocks(self, _now: datetime | None = None) -> None:
+        for room in self.rooms:
+            for entity_id in room["valves"]:
+                try:
+                    await async_valve(self.hass, entity_id).async_set_clock()
+                except HomeAssistantError as err:
+                    _LOGGER.debug("Couldn't set %s's clock: %s", entity_id, err)

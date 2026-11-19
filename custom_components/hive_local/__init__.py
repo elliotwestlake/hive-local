@@ -57,6 +57,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Rooms are house-wide, not per receiver.
     rooms = RoomManager(hass)
     await rooms.async_load()
+    rooms.async_start()
     hass.data[DATA_ROOMS] = rooms
     return True
 

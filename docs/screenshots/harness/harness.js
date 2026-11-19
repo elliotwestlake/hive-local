@@ -82,6 +82,11 @@ const ROOMS = [
   {
     id: "a1", name: "Lounge", valves: ["climate.lounge_bay", "climate.lounge_door"], sensor: "sensor.lounge",
     receiver: "e1", receiver_name: RECEIVERS[0].name,
+    // A schedule already on the Lounge valves (5° = off on a valve).
+    schedule: Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((d, i) => [d,
+      i < 5
+        ? [{ time: "06:30", setpoint: 21 }, { time: "08:30", setpoint: 5 }, { time: "17:00", setpoint: 21.5 }, { time: "22:30", setpoint: 5 }]
+        : [{ time: "08:00", setpoint: 21 }, { time: "23:00", setpoint: 5 }]])),
     sensor_name: "Lounge temperature",
     valve_states: [valve("climate.lounge_bay", "Bay window valve", 19.2, 21, "heating", 78), valve("climate.lounge_door", "Door valve", 20.4, 21, "idle", 14)],
     current_temperature: 19.8, temperature_source: "sensor", target: 21, target_range: null, heating: true,
@@ -125,8 +130,10 @@ const hass = {
                 { entry_id: "e2", name: "Upstairs", model: "SLR1c", channels: ["heat"] },
               ]
             : [{ entry_id: "e1", name: "Hive Receiver", model: "SLR2b", channels: ["heat", "water"] }],
-          limits: { max_transitions: 6, heat_min: 1, heat_max: 32, boost_min_temp: 5, boost_max_minutes: 360, water_on: 22, water_off: 1 },
+          limits: { max_transitions: 6, heat_min: 1, heat_max: 32, boost_min_temp: 5, boost_max_minutes: 360, water_on: 22, water_off: 1, valve_min: 5, valve_max: 35 },
         };
+      case "hive_local/rooms/schedule/get":
+        return { schedule: ROOMS.find((r) => r.id === msg.room_id).schedule, complete: true, valve: "Bay window valve" };
       case "hive_local/rooms/candidates":
         return CANDIDATES;
       case "hive_local/get":

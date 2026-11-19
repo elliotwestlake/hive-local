@@ -15,6 +15,7 @@ Same modes as the Z2M payloads in `z2m.py`:
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any
 
 from .const import CHANNEL_HEAT, CHANNEL_WATER, ZHA_EP_HEAT, ZHA_EP_WATER
@@ -90,6 +91,76 @@ def is_hive_thermostat(manufacturer: str | None, model: str | None) -> bool:
     return (model or "").upper().startswith(THERMOSTAT_MODELS) and (
         manufacturer or ""
     ).lower() in ("computime", "hive", "")
+
+
+# --- Hive radiator valves (Danfoss Ally) -------------------------------------------
+VALVE_MIN = 5.0  # the valve's minimum setpoint; a schedule's "off" periods use it
+VALVE_MAX = 35.0
+# Thermostat programing_oper_mode (0x0025) bit 0: follow the weekly schedule.
+SCHEDULE_MODE = 0x01
+TIME_STATUS_SYNCHRONIZED = 0x02  # the only bit the Ally accepts
+NO_DST = 0xFFFFFFFF
+
+
+def _zigbee_seconds(when: datetime) -> int:
+    """Seconds since 2000-01-01 00:00 UTC (ZCL UTCTime)."""
+    return round((when - datetime(2000, 1, 1, tzinfo=timezone.utc)).total_seconds())
+
+
+def _offset_changes(tz: tzinfo, year: int) -> list[tuple[datetime, int]]:
+    """(first UTC instant of the new offset, change in seconds) between 1 Feb and 1 Dec."""
+    start = datetime(year, 2, 1, tzinfo=timezone.utc)
+    end = datetime(year, 12, 1, tzinfo=timezone.utc)
+    off = lambda t: int(t.astimezone(tz).utcoffset().total_seconds())  # noqa: E731
+    changes = []
+    t, prev = start, off(start)
+    while t < end:
+        nxt = t + timedelta(hours=1)
+        if off(nxt) != prev:
+            lo, hi = t, nxt  # bisect to the second
+            while (hi - lo) > timedelta(seconds=1):
+                mid = lo + (hi - lo) / 2
+                lo, hi = (mid, hi) if off(mid) == prev else (lo, mid)
+            changes.append((hi.replace(microsecond=0), off(nxt) - prev))
+            prev = off(nxt)
+        t = nxt
+    return changes
+
+
+def time_attributes(now: datetime, tz: tzinfo) -> dict[str, int]:
+    """ZCL Time cluster values for a valve, the way Zigbee2MQTT sets them for the Ally.
+
+    time_zone is the standard offset; dst_start/dst_end bound the current or next DST
+    period (dst_end is its last second); no regular DST -> both 0xFFFFFFFF, shift 0.
+    """
+    year = now.year
+    changes = _offset_changes(tz, year)
+    zone = int(now.astimezone(tz).utcoffset().total_seconds())
+    dst_start = dst_end = NO_DST
+    shift = 0
+    if len(changes) == 2:
+        if changes[0][1] > 0:  # northern hemisphere: DST in the middle of the year
+            (begin, change), (finish, back) = changes
+            zone = int((finish).astimezone(tz).utcoffset().total_seconds())
+            dst_start, dst_end, shift = _zigbee_seconds(begin), _zigbee_seconds(finish) - 1, change
+        elif now < changes[0][0]:  # southern, in the DST period that started last year
+            last = _offset_changes(tz, year - 1)
+            if len(last) == 2:
+                zone = int(changes[0][0].astimezone(tz).utcoffset().total_seconds())
+                dst_start, dst_end, shift = _zigbee_seconds(last[1][0]), _zigbee_seconds(changes[0][0]) - 1, last[1][1]
+        else:  # southern, DST starts later this year and ends next year
+            following = _offset_changes(tz, year + 1)
+            if len(following) == 2:
+                zone = int(changes[0][0].astimezone(tz).utcoffset().total_seconds())
+                dst_start, dst_end, shift = _zigbee_seconds(changes[1][0]), _zigbee_seconds(following[0][0]) - 1, changes[1][1]
+    return {
+        "time": _zigbee_seconds(now),
+        "time_status": TIME_STATUS_SYNCHRONIZED,
+        "time_zone": zone,
+        "dst_start": dst_start,
+        "dst_end": dst_end,
+        "dst_shift": shift,
+    }
 
 
 def _celsius(value: Any) -> float | None:

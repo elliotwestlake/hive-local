@@ -117,14 +117,14 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
 
         {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} onOpen={(id) => { setTab("controls"); setOpened(id); }} />}
 
-        {tab === "rooms" && devices.length > 0 && <Rooms getHass={getHass} />}
+        {tab === "rooms" && devices.length > 0 && limits && <Rooms getHass={getHass} limits={limits} />}
 
         {(tab === "heat" || tab === "water") &&
           limits &&
           receiverView(
             devices.filter((d) => d.channels.includes(tab)),
             tab,
-            (d) => <ScheduleEditor key={`${d.entry_id}-${tab}`} getHass={getHass} device={d} channel={tab} limits={limits} />,
+            (d) => <ScheduleEditor key={`${d.entry_id}-${tab}`} getHass={getHass} target={{ kind: "receiver", device: d, channel: tab }} limits={limits} />,
           )}
 
         {tab === "controls" &&

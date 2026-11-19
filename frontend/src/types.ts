@@ -33,6 +33,8 @@ export interface Limits {
   boost_max_minutes: number;
   water_on: number;
   water_off: number;
+  valve_min: number; // Hive valve setpoint range; a valve schedule's "off" is valve_min
+  valve_max: number;
 }
 
 export type Mode = "schedule" | "manual" | "off" | "boost";
@@ -85,6 +87,7 @@ export interface Room {
   valves: string[];
   sensor: string | null;
   receiver: string | null; // entry_id of the receiver (heating zone) that heats it
+  schedule?: Schedule; // last schedule written to or read from its valves
   receiver_name: string | null;
   sensor_name: string | null;
   valve_states: ValveState[];

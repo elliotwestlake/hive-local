@@ -13,6 +13,8 @@ hive_local/rooms/candidates                        -> {"valves", "sensors", "rec
 hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?}
 hive_local/rooms/delete {room_id}
 hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]}
+hive_local/rooms/schedule/get {room_id}            -> {"schedule", "complete", "valve"} from the first valve that answers
+hive_local/rooms/schedule/set {room_id, schedule}  -> {"schedule", "results": {valve: "ok" | error}}
 """
 
 from __future__ import annotations
@@ -43,6 +45,7 @@ from .const import (
 )
 from .data import HiveConfigEntry
 from .room_manager import DATA_ROOMS, SIGNAL_ROOMS, RoomManager
+from .zcl import VALVE_MAX, VALVE_MIN
 from .schedule import ScheduleError, validate
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -65,6 +68,8 @@ def async_register(hass: HomeAssistant) -> None:
         ws_rooms_save,
         ws_rooms_delete,
         ws_rooms_set_target,
+        ws_rooms_schedule_get,
+        ws_rooms_schedule_set,
     ):
         websocket_api.async_register_command(hass, command)
 
@@ -131,6 +136,8 @@ def ws_devices(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
                 "boost_max_minutes": BOOST_MAX_MINUTES,
                 "water_on": WATER_ON,
                 "water_off": WATER_OFF,
+                "valve_min": VALVE_MIN,
+                "valve_max": VALVE_MAX,
             },
         },
     )
@@ -315,3 +322,19 @@ async def ws_rooms_delete(hass, connection, msg: dict[str, Any], rooms: RoomMana
 async def ws_rooms_set_target(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
     failed = await rooms.async_set_target(msg["room_id"], msg["temperature"])
     connection.send_result(msg["id"], {"failed": failed})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/schedule/get"} | ROOM)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_schedule_get(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(msg["id"], await rooms.async_read_schedule(msg["room_id"]))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "hive_local/rooms/schedule/set", vol.Required("schedule"): dict} | ROOM
+)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_schedule_set(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(msg["id"], await rooms.async_write_schedule(msg["room_id"], msg["schedule"]))

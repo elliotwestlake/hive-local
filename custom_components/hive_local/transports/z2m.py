@@ -28,6 +28,62 @@ from .base import Schedule, Transport
 _LOGGER = logging.getLogger(__name__)
 
 
+async def async_read_schedule(
+    hass: HomeAssistant, topic: str, key: str, timeout: float
+) -> tuple[Schedule, bool]:
+    """Ask Z2M for a device's weekly schedule (a receiver channel, or a valve).
+
+    Replies arrive one day (or day group) at a time on the device's state topic.
+    """
+    collected: Schedule = {}
+    all_days = asyncio.Event()
+    request_sent = False
+
+    @callback
+    def _on_reply(message) -> None:
+        # Ignore anything that arrives before our request (cached state).
+        if not request_sent:
+            return
+        try:
+            payload = json.loads(message.payload)
+        except (ValueError, TypeError):
+            return
+        if not isinstance(payload, dict) or key not in payload:
+            return
+        # Z2M republishes the *last* reply on every state update, so merging by
+        # day is safe; each getWeeklySchedule response covers one day group.
+        collected.update(parse_z2m_reply(payload[key]))
+        _LOGGER.debug("%s %s reply: %s", topic, key, payload[key])
+        if all(day in collected for day in DAYS):
+            all_days.set()
+
+    unsub = await mqtt.async_subscribe(hass, topic, _on_reply, qos=0)
+    try:
+        request_sent = True
+        await mqtt.async_publish(hass, f"{topic}/get", json.dumps({key: ""}))
+        try:
+            await asyncio.wait_for(all_days.wait(), timeout)
+        except TimeoutError:
+            pass
+    finally:
+        unsub()
+    schedule = {d: collected[d] for d in DAYS if d in collected}
+    return schedule, len(schedule) == len(DAYS)
+
+
+async def async_write_schedule(
+    hass: HomeAssistant, topic: str, schedule: Schedule, ep: str | None = None
+) -> int:
+    """Publish a validated schedule to <topic>/set, one payload per day."""
+    payloads = to_z2m_payloads(schedule, ep)
+    for payload in payloads:
+        _LOGGER.debug("%s/set: %s", topic, payload)
+        await mqtt.async_publish(hass, f"{topic}/set", json.dumps(payload))
+        # Give the device a moment between commands.
+        await asyncio.sleep(0.5)
+    return len(payloads)
+
+
 class Z2MTransport(Transport):
     def __init__(
         self,
@@ -89,50 +145,12 @@ class Z2MTransport(Transport):
                 await self._publish("get", {f"temperature_setpoint_hold_duration{sfx}": ""})
 
     async def async_read(self, channel: str) -> tuple[Schedule, bool]:
-        key = schedule_key(self._ep(channel))
-        collected: Schedule = {}
-        all_days = asyncio.Event()
-        request_sent = False
-
-        @callback
-        def _on_reply(message) -> None:
-            # Ignore anything that arrives before our request (cached state).
-            if not request_sent:
-                return
-            try:
-                payload = json.loads(message.payload)
-            except (ValueError, TypeError):
-                return
-            if not isinstance(payload, dict) or key not in payload:
-                return
-            # Z2M republishes the *last* reply on every state update, so merging by
-            # day is safe; each getWeeklySchedule response covers one day group.
-            collected.update(parse_z2m_reply(payload[key]))
-            _LOGGER.debug("weekly_schedule reply: %s", payload[key])
-            if all(day in collected for day in DAYS):
-                all_days.set()
-
-        unsub = await mqtt.async_subscribe(self.hass, self._topic, _on_reply, qos=0)
-        try:
-            request_sent = True
-            await self._publish("get", {key: ""})
-            try:
-                await asyncio.wait_for(all_days.wait(), READ_TIMEOUT)
-            except TimeoutError:
-                pass
-        finally:
-            unsub()
-
-        schedule = {d: collected[d] for d in DAYS if d in collected}
-        return schedule, len(schedule) == len(DAYS)
+        return await async_read_schedule(
+            self.hass, self._topic, schedule_key(self._ep(channel)), READ_TIMEOUT
+        )
 
     async def async_write(self, channel: str, schedule: Schedule) -> int:
-        payloads = to_z2m_payloads(schedule, self._ep(channel))
-        for payload in payloads:
-            await self._publish("set", payload)
-            # Give the receiver a moment between commands; it's a sleepy-ish device.
-            await asyncio.sleep(0.5)
-        return len(payloads)
+        return await async_write_schedule(self.hass, self._topic, schedule, self._ep(channel))
 
     async def _async_set_mode(self, channel: str, mode: str, setpoint: float | None) -> None:
         await self._publish("set", mode_payload(self._ep(channel), mode, setpoint))
