@@ -44,6 +44,14 @@ Don't use the domain `hive`: HA core's cloud Hive integration already has it, an
 - Z2M's definitions give every Hive receiver `meta: {disableDefaultResponse: true}`, so `set_weekly_schedule` is sent the same way (`disable_default_response=True, expect_reply=False`). Errors only show up when the schedule is read back.
 - If the ZHA integration reloads, it rebuilds its devices and our cluster references go stale until Hive Local is reloaded. Not handled yet.
 
+### Schedule writes (0.3.4)
+
+Elliot reported (2026-11-19, OTR1 on ZHA): change the schedule on the SLT3d, Read, edit, Write, and the whole schedule changed. Root cause **not found yet**. Mitigations: the panel writes **only the days that changed** (diff against what was last read or written), and both transports send **one command per day** (`schedule.per_day`), never multi-day bitmaps, until we know Hive handles them. Suspects to check against his debug log (`get_weekly_schedule_response` / `set_weekly_schedule` lines):
+- what the receiver pads a short day with (we assume repeats of the last entry; anything else would read back as fake events)
+- whether the receiver mishandles multi-day bitmaps
+- whether writing fewer than 6 transitions leaves stale entries behind
+- whether the SLT thermostat, not the receiver, owns the schedule and re-syncs it
+
 ## Status
 
 - [x] Z2M backend + panel, built and type-checked. 20 pure tests pass.
@@ -70,7 +78,7 @@ Goal: one integration that works whether the receiver is on Z2M or ZHA. It shoul
 2. ~~**Config flow.**~~ Done.
 3. ~~**ZHATransport**~~ Done (the original plan is below; see Key facts → ZHA for what changed):
    - Get the device with `homeassistant.components.zha.helpers.async_get_zha_device_proxy(hass, device_id).device.device` (the zigpy device). Look up endpoint 5 (heat) or 6 (water) and its `thermostat` cluster. For SLR1, take the endpoint that has the thermostat cluster.
-   - Write: `await cluster.set_weekly_schedule(num_transitions_for_sequence=n, day_of_week_for_sequence=SeqDayOfWeek bitmap (Sun=0x01 … Sat=0x40), mode_for_sequence=SeqMode.Heat, values=[min0, sp0*100, min1, sp1*100, ...])`. Send one call per day group, reusing `schedule.group_days`.
+   - Write: `await cluster.set_weekly_schedule(num_transitions_for_sequence=n, day_of_week_for_sequence=SeqDayOfWeek bitmap (Sun=0x01 … Sat=0x40), mode_for_sequence=SeqMode.Heat, values=[min0, sp0*100, min1, sp1*100, ...])`. Send one call per day (`schedule.per_day`).
    - Read: attach a listener with `cluster.add_listener(obj)`, where `obj.cluster_command(tsn, command_id, args)` catches client command 0x00 `get_weekly_schedule_response`. Then call `cluster.get_weekly_schedule(days_to_return=0x7F, mode_to_return=SeqMode.Heat)`, collect replies for `READ_TIMEOUT` and decode the values in pairs.
    - Modes and boost: one `cluster.write_attributes({...})` call with `system_mode` (0x001C), `temperature_setpoint_hold` (0x0023), `temperature_setpoint_hold_duration` (0x0024) and `occupied_heating_setpoint` (0x0012, in centi-°C). Keep it as one write, because the Hive timing quirk the Z2M docs mention probably applies here too.
    - Check whether ZHA's existing climate entity for Hive needs a quirk. Don't fight it; add our own entities alongside.

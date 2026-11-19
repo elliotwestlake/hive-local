@@ -39,7 +39,7 @@ The receiver type (heating only, or heating + hot water) is detected automatical
 ## The Hive panel
 
 - **Overview:** each channel's current temperature, mode, heating/idle, and boost time left. Click a card to open its controls.
-- **Heating** / **Hot water:** the weekly schedule editor. **Read** fetches the schedule from the receiver (also on open). Edit a day, use **Copy to** for weekdays, the weekend or every day, then **Write to receiver**. One command is sent for each group of identical days.
+- **Heating** / **Hot water:** the weekly schedule editor. **Read** fetches the schedule from the receiver (also on open). Edit a day, use **Copy to** for weekdays, the weekend or every day, then **Write to receiver**. Only the days you changed are sent, one command per day, so the rest of the week is never rewritten.
 - **Boost & mode:** switch between Schedule, Manual (a fixed temperature) and Off, start a boost for a set time (and temperature, for heating), or cancel one.
 
 With more than one receiver, Heating, Hot water and Boost & mode start with a card per receiver showing its temperature and mode; click one to open it, and **All receivers** to go back.

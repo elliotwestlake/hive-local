@@ -18,7 +18,7 @@ from __future__ import annotations
 from typing import Any
 
 from .const import CHANNEL_HEAT, CHANNEL_WATER, ZHA_EP_HEAT, ZHA_EP_WATER
-from .schedule import DAYS, group_days, hhmm_to_minutes, minutes_to_hhmm, tidy_transitions
+from .schedule import DAYS, hhmm_to_minutes, minutes_to_hhmm, per_day, tidy_transitions
 from .z2m import BOOST_MAX_MINUTES, MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
 SYSTEM_MODE_OFF = 0x00
@@ -180,9 +180,9 @@ def day_bits(days: list[str]) -> int:
 
 
 def schedule_commands(schedule: dict[str, list[dict[str, Any]]]) -> list[dict[str, Any]]:
-    """Keyword args for `cluster.set_weekly_schedule`, one per day group."""
+    """Keyword args for `cluster.set_weekly_schedule`, one per day."""
     commands = []
-    for days, transitions in group_days(schedule):
+    for days, transitions in per_day(schedule):
         values: list[int] = []
         for t in transitions:
             values += [hhmm_to_minutes(t["time"]), _centi(t["setpoint"])]

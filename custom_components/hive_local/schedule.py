@@ -152,27 +152,22 @@ def validate(
     return clean
 
 
-def group_days(
+def per_day(
     schedule: dict[str, list[dict[str, Any]]],
 ) -> list[tuple[list[str], list[dict[str, Any]]]]:
-    """Group days with identical transitions so we send one command per pattern."""
-    groups: list[tuple[list[str], list[dict[str, Any]]]] = []
-    for day in DAYS:
-        if day not in schedule:
-            continue
-        for days, transitions in groups:
-            if transitions == schedule[day]:
-                days.append(day)
-                break
-        else:
-            groups.append(([day], schedule[day]))
-    return groups
+    """One command per day, Monday first.
+
+    Identical days used to share one command (a multi-day bitmap). Until we know
+    Hive receivers handle those, every day is sent on its own; it's a few more
+    commands but can't spill onto days that weren't meant to change.
+    """
+    return [([day], schedule[day]) for day in DAYS if day in schedule]
 
 
 def to_z2m_payloads(
     schedule: dict[str, list[dict[str, Any]]], channel: str | None
 ) -> list[dict[str, Any]]:
-    """Build the list of /set payloads, one per day group."""
+    """Build the list of /set payloads, one per day."""
     key = schedule_key(channel)
     return [
         {
@@ -184,5 +179,5 @@ def to_z2m_payloads(
                 ],
             }
         }
-        for days, transitions in group_days(schedule)
+        for days, transitions in per_day(schedule)
     ]
