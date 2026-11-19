@@ -33,12 +33,22 @@ def test_heating_batteries_and_unavailable():
 def test_clean_room():
     known = {"climate.a", "climate.b"}
     room = r.clean_room({"name": "  Front   room ", "valves": ["climate.a", "climate.a", "climate.b"], "sensor": ""},
-                        known_valves=known, known_sensors=set())
-    assert room == {"name": "Front room", "valves": ["climate.a", "climate.b"], "sensor": None}
+                        known_valves=known, known_sensors=set(), receivers=["e1"])
+    # One receiver: the room is heated by it without asking.
+    assert room == {"name": "Front room", "valves": ["climate.a", "climate.b"], "sensor": None, "receiver": "e1"}
     for bad in ({"name": "", "valves": ["climate.a"]}, {"name": "X", "valves": []},
                 {"name": "X", "valves": ["climate.nope"]}, {"name": "X", "valves": ["climate.a"], "sensor": "sensor.nope"}):
         with pytest.raises(r.RoomError):
-            r.clean_room(bad, known_valves=known, known_sensors={"sensor.ok"})
+            r.clean_room(bad, known_valves=known, known_sensors={"sensor.ok"}, receivers=["e1"])
+
+def test_clean_room_receivers():
+    base = {"name": "Landing", "valves": ["climate.a"]}
+    kw = dict(known_valves={"climate.a"}, known_sensors=set())
+    with pytest.raises(r.RoomError, match="Choose which receiver"):
+        r.clean_room(base, receivers=["up", "down"], **kw)
+    assert r.clean_room(base | {"receiver": "down"}, receivers=["up", "down"], **kw)["receiver"] == "down"
+    with pytest.raises(r.RoomError, match="isn't set up"):
+        r.clean_room(base | {"receiver": "gone"}, receivers=["up", "down"], **kw)
 
 @pytest.mark.parametrize("model, model_id, expected", [
     ("TRV001", None, True),                          # ZHA (manufacturer reads "Danfoss")

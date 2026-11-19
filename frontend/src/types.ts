@@ -84,6 +84,8 @@ export interface Room {
   name: string;
   valves: string[];
   sensor: string | null;
+  receiver: string | null; // entry_id of the receiver (heating zone) that heats it
+  receiver_name: string | null;
   sensor_name: string | null;
   valve_states: ValveState[];
   current_temperature: number | null;
@@ -101,4 +103,9 @@ export interface Candidate {
   entity_id: string;
   name: string;
   area: string | null;
+}
+
+export interface Receiver {
+  entry_id: string;
+  name: string;
 }

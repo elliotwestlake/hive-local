@@ -1,8 +1,9 @@
-"""Rooms for one receiver: Hive radiator valves plus an optional temperature sensor.
+"""House-wide rooms: Hive radiator valves, an optional temperature sensor, and the
+receiver whose zone heats each room.
 
 Valves are used through their Home Assistant climate entities, so they work on ZHA
-and Zigbee2MQTT alike. Only Hive valves are offered (rooms.is_hive_valve). Rooms
-are kept in HA storage per receiver.
+and Zigbee2MQTT alike. Only Hive valves are offered (rooms.is_hive_valve). One
+RoomManager per HA, in hass.data[DATA_ROOMS], stored in .storage/hive_local.rooms.
 """
 
 from __future__ import annotations
@@ -23,26 +24,45 @@ from .const import DOMAIN
 from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, summarise
 
 STORAGE_VERSION = 1
-
-
-def signal_rooms(entry_id: str) -> str:
-    """Fired when this receiver's rooms are added, changed or removed."""
-    return f"{DOMAIN}_rooms_{entry_id}"
+DATA_ROOMS = f"{DOMAIN}_rooms"
+# Fired when rooms are added, changed or removed.
+SIGNAL_ROOMS = f"{DOMAIN}_rooms"
 
 
 class RoomManager:
-    def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
+    def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
-        self.entry_id = entry_id
-        self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.rooms.{entry_id}")
+        self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.rooms")
         self.rooms: list[dict[str, Any]] = []
 
     async def async_load(self) -> None:
-        self.rooms = ((await self._store.async_load()) or {}).get("rooms", [])
+        data = await self._store.async_load()
+        if data is None:
+            await self._async_import_per_receiver()
+            return
+        self.rooms = data.get("rooms", [])
+
+    async def _async_import_per_receiver(self) -> None:
+        """0.3.0 kept rooms per receiver; bring them into the house-wide list."""
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            old: Store[dict[str, Any]] = Store(self.hass, STORAGE_VERSION, f"{DOMAIN}.rooms.{entry.entry_id}")
+            if data := await old.async_load():
+                self.rooms += [room | {"receiver": entry.entry_id} for room in data.get("rooms", [])]
+            await old.async_remove()
+        if self.rooms:
+            await self._store.async_save({"rooms": self.rooms})
 
     async def _async_save(self) -> None:
         await self._store.async_save({"rooms": self.rooms})
-        async_dispatcher_send(self.hass, signal_rooms(self.entry_id))
+        async_dispatcher_send(self.hass, SIGNAL_ROOMS)
+
+    @callback
+    def receivers(self) -> list[dict[str, str]]:
+        """Hive Local receivers (each one a heating zone), in setup order."""
+        return [
+            {"entry_id": e.entry_id, "name": e.title}
+            for e in self.hass.config_entries.async_entries(DOMAIN)
+        ]
 
     def _room(self, room_id: str) -> dict[str, Any]:
         for room in self.rooms:
@@ -68,7 +88,7 @@ class RoomManager:
 
     @callback
     def candidates(self) -> dict[str, list[dict[str, Any]]]:
-        """Hive radiator valves' climate entities, and temperature sensors."""
+        """Hive radiator valves' climate entities, temperature sensors, and receivers."""
         valves, sensors = [], []
         for state in self.hass.states.async_all("climate"):
             if not self._is_hive_valve(state.entity_id):
@@ -78,7 +98,7 @@ class RoomManager:
             if state.attributes.get("device_class") == "temperature":
                 sensors.append({"entity_id": state.entity_id, "name": state.name, "area": self._area(state.entity_id)})
         key = lambda c: ((c["area"] or "~").lower(), c["name"].lower())  # noqa: E731
-        return {"valves": sorted(valves, key=key), "sensors": sorted(sensors, key=key)}
+        return {"valves": sorted(valves, key=key), "sensors": sorted(sensors, key=key), "receivers": self.receivers()}
 
     # --- live state ----------------------------------------------------------------
 
@@ -110,17 +130,23 @@ class RoomManager:
         }
 
     @callback
-    def status(self) -> list[dict[str, Any]]:
+    def status(self) -> dict[str, Any]:
+        """Everything the Rooms tab shows: the receivers and every room's live state."""
+        names = {r["entry_id"]: r["name"] for r in self.receivers()}
         out = []
         for room in self.rooms:
             valves = [self._valve(v) for v in room["valves"]]
             sensor = self.hass.states.get(room["sensor"]) if room.get("sensor") else None
             out.append(
                 room
-                | {"sensor_name": sensor.name if sensor else None, "valve_states": valves}
+                | {
+                    "sensor_name": sensor.name if sensor else None,
+                    "receiver_name": names.get(room.get("receiver")),
+                    "valve_states": valves,
+                }
                 | summarise(valves, sensor.state if sensor else None)
             )
-        return out
+        return {"receivers": self.receivers(), "rooms": out}
 
     @callback
     def tracked_entities(self) -> set[str]:
@@ -141,6 +167,7 @@ class RoomManager:
             raw,
             known_valves={v["entity_id"] for v in found["valves"]},
             known_sensors={s["entity_id"] for s in found["sensors"]},
+            receivers=[r["entry_id"] for r in self.receivers()],
         )
         if room_id is None:
             room = {"id": new_room_id({r["id"] for r in self.rooms})} | room
