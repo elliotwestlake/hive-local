@@ -58,12 +58,13 @@ def test_schedule_commands():
     weekend = [{"time": "08:00", "setpoint": 21.5}]
     schedule = {d: weekday for d in ("monday", "tuesday", "wednesday", "thursday", "friday")}
     schedule |= {"saturday": weekend, "sunday": weekend}
-    assert z.schedule_commands(schedule) == [
-        {"num_transitions_for_sequence": 2, "day_of_week_for_sequence": 0x3E,
-         "mode_for_sequence": 1, "values": [390, 2000, 1320, 100]},
-        {"num_transitions_for_sequence": 1, "day_of_week_for_sequence": 0x41,
-         "mode_for_sequence": 1, "values": [480, 2150]},
-    ]
+    commands = z.schedule_commands(schedule)
+    # One command per day (Mon=0x02 ... Sat=0x40, Sun=0x01), never a multi-day bitmap.
+    assert [c["day_of_week_for_sequence"] for c in commands] == [0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x01]
+    assert commands[0] == {"num_transitions_for_sequence": 2, "day_of_week_for_sequence": 0x02,
+                           "mode_for_sequence": 1, "values": [390, 2000, 1320, 100]}
+    assert commands[-1] == {"num_transitions_for_sequence": 1, "day_of_week_for_sequence": 0x01,
+                            "mode_for_sequence": 1, "values": [480, 2150]}
 
 def test_parse_schedule_response():
     # One day per reply, padded to 6 transitions with 1 °C, like the Z2M replies.

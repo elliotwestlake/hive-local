@@ -33,13 +33,13 @@ def test_validate_rejects(bad):
     with pytest.raises(s.ScheduleError):
         s.validate(bad, **LIM)
 
-def test_grouping_and_payloads():
+def test_payloads_one_per_day():
     sched = s.validate({d: WEEKDAY for d in s.DAYS[:5]} |
                        {"saturday": [{"time": "08:00", "setpoint": 19}], "sunday": [{"time": "08:00", "setpoint": 19}]}, **LIM)
     payloads = s.to_z2m_payloads(sched, "heat")
-    assert len(payloads) == 2
+    # One command per day, even for identical days.
+    assert [p["weekly_schedule_heat"]["dayofweek"] for p in payloads] == [[d] for d in s.DAYS]
     first = payloads[0]["weekly_schedule_heat"]
-    assert first["dayofweek"] == ["monday", "tuesday", "wednesday", "thursday", "friday"]
     assert first["transitions"][0] == {"heatSetpoint": 16.0, "transitionTime": "00:00"}
     assert "weekly_schedule" in s.to_z2m_payloads(sched, None)[0]
 

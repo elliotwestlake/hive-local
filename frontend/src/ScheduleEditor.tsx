@@ -70,19 +70,27 @@ export function ScheduleEditor({
   }, [read]);
 
   const write = async () => {
+    // Only the days that changed since the last read/write go to the receiver, so a
+    // problem with one day can't touch the rest of the week.
+    const changed = Object.fromEntries(
+      DAYS.filter((d) => JSON.stringify(schedule[d]) !== JSON.stringify(loaded[d]) && schedule[d]?.length).map((d) => [d, schedule[d]]),
+    ) as Schedule;
+    if (!Object.keys(changed).length) return;
     setStatus({ kind: "busy", text: "Writing to receiver…" });
     try {
       const r = await getHass().callWS<{ commands: number; schedule: Schedule }>({
         type: "hive_local/set",
         entry_id: entryId,
         channel,
-        schedule,
+        schedule: changed,
       });
-      setSchedule(r.schedule);
-      setLoaded(r.schedule);
+      const merged = { ...schedule, ...r.schedule };
+      setSchedule(merged);
+      setLoaded(merged);
+      const names = Object.keys(r.schedule).map((d) => d[0].toUpperCase() + d.slice(1, 3));
       setStatus({
         kind: "ok",
-        text: `Sent ${r.commands} command${r.commands === 1 ? "" : "s"}. Read back to confirm the receiver kept it.`,
+        text: `Wrote ${names.join(", ")}. Read back to confirm the receiver kept it.`,
       });
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
