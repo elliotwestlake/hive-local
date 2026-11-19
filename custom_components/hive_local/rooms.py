@@ -1,9 +1,11 @@
 """Pure room helpers (no Home Assistant imports, so they're unit-testable).
 
-A room is a set of Hive radiator valves (their HA climate entities, on ZHA or
-Zigbee2MQTT) plus an optional temperature sensor:
+Rooms are house-wide. A room is a set of Hive radiator valves (their HA climate
+entities, on ZHA or Zigbee2MQTT), an optional temperature sensor, and the receiver
+(config entry) whose zone heats it:
 
-    {"id": "a1b2c3", "name": "Lounge", "valves": ["climate.lounge_trv"], "sensor": "sensor.lounge_temp"}
+    {"id": "a1b2c3", "name": "Lounge", "valves": ["climate.lounge_trv"],
+     "sensor": "sensor.lounge_temp", "receiver": "<entry_id>"}
 
 Each valve's live state comes in as:
 
@@ -39,8 +41,13 @@ def new_room_id(existing: set[str]) -> str:
     return room_id
 
 
-def clean_room(raw: dict[str, Any], *, known_valves: set[str], known_sensors: set[str]) -> dict[str, Any]:
-    """Validate a room from the panel: a name, at least one valve, optional sensor."""
+def clean_room(
+    raw: dict[str, Any], *, known_valves: set[str], known_sensors: set[str], receivers: list[str]
+) -> dict[str, Any]:
+    """Validate a room from the panel: a name, valves, optional sensor, and its receiver.
+
+    With one receiver the room is heated by it; with several the panel must say which.
+    """
     name = " ".join(str(raw.get("name") or "").split())
     if not name:
         raise RoomError("Give the room a name")
@@ -54,7 +61,14 @@ def clean_room(raw: dict[str, Any], *, known_valves: set[str], known_sensors: se
     sensor = raw.get("sensor") or None
     if sensor is not None and sensor not in known_sensors:
         raise RoomError(f"Not a temperature sensor: {sensor}")
-    return {"name": name, "valves": valves, "sensor": sensor}
+    receiver = raw.get("receiver") or None
+    if receiver is None and len(receivers) == 1:
+        receiver = receivers[0]
+    if receiver is None:
+        raise RoomError("Choose which receiver heats this room")
+    if receiver not in receivers:
+        raise RoomError("That receiver isn't set up in Hive Local")
+    return {"name": name, "valves": valves, "sensor": sensor, "receiver": receiver}
 
 
 def _number(value: Any) -> float | None:

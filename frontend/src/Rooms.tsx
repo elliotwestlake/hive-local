@@ -1,33 +1,35 @@
 import { useEffect, useRef, useState } from "react";
 import { Stepper } from "./Controls";
 import { Icon } from "./Icon";
-import { errorText, type Candidate, type Device, type Hass, type Room, type ValveState } from "./types";
+import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveState } from "./types";
 
 interface Props {
   getHass: () => Hass;
-  device: Device;
 }
 
 const LOW_BATTERY = 20;
 const fmt = (t: number | null) => (t == null ? "–" : `${t.toFixed(1)}°`);
 
-/** Rooms: radiator valves (any HA climate entity) grouped by room, for this receiver. */
-export function Rooms({ getHass, device }: Props) {
+/** House-wide rooms of Hive radiator valves, grouped by the receiver (zone) that heats them. */
+export function Rooms({ getHass }: Props) {
   const [rooms, setRooms] = useState<Room[] | null>(null);
+  const [receivers, setReceivers] = useState<Receiver[]>([]);
   const [editing, setEditing] = useState<Room | "new" | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setRooms(null);
-    const unsub = getHass().connection.subscribeMessage<{ rooms: Room[] }>(
-      (msg) => setRooms(msg.rooms),
-      { type: "hive_local/rooms/subscribe", entry_id: device.entry_id },
+    const unsub = getHass().connection.subscribeMessage<{ rooms: Room[]; receivers: Receiver[] }>(
+      (msg) => {
+        setRooms(msg.rooms);
+        setReceivers(msg.receivers);
+      },
+      { type: "hive_local/rooms/subscribe" },
     );
     unsub.catch((e) => setError(errorText(e)));
     return () => {
       unsub.then((u) => u()).catch(() => {});
     };
-  }, [getHass, device.entry_id]);
+  }, [getHass]);
 
   if (error) return <div className="status error">{error}</div>;
   if (!rooms) return null;
@@ -46,9 +48,7 @@ export function Rooms({ getHass, device }: Props) {
         )}
       </div>
 
-      {editing === "new" && (
-        <RoomEditor getHass={getHass} device={device} onDone={() => setEditing(null)} />
-      )}
+      {editing === "new" && <RoomEditor getHass={getHass} onDone={() => setEditing(null)} />}
 
       {!rooms.length && editing !== "new" && (
         <div className="empty-state">
@@ -57,20 +57,36 @@ export function Rooms({ getHass, device }: Props) {
         </div>
       )}
 
-      <div className="grid">
-        {rooms.map((room) =>
-          editing !== "new" && editing?.id === room.id ? (
-            <RoomEditor key={room.id} getHass={getHass} device={device} room={room} onDone={() => setEditing(null)} />
-          ) : (
-            <RoomCard key={room.id} getHass={getHass} device={device} room={room} onEdit={() => setEditing(room)} />
-          ),
-        )}
-      </div>
+      {groups(rooms, receivers).map(([title, list]) => (
+        <section key={title ?? "all"} className="zone">
+          {title && <h3>{title}</h3>}
+          <div className="grid">
+            {list.map((room) =>
+              editing !== "new" && editing?.id === room.id ? (
+                <RoomEditor key={room.id} getHass={getHass} room={room} onDone={() => setEditing(null)} />
+              ) : (
+                <RoomCard key={room.id} getHass={getHass} room={room} onEdit={() => setEditing(room)} />
+              ),
+            )}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
 
-function RoomCard({ getHass, device, room, onEdit }: { getHass: () => Hass; device: Device; room: Room; onEdit: () => void }) {
+/** One untitled group with a single receiver; otherwise a group per receiver (zone), in setup order. */
+function groups(rooms: Room[], receivers: Receiver[]): [string | null, Room[]][] {
+  if (receivers.length <= 1) return rooms.length ? [[null, rooms]] : [];
+  const out: [string | null, Room[]][] = receivers
+    .map((r) => [`Heated by ${r.name}`, rooms.filter((room) => room.receiver === r.entry_id)] as [string, Room[]])
+    .filter(([, list]) => list.length);
+  const orphans = rooms.filter((room) => !receivers.some((r) => r.entry_id === room.receiver));
+  if (orphans.length) out.push(["Receiver not set", orphans]);
+  return out;
+}
+
+function RoomCard({ getHass, room, onEdit }: { getHass: () => Hass; room: Room; onEdit: () => void }) {
   // The stepper moves straight away; the valves are told after a short pause.
   const [pending, setPending] = useState<number | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -86,7 +102,6 @@ function RoomCard({ getHass, device, room, onEdit }: { getHass: () => Hass; devi
       try {
         const r = await getHass().callWS<{ failed: string[] }>({
           type: "hive_local/rooms/set_target",
-          entry_id: device.entry_id,
           room_id: room.id,
           temperature: next,
         });
@@ -106,7 +121,9 @@ function RoomCard({ getHass, device, room, onEdit }: { getHass: () => Hass; devi
     room.temperature_source === "sensor"
       ? room.sensor_name
       : room.temperature_source === "valves"
-        ? `Average of ${room.valve_states.filter((v) => v.available).length === 1 ? "the valve" : "the valves"}`
+        ? room.valve_states.filter((v) => v.available).length === 1
+          ? "From the valve"
+          : "Average of the valves"
         : "No reading";
 
   return (
@@ -182,13 +199,13 @@ function ValveRow({ valve, heating }: { valve: ValveState; heating: boolean }) {
 
 interface EditorProps {
   getHass: () => Hass;
-  device: Device;
   room?: Room;
   onDone: () => void;
 }
 
-function RoomEditor({ getHass, device, room, onDone }: EditorProps) {
-  const [candidates, setCandidates] = useState<{ valves: Candidate[]; sensors: Candidate[] } | null>(null);
+function RoomEditor({ getHass, room, onDone }: EditorProps) {
+  const [candidates, setCandidates] = useState<{ valves: Candidate[]; sensors: Candidate[]; receivers: Receiver[] } | null>(null);
+  const [receiver, setReceiver] = useState(room?.receiver ?? "");
   const [name, setName] = useState(room?.name ?? "");
   const [valves, setValves] = useState<Set<string>>(new Set(room?.valves ?? []));
   const [sensor, setSensor] = useState(room?.sensor ?? "");
@@ -198,16 +215,17 @@ function RoomEditor({ getHass, device, room, onDone }: EditorProps) {
 
   useEffect(() => {
     getHass()
-      .callWS<{ valves: Candidate[]; sensors: Candidate[] }>({ type: "hive_local/rooms/candidates", entry_id: device.entry_id })
+      .callWS<{ valves: Candidate[]; sensors: Candidate[]; receivers: Receiver[] }>({ type: "hive_local/rooms/candidates" })
       .then(setCandidates)
       .catch((e) => setError(errorText(e)));
-  }, [getHass, device.entry_id]);
+  }, [getHass]);
+  const manyReceivers = (candidates?.receivers.length ?? 0) > 1;
 
   const run = async (msg: Record<string, unknown>) => {
     setBusy(true);
     setError("");
     try {
-      await getHass().callWS({ entry_id: device.entry_id, ...msg });
+      await getHass().callWS(msg);
       onDone();
     } catch (e) {
       setError(errorText(e));
@@ -233,7 +251,14 @@ function RoomEditor({ getHass, device, room, onDone }: EditorProps) {
         className="stack"
         onSubmit={(e) => {
           e.preventDefault();
-          run({ type: "hive_local/rooms/save", ...(room ? { room_id: room.id } : {}), name, valves: [...valves], sensor: sensor || null });
+          run({
+            type: "hive_local/rooms/save",
+            ...(room ? { room_id: room.id } : {}),
+            name,
+            valves: [...valves],
+            sensor: sensor || null,
+            receiver: receiver || null,
+          });
         }}
       >
         <label className="field">
@@ -272,10 +297,26 @@ function RoomEditor({ getHass, device, room, onDone }: EditorProps) {
           </select>
         </label>
 
+        {manyReceivers && (
+          <label className="field">
+            <span>Heated by</span>
+            <select id={`room-receiver-${room?.id ?? "new"}`} value={receiver} onChange={(e) => setReceiver(e.target.value)}>
+              <option value="" disabled>
+                Choose the receiver for this room's radiators
+              </option>
+              {candidates!.receivers.map((r) => (
+                <option key={r.entry_id} value={r.entry_id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
         {error && <div className="status error">{error}</div>}
 
         <div className="actions">
-          <button className="primary" type="submit" disabled={busy || !name.trim() || !valves.size}>
+          <button className="primary" type="submit" disabled={busy || !name.trim() || !valves.size || (manyReceivers && !receiver)}>
             {room ? "Save" : "Add room"}
           </button>
           <button type="button" className="ghost" onClick={onDone} disabled={busy}>
