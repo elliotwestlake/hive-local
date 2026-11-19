@@ -42,6 +42,8 @@ The receiver type (heating only, or heating + hot water) is detected automatical
 - **Heating** / **Hot water:** the weekly schedule editor. **Read** fetches the schedule from the receiver (also on open). Edit a day, use **Copy to** for weekdays, the weekend or every day, then **Write to receiver**. One command is sent for each group of identical days.
 - **Boost & mode:** switch between Schedule, Manual (a fixed temperature) and Off, start a boost for a set time (and temperature, for heating), or cancel one.
 
+With more than one receiver, Heating, Hot water and Boost & mode start with a card per receiver showing its temperature and mode; click one to open it, and **All receivers** to go back.
+
 Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 ![The heating schedule: a week of colour-coded events, read from the receiver.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/schedule.png)
@@ -55,6 +57,7 @@ Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 The **Rooms** tab groups your **Hive radiator valves** (UK7004240) into rooms, whether they're paired with ZHA or Zigbee2MQTT. Hive Local recognises them by model and uses their climate entities.
 
 - **Add room:** name it, tick its valves (grouped by area), and optionally pick a temperature sensor. Without one, the room shows the average of its valves' readings.
+- Rooms cover the whole house. With more than one receiver (heating zones), each room says which one heats it (**Heated by**), and the tab groups rooms by zone.
 - Each room shows its temperature, whether any valve is heating, each valve's reading, target and battery (low batteries are flagged), and one **target** that sets all the room's valves at once.
 
 ![Rooms: each room's temperature, target and valves, with batteries.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/rooms.png)

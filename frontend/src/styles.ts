@@ -159,6 +159,19 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .swatch { width: 10px; height: 32px; border-radius: 5px; flex: none; }
 
 /* Rooms */
+.receiver-section { display: flex; flex-direction: column; gap: 12px; }
+.receiver-crumb { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.receiver-crumb h2 { margin: 0; }
+.receiver-crumb button { padding-left: 4px; }
+.receiver-card { flex-direction: row; align-items: center; gap: 14px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.receiver-card.heat { --hl-accent: var(--hl-heat); }
+.receiver-card.water { --hl-accent: var(--hl-water); }
+.receiver-card:hover { border-color: var(--hl-accent); }
+.receiver-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.receiver-name { font-size: 17px; font-weight: 500; }
+.dot-heating { width: 10px; height: 10px; border-radius: 50%; background: var(--hl-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl-accent) 20%, transparent); flex: none; }
+.zone { display: flex; flex-direction: column; gap: 10px; }
+.zone h3 { margin: 4px 0 0; }
 .rooms-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .rooms-head p { margin: 0; max-width: 65ch; }
 .room.heating { --hl-accent: var(--hl-heat); }

@@ -3,9 +3,10 @@ import { Controls } from "./Controls";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 import { Overview } from "./Overview";
+import { ReceiverList } from "./ReceiverList";
 import { Rooms } from "./Rooms";
 import { ScheduleEditor } from "./ScheduleEditor";
-import { errorText, type Device, type Hass, type Limits, type StatusMap } from "./types";
+import { errorText, type Channel, type Device, type Hass, type Limits, type StatusMap } from "./types";
 
 interface Props {
   getHass: () => Hass;
@@ -27,8 +28,10 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [limits, setLimits] = useState<Limits | null>(null);
   const [status, setStatus] = useState<StatusMap>({});
-  const [entryId, setEntryId] = useState("");
   const [tab, setTab] = useState<Tab>("overview");
+  // With several receivers, the one opened on Heating / Hot water / Boost & mode.
+  // It stays open while moving between those tabs.
+  const [opened, setOpened] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -37,7 +40,6 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
       .then((r) => {
         setDevices(r.devices);
         setLimits(r.limits);
-        if (r.devices[0]) setEntryId(r.devices[0].entry_id);
       })
       .catch((e) => setError(errorText(e)));
 
@@ -50,7 +52,34 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
     };
   }, [getHass]);
 
-  const device = devices.find((d) => d.entry_id === entryId);
+  // One receiver: straight in. Several: a card per receiver to click into, and a way back.
+  const receiverView = (list: Device[], channel: Channel, render: (d: Device) => JSX.Element) => {
+    if (list.length <= 1)
+      return list.map((d) => (
+        <section key={d.entry_id} className="receiver-section">
+          {/* Several receivers but only one fits this tab (e.g. hot water): still say which. */}
+          {devices.length > 1 && (
+            <div className="receiver-crumb">
+              <h2>{d.name}</h2>
+            </div>
+          )}
+          {render(d)}
+        </section>
+      ));
+    const d = list.find((x) => x.entry_id === opened);
+    if (!d) return <ReceiverList devices={list} status={status} channel={channel} onOpen={setOpened} />;
+    return (
+      <section className="receiver-section">
+        <div className="receiver-crumb">
+          <button className="ghost" onClick={() => setOpened(null)}>
+            <Icon name="chevron-left" /> All receivers
+          </button>
+          <h2>{d.name}</h2>
+        </div>
+        {render(d)}
+      </section>
+    );
+  };
   const hasWater = devices.some((d) => d.channels.includes("water"));
   const tabs = TABS.filter((t) => t.id !== "water" || hasWater);
 
@@ -66,15 +95,6 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
           <Logo />
           <h1>Hive Local</h1>
           <span className="spacer" />
-          {devices.length > 1 && tab !== "overview" && (
-            <select className="device-select" value={entryId} onChange={(e) => setEntryId(e.target.value)}>
-              {devices.map((d) => (
-                <option key={d.entry_id} value={d.entry_id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          )}
           {devices.length === 1 && <span className="device-name">{devices[0].name}</span>}
         </div>
         <nav className="tabs" role="tablist">
@@ -96,23 +116,23 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
           </div>
         )}
 
-        {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} onOpen={(id) => { setEntryId(id); setTab("controls"); }} />}
+        {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} onOpen={(id) => { setTab("controls"); setOpened(id); }} />}
 
-        {tab === "rooms" && device && <Rooms key={device.entry_id} getHass={getHass} device={device} />}
+        {tab === "rooms" && devices.length > 0 && <Rooms getHass={getHass} />}
 
-        {(tab === "heat" || tab === "water") && device && limits &&
-          (device.channels.includes(tab) ? (
-            <ScheduleEditor key={`${device.entry_id}-${tab}`} getHass={getHass} device={device} channel={tab} limits={limits} />
-          ) : (
-            <div className="empty-state">
-              <Icon name="water-off" />
-              <p>{device.name} is heating-only, so it has no hot water.</p>
-            </div>
+        {(tab === "heat" || tab === "water") &&
+          limits &&
+          receiverView(
+            devices.filter((d) => d.channels.includes(tab)),
+            tab,
+            (d) => <ScheduleEditor key={`${d.entry_id}-${tab}`} getHass={getHass} device={d} channel={tab} limits={limits} />,
+          )}
+
+        {tab === "controls" &&
+          limits &&
+          receiverView(devices, "heat", (d) => (
+            <Controls getHass={getHass} device={d} limits={limits} status={status[d.entry_id] ?? {}} />
           ))}
-
-        {tab === "controls" && device && limits && (
-          <Controls getHass={getHass} device={device} limits={limits} status={status[device.entry_id] ?? {}} />
-        )}
       </main>
     </div>
   );

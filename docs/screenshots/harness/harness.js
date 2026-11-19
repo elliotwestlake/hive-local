@@ -73,9 +73,15 @@ const STATUS = {
 
 const valve = (id, name, temp, target, action, battery, available = true) =>
   ({ entity_id: id, name, available, current_temperature: temp, target, hvac_action: action, battery: String(battery) });
+// ?receivers=2 shows a house with two heating zones.
+const TWO = params.get("receivers") === "2";
+const RECEIVERS = TWO
+  ? [{ entry_id: "e1", name: "Downstairs" }, { entry_id: "e2", name: "Upstairs" }]
+  : [{ entry_id: "e1", name: "Hive Receiver" }];
 const ROOMS = [
   {
     id: "a1", name: "Lounge", valves: ["climate.lounge_bay", "climate.lounge_door"], sensor: "sensor.lounge",
+    receiver: "e1", receiver_name: RECEIVERS[0].name,
     sensor_name: "Lounge temperature",
     valve_states: [valve("climate.lounge_bay", "Bay window valve", 19.2, 21, "heating", 78), valve("climate.lounge_door", "Door valve", 20.4, 21, "idle", 14)],
     current_temperature: 19.8, temperature_source: "sensor", target: 21, target_range: null, heating: true,
@@ -83,11 +89,19 @@ const ROOMS = [
   },
   {
     id: "b2", name: "Bedroom", valves: ["climate.bedroom"], sensor: null, sensor_name: null,
+    receiver: TWO ? "e2" : "e1", receiver_name: TWO ? "Upstairs" : RECEIVERS[0].name,
     valve_states: [valve("climate.bedroom", "Bedroom valve", 17.6, 17, "idle", 91), valve("climate.ensuite", "En-suite valve", 18.1, 19, "idle", 66)],
     current_temperature: 17.9, temperature_source: "valves", target: null, target_range: [17, 19], heating: false,
     heating_valves: [], unavailable: [], lowest_battery: 66, battery_low: false,
   },
 ];
+if (TWO)
+  ROOMS.splice(1, 0, {
+    id: "c3", name: "Kitchen", valves: ["climate.kitchen"], sensor: null, sensor_name: null, receiver: "e1", receiver_name: "Downstairs",
+    valve_states: [valve("climate.kitchen", "Kitchen valve", 18.9, 19, "idle", 52)],
+    current_temperature: 18.9, temperature_source: "valves", target: 19, target_range: null, heating: false,
+    heating_valves: [], unavailable: [], lowest_battery: 52, battery_low: false,
+  });
 const CANDIDATES = {
   valves: [
     { entity_id: "climate.bedroom", name: "Bedroom valve", area: "Bedroom" },
@@ -97,6 +111,7 @@ const CANDIDATES = {
     { entity_id: "climate.lounge_door", name: "Door valve", area: "Lounge" },
   ],
   sensors: [{ entity_id: "sensor.lounge", name: "Lounge temperature", area: "Lounge" }],
+  receivers: RECEIVERS,
 };
 
 const hass = {
@@ -104,7 +119,12 @@ const hass = {
     switch (msg.type) {
       case "hive_local/devices":
         return {
-          devices: [{ entry_id: "e1", name: "Hive Receiver", model: "SLR2b", channels: ["heat", "water"] }],
+          devices: TWO
+            ? [
+                { entry_id: "e1", name: "Downstairs", model: "SLR2b", channels: ["heat", "water"] },
+                { entry_id: "e2", name: "Upstairs", model: "SLR1c", channels: ["heat"] },
+              ]
+            : [{ entry_id: "e1", name: "Hive Receiver", model: "SLR2b", channels: ["heat", "water"] }],
           limits: { max_transitions: 6, heat_min: 1, heat_max: 32, boost_min_temp: 5, boost_max_minutes: 360, water_on: 22, water_off: 1 },
         };
       case "hive_local/rooms/candidates":
@@ -117,7 +137,9 @@ const hass = {
   },
   connection: {
     subscribeMessage(cb, msg) {
-      setTimeout(() => cb(msg.type === "hive_local/rooms/subscribe" ? { rooms: ROOMS } : { status: STATUS }), 0);
+      const upstairs = { ...STATUS.e1.heat, status: { ...STATUS.e1.heat.status, current_temperature: 18.2, setpoint: 18, heating: false } };
+      const status = TWO ? { ...STATUS, e2: { heat: upstairs } } : STATUS;
+      setTimeout(() => cb(msg.type === "hive_local/rooms/subscribe" ? { rooms: ROOMS, receivers: RECEIVERS } : { status }), 0);
       return Promise.resolve(() => Promise.resolve());
     },
   },
@@ -140,7 +162,9 @@ if (tab) {
 await wait(500);
 const click = params.get("click");
 if (click) {
-  [...panel.shadowRoot.querySelectorAll("button")].find((b) => b.textContent.trim() === click)?.click();
+  // Exact button text, or a card whose text starts with it (e.g. a receiver's name).
+  const buttons = [...panel.shadowRoot.querySelectorAll("button")];
+  (buttons.find((b) => b.textContent.trim() === click) ?? buttons.find((b) => b.textContent.trim().startsWith(click)))?.click();
   await wait(400);
 }
 document.title = "ready";
