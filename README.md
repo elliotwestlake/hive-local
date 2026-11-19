@@ -1,4 +1,4 @@
-<h1 align="center">
+<h1>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/logo/logo-dark.png">
     <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/logo/logo.png" alt="Hive Local" height="88">
