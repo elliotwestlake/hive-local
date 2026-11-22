@@ -64,6 +64,17 @@ The **Rooms** tab groups your **Hive radiator valves** (UK7004240) into rooms, w
 
 Coming next: the valves using the room sensor's reading (their external sensor setting), and, optionally, rooms calling for heat from the boiler.
 
+## Stats
+
+The **Stats** tab shows, for **Today**, **7 days** or **30 days**, each receiver's heating and hot water:
+
+- **Boiler on**: how long the receiver called for heat, compared with the period before. Also how many times it fired up, the average, lowest and highest temperature (and average target), and boosts.
+- A chart of temperature and target with a strip showing when it was heating, the time on each day, and time spent in each mode. Hover for details.
+
+It's worked out from Home Assistant's own history of the Hive Local heating and hot water entities, so it needs the recorder (on by default) and starts from when you installed Hive Local. The recorder keeps 10 days unless you raise `purge_keep_days`, so 30 days needs that too.
+
+![Stats: a week of heating, with the boiler's time on, temperatures and modes.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/stats.png)
+
 ## Entities and actions
 
 **`climate.<receiver>_heating`**: the main heating control.

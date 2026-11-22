@@ -6,6 +6,7 @@ import { Overview } from "./Overview";
 import { ReceiverList } from "./ReceiverList";
 import { Rooms } from "./Rooms";
 import { ScheduleEditor } from "./ScheduleEditor";
+import { Stats } from "./Stats";
 import { errorText, type Channel, type Device, type Hass, type Limits, type StatusMap } from "./types";
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
   onToggleMenu: () => void;
 }
 
-type Tab = "overview" | "rooms" | "heat" | "water" | "controls";
+type Tab = "overview" | "rooms" | "heat" | "water" | "controls" | "stats";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Overview", icon: "view-dashboard-outline" },
@@ -22,6 +23,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "heat", label: "Heating", icon: "radiator" },
   { id: "water", label: "Hot water", icon: "water-boiler" },
   { id: "controls", label: "Boost & mode", icon: "tune-variant" },
+  { id: "stats", label: "Stats", icon: "chart-box-outline" },
 ];
 
 export function App({ getHass, narrow, onToggleMenu }: Props) {
@@ -92,18 +94,19 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
               <Icon name="menu" />
             </button>
           )}
-          <Logo />
-          <h1>Hive Local</h1>
-          <span className="spacer" />
+          <div className="brand">
+            <Logo />
+            <h1>Hive Local</h1>
+          </div>
+          <nav className="tabs" role="tablist">
+            {tabs.map((t) => (
+              <button key={t.id} role="tab" aria-selected={t.id === tab} className={t.id === tab ? "on" : ""} onClick={() => setTab(t.id)}>
+                <Icon name={t.icon} />
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
-        <nav className="tabs" role="tablist">
-          {tabs.map((t) => (
-            <button key={t.id} role="tab" aria-selected={t.id === tab} className={t.id === tab ? "on" : ""} onClick={() => setTab(t.id)}>
-              <Icon name={t.icon} />
-              <span>{t.label}</span>
-            </button>
-          ))}
-        </nav>
       </header>
 
       <main>
@@ -126,6 +129,8 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
             tab,
             (d) => <ScheduleEditor key={`${d.entry_id}-${tab}`} getHass={getHass} device={d} channel={tab} limits={limits} />,
           )}
+
+        {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
 
         {tab === "controls" &&
           limits &&

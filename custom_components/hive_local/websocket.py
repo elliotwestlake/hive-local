@@ -7,6 +7,7 @@ hive_local/set   {entry_id, channel, schedule}
 hive_local/mode  {entry_id, channel, mode, setpoint?}   mode = schedule | manual | off
 hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
+hive_local/stats {entry_id, channel, days: 1|7|30} -> heating time, cycles, modes, temperatures (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
 hive_local/rooms/candidates                        -> {"valves", "sensors", "receivers"} for the room editor
@@ -18,6 +19,7 @@ hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that re
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any
 
@@ -25,6 +27,8 @@ import voluptuous as vol
 
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_track_state_change_event
 
@@ -44,6 +48,7 @@ from .const import (
 from .data import HiveConfigEntry
 from .room_manager import DATA_ROOMS, SIGNAL_ROOMS, RoomManager
 from .schedule import ScheduleError, validate
+from .stats import sample_from_state, summarise
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
 CHANNEL = {vol.Optional("channel", default=CHANNEL_HEAT): vol.In([CHANNEL_HEAT, CHANNEL_WATER])}
@@ -60,6 +65,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_mode,
         ws_boost,
         ws_cancel_boost,
+        ws_stats,
         ws_rooms_subscribe,
         ws_rooms_candidates,
         ws_rooms_save,
@@ -315,3 +321,81 @@ async def ws_rooms_delete(hass, connection, msg: dict[str, Any], rooms: RoomMana
 async def ws_rooms_set_target(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
     failed = await rooms.async_set_target(msg["room_id"], msg["temperature"])
     connection.send_result(msg["id"], {"failed": failed})
+
+
+# Chart bucket length for each period: 15 min over a day, 1 h over a week, 6 h over a month.
+STATS_BUCKETS = {1: timedelta(minutes=15), 7: timedelta(hours=1), 30: timedelta(hours=6)}
+_STATS_ENTITY = {CHANNEL_HEAT: ("climate", "climate"), CHANNEL_WATER: ("water_heater", "water_heater")}
+
+
+def _history(hass: HomeAssistant, entity_id: str, start: datetime, end: datetime) -> list:
+    """Every recorded state (attribute changes too), plus the one in force at `start`. Executor."""
+    from homeassistant.components.recorder import history  # noqa: PLC0415
+
+    states = history.get_significant_states(
+        hass,
+        start,
+        end,
+        entity_ids=[entity_id],
+        include_start_time_state=True,
+        significant_changes_only=False,
+        minimal_response=False,
+        no_attributes=False,
+    )
+    return states.get(entity_id, [])
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "hive_local/stats", vol.Optional("days", default=7): vol.In(list(STATS_BUCKETS))}
+    | ENTRY
+    | CHANNEL
+)
+@websocket_api.async_response
+@_with_entry
+async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    channel, days = msg["channel"], msg["days"]
+    if "recorder" not in hass.config.components:
+        connection.send_error(msg["id"], "no_recorder", "Stats need Home Assistant's recorder")
+        return
+    platform, key = _STATS_ENTITY[channel]
+    entity_id = er.async_get(hass).async_get_entity_id(
+        platform, DOMAIN, f"{entry.entry_id}_{channel}_{key}"
+    )
+    if entity_id is None:
+        connection.send_error(msg["id"], "not_found", "This receiver has no entity for that channel")
+        return
+
+    from homeassistant.components.recorder import get_instance  # noqa: PLC0415
+
+    now = dt_util.now()
+    today = dt_util.start_of_local_day(now)
+    # Local calendar days, so "Today" starts at midnight. Wall-clock arithmetic keeps DST right.
+    day_starts = [today - timedelta(days=i) for i in range(days - 1, -1, -1)]
+    start, period_end = day_starts[0], today + timedelta(days=1)
+    step = STATS_BUCKETS[days]
+    buckets, b = [], start
+    while b < period_end:
+        buckets.append(b)
+        b += step
+    # The same stretch of the previous period, for "vs last week" and so on.
+    prev_start, prev_end = start - timedelta(days=days), now - timedelta(days=days)
+
+    states = await get_instance(hass).async_add_executor_job(_history, hass, entity_id, prev_start, now)
+    samples = [
+        sample_from_state(channel, s.last_updated.timestamp(), s.state, dict(s.attributes))
+        for s in states
+    ]
+
+    def ts(d: datetime) -> float:
+        return dt_util.as_utc(d).timestamp()
+
+    result = summarise(
+        samples,
+        ts(start),
+        now.timestamp(),
+        day_starts=[ts(d) for d in day_starts],
+        bucket_starts=[ts(d) for d in buckets],
+        period_end=ts(period_end),
+        previous=(ts(prev_start), ts(prev_end)),
+    )
+    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "period": days})

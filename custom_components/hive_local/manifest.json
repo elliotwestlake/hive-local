@@ -3,6 +3,7 @@
   "name": "Hive Local",
   "after_dependencies": [
     "mqtt",
+    "recorder",
     "zha"
   ],
   "codeowners": [
@@ -20,5 +21,5 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/elliotwestlake/hive-local/issues",
   "requirements": [],
-  "version": "0.3.4"
+  "version": "0.4.0"
 }
