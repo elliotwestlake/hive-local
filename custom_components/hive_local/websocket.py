@@ -8,10 +8,11 @@ hive_local/mode  {entry_id, channel, mode, setpoint?}   mode = schedule | manual
 hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
 hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
-hive_local/stats {entry_id, channel, days: 1|7|30} -> heating time, cycles, modes, temperatures (from the recorder)
+hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
 hive_local/rooms/candidates                        -> {"valves", "sensors", "receivers"} for the room editor
+hive_local/rooms/valves                            -> {"valves": every Hive valve with state, battery, area and room} for the Devices tab
 hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?}
 hive_local/rooms/delete {room_id}
 hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]}
@@ -37,12 +38,14 @@ from .const import (
     BOOST_MIN_TEMP,
     CHANNEL_HEAT,
     CHANNEL_WATER,
+    CONF_TRANSPORT,
     CONF_Z2M_MODEL,
     DOMAIN,
     HEAT_MAX,
     HEAT_MIN,
     MAX_TRANSITIONS,
     SIGNAL_STATUS,
+    TRANSPORT_Z2M,
     WATER_OFF,
     WATER_ON,
 )
@@ -70,6 +73,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_stats,
         ws_rooms_subscribe,
         ws_rooms_candidates,
+        ws_rooms_valves,
         ws_rooms_save,
         ws_rooms_delete,
         ws_rooms_set_target,
@@ -127,6 +131,7 @@ def ws_devices(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
                     "entry_id": e.entry_id,
                     "name": e.title,
                     "model": e.data.get(CONF_Z2M_MODEL),
+                    "transport": e.data.get(CONF_TRANSPORT, TRANSPORT_Z2M),
                     "channels": list(e.runtime_data.transport.channels),
                 }
                 for e in _entries(hass)
@@ -299,6 +304,13 @@ async def ws_rooms_candidates(hass, connection, msg: dict[str, Any], rooms: Room
     connection.send_result(msg["id"], rooms.candidates())
 
 
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/valves"})
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_valves(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(msg["id"], {"valves": rooms.valves()})
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "hive_local/rooms/save",
@@ -363,7 +375,11 @@ def _history(hass: HomeAssistant, entity_id: str, start: datetime, end: datetime
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "hive_local/stats", vol.Optional("days", default=7): vol.In(list(STATS_BUCKETS))}
+    {
+        vol.Required("type"): "hive_local/stats",
+        vol.Optional("days", default=7): vol.In(list(STATS_BUCKETS)),
+        vol.Optional("offset", default=0): vol.All(vol.Coerce(int), vol.Range(0, 400)),
+    }
     | ENTRY
     | CHANNEL
 )
@@ -385,19 +401,22 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     from homeassistant.components.recorder import get_instance  # noqa: PLC0415
 
     now = dt_util.now()
-    today = dt_util.start_of_local_day(now)
+    # offset 0 is the period up to now; 1 the one before it, and so on.
+    offset = msg["offset"]
+    last_day = dt_util.start_of_local_day(now) - timedelta(days=days * offset)
     # Local calendar days, so "Today" starts at midnight. Wall-clock arithmetic keeps DST right.
-    day_starts = [today - timedelta(days=i) for i in range(days - 1, -1, -1)]
-    start, period_end = day_starts[0], today + timedelta(days=1)
+    day_starts = [last_day - timedelta(days=i) for i in range(days - 1, -1, -1)]
+    start, period_end = day_starts[0], last_day + timedelta(days=1)
+    end = min(now, period_end)
     step = STATS_BUCKETS[days]
     buckets, b = [], start
     while b < period_end:
         buckets.append(b)
         b += step
     # The same stretch of the previous period, for "vs last week" and so on.
-    prev_start, prev_end = start - timedelta(days=days), now - timedelta(days=days)
+    prev_start, prev_end = start - timedelta(days=days), end - timedelta(days=days)
 
-    states = await get_instance(hass).async_add_executor_job(_history, hass, entity_id, prev_start, now)
+    states = await get_instance(hass).async_add_executor_job(_history, hass, entity_id, prev_start, end)
     samples = [
         sample_from_state(channel, s.last_updated.timestamp(), s.state, dict(s.attributes))
         for s in states
@@ -409,10 +428,10 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     result = summarise(
         samples,
         ts(start),
-        now.timestamp(),
+        end.timestamp(),
         day_starts=[ts(d) for d in day_starts],
         bucket_starts=[ts(d) for d in buckets],
         period_end=ts(period_end),
         previous=(ts(prev_start), ts(prev_end)),
     )
-    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "period": days})
+    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "period": days, "offset": offset, "period_end": ts(period_end)})

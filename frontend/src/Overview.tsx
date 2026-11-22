@@ -23,14 +23,14 @@ export function Overview({
   devices,
   status,
   limits,
-  onSchedule,
+  onOpenDevice,
   onRooms,
 }: {
   getHass: () => Hass;
   devices: Device[];
   status: StatusMap;
   limits: Limits | null;
-  onSchedule: (entryId: string, channel: Channel) => void;
+  onOpenDevice: (entryId: string, channel: Channel) => void;
   onRooms: () => void;
 }) {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -84,7 +84,7 @@ export function Overview({
                   info={status[d.entry_id]?.[c]}
                   showDevice={several}
                   limits={limits}
-                  onSchedule={() => onSchedule(d.entry_id, c)}
+                  onOpen={() => onOpenDevice(d.entry_id, c)}
                 />
               ))}
             {(filter === "all" || filter === "rooms") &&
@@ -191,14 +191,15 @@ function RoomCard({ room, showReceiver, onOpen }: { room: Room; showReceiver: bo
 }
 
 
-function ChannelCard({
+export function ChannelCard({
   getHass,
   device,
   channel,
   info,
   showDevice,
   limits,
-  onSchedule,
+  onOpen,
+  page = false,
 }: {
   getHass: () => Hass;
   device: Device;
@@ -206,7 +207,10 @@ function ChannelCard({
   info?: ChannelInfo;
   showDevice: boolean;
   limits: Limits | null;
-  onSchedule: () => void;
+  /** On the Overview, tapping the card opens the device's page. */
+  onOpen?: () => void;
+  /** On the device's page (Control tab): the same card, with its controls below. */
+  page?: boolean;
 }) {
   const water = channel === "water";
   const s = info?.status ?? null;
@@ -265,7 +269,6 @@ function ChannelCard({
 
   const targetLabel = !s ? "" : s.mode === "boost" ? "Boost to" : frostPeriod && pending == null ? "Frost" : s.mode === "manual" ? "Hold at" : "Target";
 
-  const [open, setOpen] = useState(false);
   const boosting = s?.mode === "boost";
   let status: ReactNode = "Waiting for the receiver…";
   if (s) {
@@ -278,11 +281,14 @@ function ChannelCard({
     else status = target != null ? <>Target <b>{target}°</b> <Icon name="check-circle-outline" className="status-icon done" /></> : "Idle";
   }
   const modeName = !s ? "" : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
-  const toggle = () => setOpen(!open);
+  const open = page;
 
   return (
-    <section className={`card device ${channel} ${state} ${open ? "open" : ""}`}>
-      <div className="device-head" role="button" tabIndex={0} aria-expanded={open} onClick={toggle} onKeyDown={(e) => e.key === "Enter" && e.target === e.currentTarget && toggle()}>
+    <section className={`card device ${channel} ${state} ${page ? "page" : ""}`}>
+      <div
+        className="device-head"
+        {...(page ? {} : { role: "button", tabIndex: 0, onClick: onOpen, onKeyDown: (e: React.KeyboardEvent) => e.key === "Enter" && e.target === e.currentTarget && onOpen?.() })}
+      >
         <div className="device-row">
           <span className={`device-icon ${channel}`}><Icon name={water ? "water-boiler" : "radiator"} /></span>
           <div className="device-name">
@@ -347,9 +353,6 @@ function ChannelCard({
         ))}
       </div>
 
-      <button className="ghost schedule-link" onClick={onSchedule}>
-        <Icon name="calendar-clock" /> Open the {water ? "hot water" : "heating"} schedule <Icon name="chevron-right" />
-      </button>
       </div>
       )}
 

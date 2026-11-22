@@ -115,12 +115,12 @@ const CANDIDATES = {
 };
 
 // hive_local/stats: a plausible week of heating, made up but deterministic.
-function fakeStats(entry, channel, days) {
+function fakeStats(entry, channel, days, offset = 0) {
   const water = channel === "water";
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000 - offset * days * 86400;
   const start = today - (days - 1) * 86400;
-  const end = now.getTime() / 1000;
+  const end = Math.min(now.getTime() / 1000, today + 86400);
   const step = { 1: 900, 7: 3600, 30: 21600 }[days];
   const rnd = (i) => (Math.sin(i * 12.9898 + (entry === "e2" ? 3 : 0)) * 43758.5453) % 1;
   // Schedule shape: warm 06:30–08:30 and 17:00–22:30.
@@ -160,6 +160,8 @@ function fakeStats(entry, channel, days) {
       heating_minutes: bs.length ? Math.round(bs.reduce((x, b) => x + (b.heating * step) / 60, 0)) : null,
       known_minutes: (bs.length * step) / 60,
       temp_avg: temps.length ? +(temps.reduce((x, b) => x + b.current, 0) / temps.length).toFixed(1) : null,
+      temp_min: temps.length ? Math.min(...temps.map((b) => b.current)) : null,
+      temp_max: temps.length ? Math.max(...temps.map((b) => b.current)) : null,
     });
   }
   const knownMin = (end - start) / 60;
@@ -173,7 +175,7 @@ function fakeStats(entry, channel, days) {
       avg: +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1), min: Math.min(...temps), max: Math.max(...temps) },
     target_avg: water ? null : 20.7,
     previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30 },
-    days: dayList, series,
+    days: dayList, series, offset, period_end: today + 86400,
   };
 }
 
@@ -192,8 +194,15 @@ const hass = {
         };
       case "hive_local/rooms/candidates":
         return CANDIDATES;
+      case "hive_local/rooms/valves":
+        return {
+          valves: [
+            ...ROOMS.flatMap((r) => r.valve_states.map((v) => ({ ...v, area: r.name, room: r.name }))),
+            { entity_id: "climate.landing", name: "Landing valve", available: true, current_temperature: 18.4, target: 18, hvac_action: "idle", battery: "83", area: "Landing", room: null },
+          ],
+        };
       case "hive_local/stats":
-        return fakeStats(msg.entry_id, msg.channel, msg.days);
+        return fakeStats(msg.entry_id, msg.channel, msg.days, msg.offset || 0);
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
       default:

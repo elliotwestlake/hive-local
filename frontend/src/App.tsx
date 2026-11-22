@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 import { Overview } from "./Overview";
-import { ReceiverList } from "./ReceiverList";
+import { DevicePage, type DeviceTab } from "./DevicePage";
+import { Devices } from "./Devices";
 import { Rooms } from "./Rooms";
-import { ScheduleEditor } from "./ScheduleEditor";
 import { Stats } from "./Stats";
-import { CHANNEL_LABEL, errorText, type Channel, type Device, type Hass, type Limits, type StatusMap } from "./types";
+import { errorText, type Channel, type Device, type Hass, type Limits, type StatusMap } from "./types";
 
 interface Props {
   getHass: () => Hass;
@@ -14,12 +14,12 @@ interface Props {
   onToggleMenu: () => void;
 }
 
-type Tab = "overview" | "rooms" | "schedule" | "stats";
+type Tab = "overview" | "rooms" | "devices" | "stats";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Overview", icon: "view-dashboard-outline" },
   { id: "rooms", label: "Rooms", icon: "home-thermometer-outline" },
-  { id: "schedule", label: "Schedule", icon: "calendar-clock" },
+  { id: "devices", label: "Devices", icon: "devices" },
   { id: "stats", label: "Stats", icon: "chart-box-outline" },
 ];
 
@@ -28,12 +28,9 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   const [limits, setLimits] = useState<Limits | null>(null);
   const [status, setStatus] = useState<StatusMap>({});
   const [tab, setTab] = useState<Tab>("overview");
-  // With several receivers, the one opened on Schedule. It stays open across tabs.
-  const [opened, setOpened] = useState<string | null>(null);
-  // Schedule: heating or hot water, and the editors opened so far. They stay mounted
-  // (hidden) so switching channel keeps unwritten changes and doesn't re-read.
-  const [schedChannel, setSchedChannel] = useState<Channel>("heat");
-  const [visited, setVisited] = useState<Set<string>>(new Set());
+  // Heating or hot water opened from its Overview card, and which of its tabs is showing.
+  const [opened, setOpened] = useState<{ entry: string; channel: Channel } | null>(null);
+  const [deviceTab, setDeviceTab] = useState<DeviceTab>("control");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -54,64 +51,15 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
     };
   }, [getHass]);
 
-  // One receiver: straight in. Several: a card per receiver to click into, and a way back.
-  const receiverView = (render: (d: Device) => JSX.Element) => {
-    if (devices.length <= 1) return devices.map((d) => <section key={d.entry_id} className="receiver-section">{render(d)}</section>);
-    const d = devices.find((x) => x.entry_id === opened);
-    if (!d) return <ReceiverList devices={devices} status={status} channel="heat" onOpen={setOpened} />;
-    return (
-      <section className="receiver-section">
-        <div className="receiver-crumb">
-          <button className="ghost" onClick={() => setOpened(null)}>
-            <Icon name="chevron-left" /> All receivers
-          </button>
-          <h2>{d.name}</h2>
-        </div>
-        {render(d)}
-      </section>
-    );
+  const openDevice = (entry: string, channel: Channel) => {
+    setOpened({ entry, channel });
+    setDeviceTab("control");
   };
-
-  // Remember each schedule editor once it's been shown.
-  const schedDevice = devices.length <= 1 ? devices[0] : devices.find((x) => x.entry_id === opened);
-  const schedKey =
-    tab === "schedule" && schedDevice
-      ? `${schedDevice.entry_id}-${schedDevice.channels.includes(schedChannel) ? schedChannel : schedDevice.channels[0]}`
-      : null;
-  useEffect(() => {
-    if (schedKey) setVisited((v) => (v.has(schedKey) ? v : new Set(v).add(schedKey)));
-  }, [schedKey]);
-
-  const openSchedule = (entryId: string, channel: Channel) => {
-    setOpened(entryId);
-    setSchedChannel(channel);
-    setTab("schedule");
+  const goTo = (t: Tab) => {
+    setTab(t);
+    setOpened(null);
   };
-
-  const schedules = (d: Device, limits: Limits) => {
-    const channel = d.channels.includes(schedChannel) ? schedChannel : d.channels[0];
-    const key = (c: Channel) => `${d.entry_id}-${c}`;
-    return (
-      <>
-        {d.channels.length > 1 && (
-          <div className="segmented channel-switch" role="tablist" aria-label="Schedule">
-            {d.channels.map((c) => (
-              <button key={c} role="tab" aria-selected={c === channel} className={c === channel ? "on" : ""} onClick={() => setSchedChannel(c)}>
-                <Icon name={c === "water" ? "water-boiler" : "radiator"} /> {CHANNEL_LABEL[c]}
-              </button>
-            ))}
-          </div>
-        )}
-        {d.channels
-          .filter((c) => c === channel || visited.has(key(c)))
-          .map((c) => (
-            <div key={key(c)} hidden={c !== channel}>
-              <ScheduleEditor getHass={getHass} device={d} channel={c} limits={limits} />
-            </div>
-          ))}
-      </>
-    );
-  };
+  const openedDevice = opened && devices.find((d) => d.entry_id === opened.entry);
   const tabs = TABS;
 
   return (
@@ -129,7 +77,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
           </div>
           <nav className="tabs" role="tablist">
             {tabs.map((t) => (
-              <button key={t.id} role="tab" aria-selected={t.id === tab} className={t.id === tab ? "on" : ""} onClick={() => setTab(t.id)}>
+              <button key={t.id} role="tab" aria-selected={t.id === tab} className={t.id === tab ? "on" : ""} onClick={() => goTo(t.id)}>
                 <Icon name={t.icon} />
                 <span>{t.label}</span>
               </button>
@@ -147,13 +95,30 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
           </div>
         )}
 
-        {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} limits={limits} onSchedule={openSchedule} onRooms={() => setTab("rooms")} />}
-
-        {tab === "rooms" && devices.length > 0 && <Rooms getHass={getHass} />}
-
-        {tab === "schedule" && limits && receiverView((d) => schedules(d, limits))}
-
-        {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
+        {/* A device's page opens over whichever tab it was opened from; back returns there. */}
+        {openedDevice && limits ? (
+          <DevicePage
+            key={`${opened!.entry}-${opened!.channel}`}
+            getHass={getHass}
+            device={openedDevice}
+            channel={opened!.channel}
+            info={status[openedDevice.entry_id]?.[opened!.channel]}
+            limits={limits}
+            showDevice={devices.length > 1}
+            tab={deviceTab}
+            onTab={setDeviceTab}
+            onBack={() => setOpened(null)}
+          />
+        ) : (
+          <>
+            {tab === "overview" && (
+              <Overview getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} onRooms={() => goTo("rooms")} />
+            )}
+            {tab === "rooms" && devices.length > 0 && <Rooms getHass={getHass} />}
+            {tab === "devices" && devices.length > 0 && <Devices getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} />}
+            {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
+          </>
+        )}
       </main>
     </div>
   );

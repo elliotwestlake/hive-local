@@ -180,7 +180,7 @@ def summarise(
     days = []
     for a, b in zip(day_starts, edges):
         if a >= end:
-            days.append({"start": a, "heating_minutes": None, "temp_avg": None, "known_minutes": 0})
+            days.append({"start": a, "heating_minutes": None, "temp_avg": None, "temp_min": None, "temp_max": None, "known_minutes": 0})
             continue
         w = window(a, b)
         days.append(
@@ -189,6 +189,8 @@ def summarise(
                 "heating_minutes": _minutes(w.heating) if w.known else None,
                 "known_minutes": _minutes(w.known),
                 "temp_avg": _r1(w.temp_avg),
+                "temp_min": _r1(w.temp_min),
+                "temp_max": _r1(w.temp_max),
             }
         )
     out["days"] = days

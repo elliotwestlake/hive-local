@@ -38,17 +38,18 @@ The receiver type (heating only, or heating + hot water) is detected automatical
 
 ## The Hive panel
 
-Four tabs: Overview, Rooms, Schedule and Stats. On a phone they move to a bar along the bottom of the screen.
+Four tabs: Overview, Rooms, Devices and Stats. On a phone they move to a bar along the bottom of the screen. Heating and hot water each have their own page, opened from their card on the Overview, with **Control**, **Schedule** and **History** tabs.
 
-- **Overview:** **Quick actions** (boost heating or hot water with your defaults, or put everything back on its schedule), and **Your devices**, with filters, a card each for heating, hot water and your rooms. Each card shows the temperature (or On/Off), what it's doing (with a tick once a room is up to temperature), and **Boost**: it opens a sheet to pick the temperature (heating) and how long, then **Boost to 22.0° for 2 h**. While boosting the button reads **Boosting**, and opens the time left and **Stop boost**. Tap a heating or hot water card for its controls: **−** / **+** for the heating target (like the thermostat: on Schedule it lasts until the next scheduled change, on Manual it changes the held temperature, during a boost it keeps the time left), Schedule / Manual / Off, and a link to its schedule. Tap a room to open it on the Rooms tab.
-- **Schedule:** the weekly schedule editor, with a **Heating | Hot water** switch when the receiver has hot water (switching keeps unwritten changes). A heating or hot water card on the Overview links to it too. **Read** fetches the schedule from the receiver (also on open). Edit a day, use **Copy to** for weekdays, the weekend or every day, then **Write to receiver**. Only the days you changed are sent, one command per day, so the rest of the week is never rewritten.
+- **Overview:** **Quick actions** (boost heating or hot water with your defaults, or put everything back on its schedule), and **Your devices**, with filters, a card each for heating, hot water and your rooms. Each card shows the temperature (or On/Off), what it's doing (with a tick once a room is up to temperature), and **Boost**: it opens a sheet to pick the temperature (heating) and how long, then **Boost to 22.0° for 2 h**. While boosting the button reads **Boosting**, and opens the time left and **Stop boost**. Tap a heating or hot water card to open its page. **Control** has **−** / **+** for the heating target (like the thermostat: on Schedule it lasts until the next scheduled change, on Manual it changes the held temperature, during a boost it keeps the time left), and Schedule / Manual / Off. Tap a room to open it on the Rooms tab.
+- **Schedule** (on the heating or hot water page): says whether your schedule is in use, then a row of days (M–S). Pick a day to see its times, like "06:30 – 08:30" with the temperature in a circle (a snowflake means off). Tap a time to change when it starts or its temperature, or remove it; **Add a time** adds one. The **⋯** button reads the schedule from the receiver again or copies the day to weekdays, the weekend or every day. Changes are kept in the panel until you press **Save** on the **Unsaved changes** bar, which writes them to the receiver, and only the days you changed are sent, one command per day, so the rest of the week is never rewritten.
+- **Devices:** a card for each device: your receivers (model, Zigbee2MQTT or ZHA, online, and links to its Heating and Hot water pages) and every Hive radiator valve (its room, battery, whether it's responding, and its temperature). The **+** button adds a receiver (Home Assistant's setup for Hive Local) or explains how to pair a valve.
 - **Stats:** see [Stats](#stats).
 
-With more than one receiver, the Overview shows every receiver's cards, and Schedule starts with a card per receiver showing its temperature and mode; click one to open it, and **All receivers** to go back.
+With more than one receiver, the Overview shows every receiver's heating and hot water cards (each opens its own page), and Stats has a tab per receiver.
 
 Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
-![The heating schedule: a week of colour-coded events, read from the receiver.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/schedule.png)
+![The heating schedule: a day's times with their temperatures, read from the receiver.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/schedule.png)
 
 ![The Overview on Manual, with the boost options open: a length and a temperature.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/controls.png)
 
@@ -58,7 +59,7 @@ Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 The **Rooms** tab groups your **Hive radiator valves** (UK7004240) into rooms, whether they're paired with ZHA or Zigbee2MQTT. Hive Local recognises them by model and uses their climate entities.
 
-- **Add room:** name it, tick its valves (grouped by area), and optionally pick a temperature sensor. Without one, the room shows the average of its valves' readings.
+- **Add a room:** tap the **+** button in the bottom-right, name it, tick its valves (grouped by area), and optionally pick a temperature sensor. Without one, the room shows the average of its valves' readings.
 - Rooms cover the whole house. With more than one receiver (heating zones), each room says which one heats it (**Heated by**), and the tab groups rooms by zone.
 - Each room shows its temperature, whether any valve is heating, each valve's reading, target and battery (low batteries are flagged), and one **target** that sets all the room's valves at once.
 
@@ -68,14 +69,16 @@ Coming next: the valves using the room sensor's reading (their external sensor s
 
 ## Stats
 
-The **Stats** tab shows, for **Today**, **7 days** or **30 days**, each receiver's heating and hot water:
+The **Stats** tab shows how long the boiler ran, laid out as a history:
 
-- **Boiler on**: how long the receiver called for heat, compared with the period before. Also how many times it fired up, the average, lowest and highest temperature (and average target), and boosts.
-- A chart of temperature and target with a strip showing when it was heating, the time on each day, and time spent in each mode. Hover for details.
+- Pick **D**, **W** or **M** (a day, a week or a month) and **time on** or **temperature**, and step back to earlier periods with the arrows either side of the date.
+- A summary at the top (for example **Boiler on 22h 58m** and **Average per day 3h 17m**), with the change from the period before, how often it fired up and the boosts.
+- Then a row per day (per hour for a day): a bar, the time on or average temperature, and that day's lowest and highest room temperature.
+- The Stats tab is the heating history, with a tab for each receiver if you have several. Each heating or hot water page has the same history for just that one, under **History**.
 
-It's worked out from Home Assistant's own history of the Hive Local heating and hot water entities, so it needs the recorder (on by default) and starts from when you installed Hive Local. The recorder keeps 10 days unless you raise `purge_keep_days`, so 30 days needs that too.
+It's worked out from Home Assistant's own history of the Hive Local heating and hot water entities, so it needs the recorder (on by default) and starts from when you installed Hive Local. The recorder keeps 10 days unless you raise `purge_keep_days`, so months and earlier weeks need that too.
 
-![Stats: a week of heating, with the boiler's time on, temperatures and modes.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/stats.png)
+![Stats: a week of heating, with the boiler's time on each day and the room's low and high.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/stats.png)
 
 ## Entities and actions
 

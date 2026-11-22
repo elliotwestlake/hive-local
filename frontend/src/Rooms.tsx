@@ -35,25 +35,15 @@ export function Rooms({ getHass }: Props) {
   if (!rooms) return null;
 
   return (
-    <div className="stack">
-      <div className="rooms-head">
-        <p className="muted">
-          Group your Hive radiator valves into rooms, on ZHA or Zigbee2MQTT. Add a temperature sensor to a room for a
-          better reading than the valves' own.
-        </p>
-        {editing !== "new" && (
-          <button className="primary" onClick={() => setEditing("new")}>
-            <Icon name="plus" /> Add room
-          </button>
-        )}
-      </div>
+    <div className="stack rooms-page">
+      <h2 className="history-title">Rooms</h2>
 
       {editing === "new" && <RoomEditor getHass={getHass} onDone={() => setEditing(null)} />}
 
       {!rooms.length && editing !== "new" && (
         <div className="empty-state">
           <Icon name="home-thermometer-outline" />
-          <p>No rooms yet. Add a room and pick its Hive radiator valves.</p>
+          <p>No rooms yet. Tap + to add a room and pick its Hive radiator valves (on ZHA or Zigbee2MQTT).</p>
         </div>
       )}
 
@@ -71,6 +61,12 @@ export function Rooms({ getHass }: Props) {
           </div>
         </section>
       ))}
+
+      <div className="fab-wrap">
+        <button className="fab" aria-label="Add a room" onClick={() => { setEditing("new"); window.scrollTo({ top: 0 }); }}>
+          <Icon name="plus" />
+        </button>
+      </div>
     </div>
   );
 }
