@@ -227,9 +227,10 @@ if (tab) {
 await wait(500);
 const click = params.get("click");
 if (click) {
-  // Exact button text, or a card whose text starts with it (e.g. a receiver's name).
+  // Exact button text or aria-label, or a card whose text starts with it (e.g. a receiver's name).
   const buttons = [...panel.shadowRoot.querySelectorAll("button")];
-  (buttons.find((b) => b.textContent.trim() === click) ?? buttons.find((b) => b.textContent.trim().startsWith(click)))?.click();
+  (buttons.find((b) => b.textContent.trim() === click || b.getAttribute("aria-label") === click) ??
+    buttons.find((b) => b.textContent.trim().startsWith(click)))?.click();
   await wait(400);
 }
 document.title = "ready";
