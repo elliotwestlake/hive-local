@@ -1,29 +1,26 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import {
-  CHANNEL_LABEL,
   errorText,
   type Channel,
   type Device,
   type Hass,
-  type Mode,
   type Stats as StatsData,
-  type StatsBucket,
   type StatsPeriod,
 } from "./types";
 
-const PERIODS: { id: StatsPeriod; label: string }[] = [
-  { id: 1, label: "Today" },
-  { id: 7, label: "7 days" },
-  { id: 30, label: "30 days" },
+/**
+ * Heating history, laid out after the Hive app's: receiver tabs, D / W / M and time or
+ * temperature, a date you can step back through, a summary box, then a row per day
+ * (per hour on D) with a bar, its value and that day's lowest and highest temperature.
+ */
+
+const PERIODS: { id: StatsPeriod; label: string; name: string }[] = [
+  { id: 1, label: "D", name: "Day" },
+  { id: 7, label: "W", name: "Week" },
+  { id: 30, label: "M", name: "Month" },
 ];
-
-const PREVIOUS: Record<StatsPeriod, string> = {
-  1: "yesterday by this time",
-  7: "the 7 days before",
-  30: "the 30 days before",
-};
-
+type Metric = "time" | "temp";
 const REFRESH_MS = 5 * 60_000;
 
 /** "3h 20m", "45m", "0m". */
@@ -33,440 +30,236 @@ export const duration = (minutes: number) => {
   return m % 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m / 60}h`;
 };
 
-const time = (t: number) => new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-const weekday = (t: number) => new Date(t * 1000).toLocaleDateString([], { weekday: "short" });
-const date = (t: number) => new Date(t * 1000).toLocaleDateString([], { day: "numeric", month: "short" });
-const longDate = (t: number) =>
-  new Date(t * 1000).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+const fmt = (t: number, o: Intl.DateTimeFormatOptions) => new Date(t * 1000).toLocaleDateString([], o);
+const hour = (t: number) => new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-export function Stats({ getHass, devices }: { getHass: () => Hass; devices: Device[] }) {
-  const [period, setPeriod] = useState<StatsPeriod>(7);
-  return (
-    <div className="stack">
-      <div className="rooms-head">
-        <p className="muted">
-          How long the boiler ran, how often it fired up and how warm it was, from Home Assistant's history.
-        </p>
-        <div className="segmented" role="radiogroup" aria-label="Period">
-          {PERIODS.map((p) => (
-            <button key={p.id} role="radio" aria-checked={p.id === period} className={p.id === period ? "on" : ""} onClick={() => setPeriod(p.id)}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      {devices.flatMap((d) =>
-        d.channels.map((c) => (
-          <ChannelStats key={`${d.entry_id}-${c}`} getHass={getHass} device={d} channel={c} period={period} showDevice={devices.length > 1} />
-        )),
-      )}
-    </div>
-  );
+function rangeLabel(start: number, end: number, period: StatsPeriod) {
+  if (period === 1) return fmt(start, { weekday: "short", day: "numeric", month: "short" });
+  const last = end - 86400;
+  const a = new Date(start * 1000);
+  const b = new Date(last * 1000);
+  const month = (d: Date) => d.toLocaleDateString([], { month: "short" });
+  return a.getMonth() === b.getMonth()
+    ? `${a.getDate()}–${b.getDate()} ${month(b)}`
+    : `${a.getDate()} ${month(a)} – ${b.getDate()} ${month(b)}`;
 }
 
-function ChannelStats({
-  getHass,
-  device,
-  channel,
-  period,
-  showDevice,
-}: {
-  getHass: () => Hass;
-  device: Device;
-  channel: Channel;
-  period: StatsPeriod;
-  showDevice: boolean;
-}) {
+interface Row {
+  key: number;
+  label: [string, string];
+  minutes: number | null;
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+}
+
+/** Rows newest first: days for W / M, hours for D. */
+function rows(data: StatsData): Row[] {
+  if (data.period === 1) {
+    const out: Row[] = [];
+    for (let i = 0; i < data.series.length; i += 4) {
+      const hourBuckets = data.series.slice(i, i + 4).filter((b) => b.heating != null);
+      if (!hourBuckets.length) continue;
+      const temps = hourBuckets.map((b) => b.current).filter((v): v is number => v != null);
+      out.push({
+        key: data.series[i].t,
+        label: [hour(data.series[i].t), ""],
+        minutes: hourBuckets.reduce((a, b) => a + (b.heating ?? 0) * 15, 0),
+        avg: temps.length ? temps.reduce((a, b) => a + b, 0) / temps.length : null,
+        min: temps.length ? Math.min(...temps) : null,
+        max: temps.length ? Math.max(...temps) : null,
+      });
+    }
+    return out.reverse();
+  }
+  return data.days
+    .filter((d) => d.heating_minutes != null)
+    .map((d) => ({
+      key: d.start,
+      label: [fmt(d.start, { weekday: "short" }), fmt(d.start, { day: "numeric" })] as [string, string],
+      minutes: d.heating_minutes,
+      avg: d.temp_avg,
+      min: d.temp_min,
+      max: d.temp_max,
+    }))
+    .reverse();
+}
+
+/**
+ * The Stats tab is heating history, with a tab per receiver (like Hive's zones). A device's
+ * page passes `channel` to show just that receiver's heating or hot water.
+ */
+export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Hass; devices: Device[]; channel?: Channel }) {
+  const [entryId, setEntryId] = useState(devices[0]?.entry_id);
+  const device = devices.find((d) => d.entry_id === entryId) ?? devices[0];
+  const ch: Channel = fixed ?? "heat";
+  const [period, setPeriod] = useState<StatsPeriod>(7);
+  const [metric, setMetric] = useState<Metric>("time");
+  const [offset, setOffset] = useState(0);
   const [data, setData] = useState<StatsData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const water = channel === "water";
+  const water = ch === "water";
+  const shownMetric: Metric = water ? "time" : metric;
 
   const load = useCallback(() => {
+    if (!device) return;
     getHass()
-      .callWS<StatsData>({ type: "hive_local/stats", entry_id: device.entry_id, channel, days: period })
+      .callWS<StatsData>({ type: "hive_local/stats", entry_id: device.entry_id, channel: ch, days: period, offset })
       .then((r) => {
         setData(r);
         setError("");
       })
       .catch((e) => setError(errorText(e)))
       .finally(() => setLoading(false));
-  }, [getHass, device.entry_id, channel, period]);
+  }, [getHass, device, ch, period, offset]);
 
   useEffect(() => {
     setLoading(true);
-    setData(null);
     load();
+    if (offset) return;
     const timer = setInterval(load, REFRESH_MS);
     return () => clearInterval(timer);
-  }, [load]);
+  }, [load, offset]);
 
-  const shown = data?.period === period ? data : null;
+  if (!device) return null;
+  const shown = data && data.period === period && data.offset === offset ? data : null;
+  const list = shown ? rows(shown) : [];
+  const units = period === 1 ? "hour" : "day";
 
   return (
-    <section className={`card stats ${channel}`}>
-      <div className="card-head">
-        <div className="title">
-          <Icon name={water ? "water-boiler" : "radiator"} className="title-icon" />
-          <div>
-            <h2>{CHANNEL_LABEL[channel]}</h2>
-            {showDevice && <div className="muted small">{device.name}</div>}
-          </div>
+    <div className="history">
+      {!fixed && <h2 className="history-title">Heating history</h2>}
+      {!fixed && devices.length > 1 && (
+        <div className="history-tabs" role="tablist">
+          {devices.map((d) => (
+            <button key={d.entry_id} role="tab" aria-selected={d.entry_id === device.entry_id} className={d.entry_id === device.entry_id ? "on" : ""} onClick={() => { setEntryId(d.entry_id); setOffset(0); }}>
+              {d.name}
+            </button>
+          ))}
         </div>
-        {loading && <span className="chip">Loading…</span>}
+      )}
+
+      <div className="history-controls">
+        <div className="history-toggle" role="radiogroup" aria-label="Period">
+          {PERIODS.map((p) => (
+            <button key={p.id} role="radio" aria-checked={p.id === period} aria-label={p.name} title={p.name} className={p.id === period ? "on" : ""} onClick={() => { setPeriod(p.id); setOffset(0); }}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+        {!water && (
+          <div className="history-toggle" role="radiogroup" aria-label="Show">
+            <button role="radio" aria-checked={metric === "time"} title="Time on" aria-label="Time on" className={`wide ${metric === "time" ? "on" : ""}`} onClick={() => setMetric("time")}>
+              <Icon name="clock-outline" />
+            </button>
+            <button role="radio" aria-checked={metric === "temp"} title="Temperature" aria-label="Temperature" className={`wide ${metric === "temp" ? "on" : ""}`} onClick={() => setMetric("temp")}>
+              <Icon name="thermometer" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="history-date">
+        <button className="round ghost" onClick={() => setOffset(offset + 1)} aria-label="Earlier">
+          <Icon name="chevron-left" />
+        </button>
+        <span className="history-range">
+          <Icon name="calendar-blank-outline" /> {shown ? rangeLabel(shown.start, shown.period_end, period) : "…"}
+        </span>
+        <button className="round ghost" onClick={() => setOffset(Math.max(0, offset - 1))} disabled={offset === 0} aria-label="Later">
+          <Icon name="chevron-right" />
+        </button>
       </div>
 
       {error && <div className="status error">{error}</div>}
+      {loading && !shown && <p className="muted history-empty">Loading…</p>}
+
       {shown && !shown.has_data && (
-        <div className="status">
-          No history for <code>{shown.entity_id}</code> in this period yet. Stats build up as Home Assistant records the
-          receiver.
-        </div>
+        <p className="muted history-empty">
+          No history for this {PERIODS.find((p) => p.id === period)!.name.toLowerCase()}. Home Assistant keeps 10 days unless{" "}
+          <code>purge_keep_days</code> is raised.
+        </p>
       )}
-      {shown?.has_data && <StatsBody data={shown} water={water} />}
-    </section>
+
+      {shown?.has_data && (
+        <>
+          <Summary data={shown} metric={shownMetric} water={water} units={units} rows={list} />
+          <div className="history-rows">
+            {list.length > 0 && !water && (
+              <div className="history-key muted small" title="Lowest and highest room temperature">
+                <Icon name="thermometer" /> Low · high
+              </div>
+            )}
+            {list.map((r) => (
+              <HistoryRow key={r.key} row={r} metric={shownMetric} water={water} scale={scaleOf(list, shownMetric, period)} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
-function StatsBody({ data, water }: { data: StatsData; water: boolean }) {
-  const elapsed = (data.end - data.start) / 60;
+function scaleOf(list: Row[], metric: Metric, period: StatsPeriod) {
+  if (metric === "time") return { lo: 0, hi: Math.max(period === 1 ? 60 : 60, ...list.map((r) => r.minutes ?? 0)) };
+  const temps = list.map((r) => r.avg).filter((v): v is number => v != null);
+  const lo = temps.length ? Math.floor(Math.min(...temps)) - 2 : 10;
+  const hi = temps.length ? Math.ceil(Math.max(...temps)) : 25;
+  return { lo, hi: Math.max(hi, lo + 4) };
+}
+
+function Summary({ data, metric, water, units, rows: list }: { data: StatsData; metric: Metric; water: boolean; units: string; rows: Row[] }) {
+  const counted = Math.max(1, list.filter((r) => r.minutes != null).length);
   const prev = data.previous;
   const comparable = !!prev?.has_data && prev.known_minutes >= 0.5 * data.known_minutes;
   const diff = comparable ? data.heating_minutes - prev!.heating_minutes : 0;
-  const share = data.known_minutes ? data.heating_minutes / data.known_minutes : 0;
   const t = data.temperature;
-  const onLabel = water ? "Hot water on" : "Boiler on";
-
+  const [aLabel, aValue, bLabel, bValue] =
+    metric === "time"
+      ? [water ? "Hot water on" : "Boiler on", duration(data.heating_minutes), `Average per ${units}`, duration(data.heating_minutes / counted)]
+      : ["Average", t.avg != null ? `${t.avg.toFixed(1)}°` : "–", "Lowest – highest", t.min != null && t.max != null ? `${t.min.toFixed(1)}–${t.max.toFixed(1)}°` : "–"];
   return (
     <>
-      <div className="kpis">
-        <Kpi label={onLabel} value={duration(data.heating_minutes)}>
-          {comparable ? (
-            <span className="delta">
-              <Icon name={Math.abs(diff) < 1 ? "approximately-equal" : diff > 0 ? "arrow-up" : "arrow-down"} />
-              {Math.abs(diff) < 1 ? "Same as" : `${duration(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than`} {PREVIOUS[data.period]}
-            </span>
-          ) : (
-            `${Math.round(share * 100)}% of the time`
-          )}
-        </Kpi>
-        <Kpi label="Times it fired up" value={String(data.cycles)}>
-          {data.cycles ? `About ${duration(data.heating_minutes / data.cycles)} each` : "Not at all"}
-        </Kpi>
-        {!water && (
-          <Kpi label="Average temperature" value={t.avg != null ? `${t.avg.toFixed(1)}°` : "–"}>
-            {t.min != null && t.max != null ? `${t.min.toFixed(1)}° to ${t.max.toFixed(1)}°` : "No readings"}
-            {data.target_avg != null && ` · target ${data.target_avg.toFixed(1)}°`}
-          </Kpi>
-        )}
-        <Kpi label="Boosts" value={String(data.boosts)}>
-          {data.mode_minutes.boost ? `${duration(data.mode_minutes.boost)} boosting` : "None"}
-        </Kpi>
-      </div>
-
-      {data.known_minutes < 0.9 * elapsed && (
-        <div className="status small">
-          History covers {duration(data.known_minutes)} of this period. Home Assistant's recorder keeps 10 days unless{" "}
-          <code>purge_keep_days</code> is raised, and nothing is recorded while the receiver is unavailable.
+      <div className="history-summary">
+        <div>
+          <span className="muted">{aLabel}</span>
+          <b>{aValue}</b>
         </div>
-      )}
-
-      <div className="stats-block">
-        <h3>{water ? "When it was on" : "Temperature and heating"}</h3>
-        <TimeChart series={data.series} period={data.period} now={data.end} water={water} />
-      </div>
-
-      {data.period > 1 && (
-        <div className="stats-block">
-          <h3>{water ? "On per day" : "Boiler on per day"}</h3>
-          <DailyBars days={data.days} period={data.period} water={water} />
+        <i />
+        <div>
+          <span className="muted">{bLabel}</span>
+          <b>{bValue}</b>
         </div>
-      )}
-
-      <div className="stats-block">
-        <h3>Time in each mode</h3>
-        <ModeBreakdown minutes={data.mode_minutes} total={data.known_minutes} water={water} />
       </div>
+      <p className="history-note muted small">
+        {metric === "time" && comparable && (Math.abs(diff) < 1 ? "Same as the period before · " : `${duration(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than the period before · `)}
+        Fired up {data.cycles} time{data.cycles === 1 ? "" : "s"}
+        {data.boosts ? ` · ${data.boosts} boost${data.boosts === 1 ? "" : "s"}` : ""}
+        {metric === "temp" && data.target_avg != null ? ` · average target ${data.target_avg.toFixed(1)}°` : ""}
+      </p>
     </>
   );
 }
 
-function Kpi({ label, value, children }: { label: string; value: string; children: ReactNode }) {
+function HistoryRow({ row, metric, water, scale }: { row: Row; metric: Metric; water: boolean; scale: { lo: number; hi: number } }) {
+  const v = metric === "time" ? row.minutes : row.avg;
+  const f = v == null ? 0 : Math.max(0.02, Math.min(1, (v - scale.lo) / (scale.hi - scale.lo || 1)));
   return (
-    <div className="kpi">
-      <div className="kpi-label">{label}</div>
-      <div className="kpi-value">{value}</div>
-      <div className="kpi-sub">{children}</div>
-    </div>
-  );
-}
-
-function useWidth<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  const [width, setWidth] = useState(0);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    setWidth(el.clientWidth);
-    const ro = new ResizeObserver(([e]) => setWidth(e.contentRect.width));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return [ref, width] as const;
-}
-
-const PAD = { left: 34, right: 10, top: 10 };
-
-/** Bucket label for tooltips. */
-function bucketLabel(b: StatsBucket, step: number, period: StatsPeriod) {
-  if (period === 1) return `${time(b.t)}–${time(b.t + step)}`;
-  return `${longDate(b.t)}, ${time(b.t)}–${time(b.t + step)}`;
-}
-
-function xTicks(start: number, end: number, period: StatsPeriod): { t: number; label: string }[] {
-  const out = [];
-  if (period === 1) {
-    for (let h = 0; h <= 24; h += 6) out.push({ t: start + h * 3600, label: h === 24 ? "" : time(start + h * 3600) });
-    return out;
-  }
-  const days = Math.round((end - start) / 86400);
-  const every = period === 7 ? 1 : 5;
-  for (let i = 0; i < days; i += every) {
-    const t = start + i * 86400;
-    out.push({ t, label: period === 7 ? weekday(t) : date(t) });
-  }
-  return out;
-}
-
-function niceDomain(values: number[]): [number, number, number] {
-  if (!values.length) return [15, 25, 2];
-  let lo = Math.floor(Math.min(...values) - 0.5);
-  let hi = Math.ceil(Math.max(...values) + 0.5);
-  if (hi - lo < 4) {
-    const mid = (hi + lo) / 2;
-    lo = Math.floor(mid - 2);
-    hi = Math.ceil(mid + 2);
-  }
-  const step = hi - lo > 10 ? 4 : hi - lo > 5 ? 2 : 1;
-  lo = Math.floor(lo / step) * step;
-  hi = Math.ceil(hi / step) * step;
-  return [lo, hi, step];
-}
-
-/** Room temperature and target over the period, with a heating strip underneath. */
-function TimeChart({ series, period, now, water }: { series: StatsBucket[]; period: StatsPeriod; now: number; water: boolean }) {
-  const [ref, width] = useWidth<HTMLDivElement>();
-  const [hover, setHover] = useState<number | null>(null);
-  if (!series.length) return null;
-
-  const step = series.length > 1 ? series[1].t - series[0].t : 3600;
-  const start = series[0].t;
-  const end = series[series.length - 1].t + step;
-  const plotH = water ? 0 : 170;
-  const stripY = PAD.top + plotH + (water ? 0 : 10);
-  const stripH = water ? 36 : 14;
-  const height = stripY + stripH + 24;
-  const w = Math.max(0, width - PAD.left - PAD.right);
-  const x = (t: number) => PAD.left + ((t - start) / (end - start)) * w;
-
-  const temps = water ? [] : series.flatMap((b) => [b.current, b.target]).filter((v): v is number => v != null);
-  const [lo, hi, yStep] = niceDomain(temps);
-  const y = (v: number) => PAD.top + plotH - ((v - lo) / (hi - lo)) * plotH;
-  const yTicks: number[] = [];
-  for (let v = lo; v <= hi; v += yStep) yTicks.push(v);
-
-  // Lines break where there's no data. Points sit at each bucket's middle.
-  const line = (pick: (b: StatsBucket) => number | null, stepped: boolean) => {
-    let d = "";
-    let open = false;
-    series.forEach((b) => {
-      const v = pick(b);
-      if (v == null) {
-        open = false;
-        return;
-      }
-      if (stepped) {
-        d += `${open ? "L" : "M"}${x(b.t)},${y(v)}H${x(b.t + step)}`;
-      } else {
-        d += `${open ? "L" : "M"}${x(b.t + step / 2)},${y(v)}`;
-      }
-      open = true;
-    });
-    return d;
-  };
-
-  const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const t = start + ((e.clientX - r.left - PAD.left) / w) * (end - start);
-    const i = Math.floor((t - start) / step);
-    setHover(i >= 0 && i < series.length ? i : null);
-  };
-  const hb = hover != null ? series[hover] : null;
-  const accent = water ? "var(--hl-water)" : "var(--hl-heat)";
-
-  return (
-    <div className="chart" ref={ref}>
+    <div className="history-row">
+      <span className="history-day">
+        {row.label[0]} <span>{row.label[1]}</span>
+      </span>
+      <span className="history-bar">
+        {v != null && v > 0 && <i style={{ width: `${f * 100}%` }} />}
+        <span className="history-value">{v == null ? "–" : metric === "time" ? duration(v) : `${v.toFixed(1)}°`}</span>
+      </span>
       {!water && (
-        <div className="chart-legend" aria-hidden="true">
-          <span><i className="key line" /> Temperature</span>
-          <span><i className="key dashed" /> Target</span>
-          <span><i className="key band" /> Heating</span>
-        </div>
+        <span className="history-temps" title="Lowest and highest room temperature">
+          {row.min != null ? `${row.min.toFixed(0)}°` : "–"}
+          <span>{row.max != null ? `${row.max.toFixed(0)}°` : "–"}</span>
+        </span>
       )}
-      {width > 0 && (
-        <svg width={width} height={height} onPointerMove={onMove} onPointerLeave={() => setHover(null)} role="img"
-          aria-label={water ? "When hot water was on" : "Temperature, target and heating over time"}>
-          {!water &&
-            yTicks.map((v) => (
-              <g key={v}>
-                <line className="grid-line" x1={PAD.left} x2={PAD.left + w} y1={y(v)} y2={y(v)} />
-                <text className="axis" x={PAD.left - 6} y={y(v) + 4} textAnchor="end">{v}°</text>
-              </g>
-            ))}
-          {xTicks(start, end, period).map(({ t, label }) => (
-            <g key={t}>
-              <line className="grid-line" x1={x(t)} x2={x(t)} y1={PAD.top} y2={stripY + stripH} />
-              {label && <text className="axis" x={x(t) + 3} y={stripY + stripH + 16}>{label}</text>}
-            </g>
-          ))}
-
-          {/* Heating strip: each bucket's share of time heating, as opacity. */}
-          <rect className="strip-bg" x={PAD.left} y={stripY} width={w} height={stripH} rx={4} />
-          {series.map((b) =>
-            b.heating ? (
-              <rect key={b.t} x={Math.floor(x(b.t))} y={stripY} width={Math.max(1, Math.ceil(x(b.t + step)) - Math.floor(x(b.t)))} height={stripH}
-                fill={accent} opacity={0.2 + 0.8 * b.heating} />
-            ) : null,
-          )}
-          {water && <text className="axis" x={PAD.left - 6} y={stripY + stripH / 2 + 4} textAnchor="end">On</text>}
-
-          {!water && <path className="target-line" d={line((b) => b.target, true)} />}
-          {!water && <path className="temp-line" d={line((b) => b.current, false)} />}
-
-          {now < end && <line className="now-line" x1={x(now)} x2={x(now)} y1={PAD.top} y2={stripY + stripH} />}
-
-          {hb && (
-            <g className="crosshair">
-              <line x1={x(hb.t + step / 2)} x2={x(hb.t + step / 2)} y1={PAD.top} y2={stripY + stripH} />
-              {!water && hb.current != null && <circle cx={x(hb.t + step / 2)} cy={y(hb.current)} r={4.5} />}
-            </g>
-          )}
-        </svg>
-      )}
-      {hb && (
-        <div className="tooltip" style={{ left: Math.min(Math.max(x(hb.t + step / 2), 90), width - 90) }}>
-          <div className="tooltip-title">{bucketLabel(hb, step, period)}</div>
-          {hb.heating == null ? (
-            <div>No data</div>
-          ) : (
-            <>
-              {!water && <div>Temperature <b>{hb.current != null ? `${hb.current.toFixed(1)}°` : "–"}</b></div>}
-              {!water && <div>Target <b>{hb.target != null ? `${hb.target.toFixed(1)}°` : "Off"}</b></div>}
-              <div>{water ? "On" : "Heating"} <b>{duration((hb.heating * step) / 60)}</b></div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** Minutes heating per day, as bars. */
-function DailyBars({ days, period, water }: { days: StatsData["days"]; period: StatsPeriod; water: boolean }) {
-  const [ref, width] = useWidth<HTMLDivElement>();
-  const [hover, setHover] = useState<number | null>(null);
-  const height = 150;
-  const plotH = 112;
-  const top = 8;
-  const w = Math.max(0, width - PAD.left - PAD.right);
-  const max = Math.max(60, ...days.map((d) => d.heating_minutes ?? 0));
-  const hStep = max > 12 * 60 ? 240 : max > 6 * 60 ? 120 : max > 3 * 60 ? 60 : 30;
-  const hi = Math.ceil(max / hStep) * hStep;
-  const y = (m: number) => top + plotH - (m / hi) * plotH;
-  const slot = w / days.length;
-  const gap = Math.min(8, Math.max(2, slot * 0.25));
-  const ticks: number[] = [];
-  for (let m = 0; m <= hi; m += hStep) ticks.push(m);
-  const hd = hover != null ? days[hover] : null;
-
-  return (
-    <div className="chart" ref={ref}>
-      {width > 0 && (
-        <svg width={width} height={height} role="img" aria-label={water ? "Hot water on per day" : "Boiler on per day"} onPointerLeave={() => setHover(null)}>
-          {ticks.map((m) => (
-            <g key={m}>
-              <line className={m ? "grid-line" : "baseline"} x1={PAD.left} x2={PAD.left + w} y1={y(m)} y2={y(m)} />
-              <text className="axis" x={PAD.left - 6} y={y(m) + 4} textAnchor="end">{m ? `${m / 60}h` : "0"}</text>
-            </g>
-          ))}
-          {days.map((d, i) => {
-            const bw = Math.max(1, Math.min(44, slot - gap));
-            const bx = PAD.left + i * slot + (slot - bw) / 2;
-            const v = d.heating_minutes ?? 0;
-            const by = y(v);
-            const h = top + plotH - by;
-            const r = Math.min(4, bw / 2, h);
-            const label = period === 7 || i % 5 === 0;
-            return (
-              <g key={d.start} onPointerEnter={() => setHover(i)}>
-                {/* Hit target: the whole column. */}
-                <rect x={PAD.left + i * slot} y={top} width={slot} height={plotH} fill="transparent" />
-                {h > 0 && (
-                  <path
-                    className={`bar ${hover === i ? "hover" : ""}`}
-                    style={{ fill: water ? "var(--hl-water)" : "var(--hl-heat)" }}
-                    d={`M${bx},${top + plotH}V${by + r}Q${bx},${by} ${bx + r},${by}H${bx + bw - r}Q${bx + bw},${by} ${bx + bw},${by + r}V${top + plotH}Z`}
-                  />
-                )}
-                {label && (
-                  <text className="axis" x={bx + bw / 2} y={height - 10} textAnchor="middle">
-                    {period === 7 ? weekday(d.start) : date(d.start)}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </svg>
-      )}
-      {hd && (
-        <div className="tooltip" style={{ left: Math.min(Math.max(PAD.left + (hover! + 0.5) * slot, 80), width - 80) }}>
-          <div className="tooltip-title">{longDate(hd.start)}</div>
-          {hd.heating_minutes == null ? (
-            <div>No data</div>
-          ) : (
-            <>
-              <div>{water ? "On" : "Boiler on"} <b>{duration(hd.heating_minutes)}</b></div>
-              {!water && hd.temp_avg != null && <div>Average <b>{hd.temp_avg.toFixed(1)}°</b></div>}
-              {hd.known_minutes < 1380 && <div className="muted small">History for {duration(hd.known_minutes)}</div>}
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ModeBreakdown({ minutes, total, water }: { minutes: Record<Mode, number>; total: number; water: boolean }) {
-  const rows: { id: Mode; label: string; icon: string }[] = [
-    { id: "schedule", label: "Schedule", icon: "calendar-clock" },
-    { id: "manual", label: water ? "Always on" : "Manual", icon: "hand-back-right" },
-    { id: "boost", label: "Boost", icon: "rocket-launch" },
-    { id: "off", label: "Off", icon: "power" },
-  ];
-  return (
-    <div className="modes">
-      {rows.map((r) => {
-        const share = total ? minutes[r.id] / total : 0;
-        return (
-          <div key={r.id} className="mode-row">
-            <Icon name={r.icon} />
-            <span className="mode-name">{r.label}</span>
-            <span className="mode-bar"><i style={{ width: `${share * 100}%` }} /></span>
-            <span className="mode-time">{duration(minutes[r.id])}</span>
-            <span className="mode-share">{Math.round(share * 100)}%</span>
-          </div>
-        );
-      })}
     </div>
   );
 }

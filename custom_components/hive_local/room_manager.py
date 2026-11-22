@@ -149,6 +149,15 @@ class RoomManager:
         return {"receivers": self.receivers(), "rooms": out}
 
     @callback
+    def valves(self) -> list[dict[str, Any]]:
+        """Every Hive radiator valve HA knows about, for the Devices tab: live state, area and room."""
+        in_room = {v: room["name"] for room in self.rooms for v in room["valves"]}
+        return [
+            self._valve(c["entity_id"]) | {"area": c["area"], "room": in_room.get(c["entity_id"])}
+            for c in self.candidates()["valves"]
+        ]
+
+    @callback
     def tracked_entities(self) -> set[str]:
         """Entities whose changes affect the rooms' status (valves, sensors, batteries)."""
         entities: set[str] = set()

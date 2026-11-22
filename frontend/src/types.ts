@@ -22,6 +22,7 @@ export interface Device {
   entry_id: string;
   name: string;
   model: string | null; // receiver model from Z2M or ZHA, e.g. "SLR1c"
+  transport?: "z2m" | "zha";
   channels: Channel[];
 }
 
@@ -77,6 +78,12 @@ export interface ValveState {
   target: number | null;
   hvac_action: string | null;
   battery: string | null; // the battery sensor's state, e.g. "85"
+}
+
+/** hive_local/rooms/valves: any Hive valve, for the Devices tab. */
+export interface ValveInfo extends ValveState {
+  area: string | null;
+  room: string | null; // the room it's in, if any
 }
 
 export interface Room {
@@ -135,6 +142,15 @@ export interface Stats {
   temperature: { avg: number | null; min: number | null; max: number | null };
   target_avg: number | null;
   previous: { has_data: boolean; heating_minutes: number; known_minutes: number; cycles: number } | null;
-  days: { start: number; heating_minutes: number | null; known_minutes: number; temp_avg: number | null }[];
+  days: {
+    start: number;
+    heating_minutes: number | null;
+    known_minutes: number;
+    temp_avg: number | null;
+    temp_min: number | null;
+    temp_max: number | null;
+  }[];
+  offset: number;
+  period_end: number;
   series: StatsBucket[];
 }

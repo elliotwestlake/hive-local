@@ -7,6 +7,7 @@ import {
   type Device,
   type Hass,
   type Limits,
+  type Mode,
   type Schedule,
   type Transition,
 } from "./types";
@@ -27,11 +28,13 @@ export function ScheduleEditor({
   device,
   channel,
   limits,
+  mode,
 }: {
   getHass: () => Hass;
   device: Device;
   channel: Channel;
   limits: Limits;
+  mode?: Mode | null;
 }) {
   const [schedule, setSchedule] = useState<Schedule>({});
   const [loaded, setLoaded] = useState<Schedule>({});
@@ -68,6 +71,13 @@ export function ScheduleEditor({
   useEffect(() => {
     read();
   }, [read]);
+
+  // Success messages fade after a few seconds; errors stay until the next action.
+  useEffect(() => {
+    if (status.kind !== "ok") return;
+    const id = setTimeout(() => setStatus({ kind: "idle" }), 4000);
+    return () => clearTimeout(id);
+  }, [status]);
 
   const write = async () => {
     // Only the days that changed since the last read/write go to the receiver, so a
@@ -124,151 +134,119 @@ export function ScheduleEditor({
   }, [schedule, limits.heat_min]);
 
   const today = DAYS[(new Date().getDay() + 6) % 7];
-  const now = useNow();
+  const [editing, setEditing] = useState<number | null>(null);
+  const [menu, setMenu] = useState(false);
+  const changedDays = DAYS.filter((d) => JSON.stringify(schedule[d]) !== JSON.stringify(loaded[d]));
+
+  // Each slot runs until the next one; the day's last runs until the next day's first.
+  const nextDay = DAYS[(DAYS.indexOf(day) + 1) % 7];
+  const nextFirst = (schedule[nextDay] ?? [])[0]?.time;
+  const isOff = (t: Transition) => (isWater ? t.setpoint < limits.water_on : t.setpoint <= limits.heat_min);
+
+  let statusLine = "Stored on the receiver, so it keeps running without Home Assistant.";
+  if (mode === "schedule") statusLine = "Your schedule is running.";
+  else if (mode === "manual") statusLine = `Your schedule isn't being used: ${isWater ? "hot water is always on" : "heating is on Manual"}.`;
+  else if (mode === "off") statusLine = `Your schedule isn't being used: ${isWater ? "hot water" : "heating"} is off.`;
+  else if (mode === "boost") statusLine = "Boosting now. Your schedule carries on after the boost.";
 
   return (
-    <div className="stack">
-      <section className={`card ${channel}`}>
-        <div className="card-head">
-          <div className="title">
-            <Icon name={isWater ? "water-boiler" : "radiator"} className="title-icon" />
-            <div>
-              <h2>{isWater ? "Hot water schedule" : "Heating schedule"}</h2>
-              <div className="muted small">Stored on the receiver, so it keeps running without HA.</div>
-            </div>
-          </div>
-          <div className="toolbar">
-            {dirty && <span className="chip unsaved">Unsaved changes</span>}
-            <button onClick={read} disabled={status.kind === "busy"}>
-              <Icon name="download" /> Read
-            </button>
-            <button className="primary" onClick={write} disabled={!dirty || status.kind === "busy"}>
-              <Icon name="upload" /> Write to receiver
-            </button>
-          </div>
-        </div>
+    <div className="sched">
+      <p className="sched-status muted">{statusLine}</p>
 
-        {status.text && <div className={`status ${status.kind}`}>{status.text}</div>}
+      <div className="sched-days" role="tablist" aria-label="Day">
+        {DAYS.map((d) => (
+          <button
+            key={d}
+            role="tab"
+            aria-selected={d === day}
+            aria-label={d}
+            className={`sched-day ${d === day ? "on" : ""} ${d === today ? "today" : ""}`}
+            onClick={() => { setDay(d); setEditing(null); }}
+          >
+            {d[0].toUpperCase()}
+            {changedDays.includes(d) && <i className="sched-dot" aria-label="changed" />}
+          </button>
+        ))}
+      </div>
 
-        <div className="week">
-          {DAYS.map((d) => (
-            <button key={d} className={`row ${d === day ? "selected" : ""}`} onClick={() => setDay(d)}>
-              <span className={`day ${d === today ? "today" : ""}`}>{label(d)}</span>
-              <Timeline
-                transitions={schedule[d]}
-                isWater={isWater}
-                limits={limits}
-                range={range}
-                now={d === today ? now : null}
-              />
-            </button>
-          ))}
-          <div className="row hours-row">
-            <span className="day" />
-            <div className="hours">
-              {[0, 3, 6, 9, 12, 15, 18, 21, 24].map((h) => (
-                <span key={h} style={{ left: `${(h / 24) * 100}%` }}>
-                  {String(h).padStart(2, "0")}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-        {!isWater && (
-          <div className="legend">
-            <span className="muted small">Cooler</span>
-            <span className="legend-bar" />
-            <span className="muted small">Warmer</span>
-            <span className="legend-off" />
-            <span className="muted small">Off (1°)</span>
-          </div>
-        )}
-      </section>
+      {status.text && status.kind !== "idle" && <div className={`status ${status.kind}`}>{status.text}</div>}
 
-      <section className="card">
-        <div className="card-head">
-          <h2>{day[0].toUpperCase() + day.slice(1)}</h2>
-          <span className="chip">
-            {transitions.length}/{max} events
-          </span>
-        </div>
-        {transitions.length === 0 && <p className="muted">No events for this day yet.</p>}
-        <div className="events">
-          {transitions.map((t, i) => (
-            <div className="transition" key={i}>
+      <div className="sched-list">
+        {transitions.length === 0 && <p className="muted sched-empty">Nothing scheduled on {day[0].toUpperCase() + day.slice(1)} yet.</p>}
+        {transitions.map((t, i) => {
+          const end = transitions[i + 1]?.time ?? (nextFirst ? `${nextFirst} (${label(nextDay)})` : "00:00");
+          const off = isOff(t);
+          return (
+            <button key={i} className="slot" onClick={() => setEditing(i)}>
               <span
-                className="swatch"
-                style={{ background: isWater ? (t.setpoint >= limits.water_on ? "var(--hl-water)" : "var(--hl-off-fill)") : heatColor(t.setpoint, range, limits) }}
-              />
-              <input
-                type="time"
-                value={t.time}
-                onChange={(e) =>
-                  updateDay(transitions.map((x, j) => (j === i ? { ...x, time: e.target.value } : x)))
-                }
-              />
-              {isWater ? (
-                <div className="segmented">
-                  {(["on", "off"] as const).map((v) => {
-                    const sp = v === "on" ? limits.water_on : limits.water_off;
-                    return (
-                      <button
-                        key={v}
-                        className={t.setpoint === sp ? "on" : ""}
-                        onClick={() => updateDay(transitions.map((x, j) => (j === i ? { ...x, setpoint: sp } : x)))}
-                      >
-                        {v === "on" ? "On" : "Off"}
-                      </button>
-                    );
-                  })}
-                  {t.setpoint !== limits.water_on && t.setpoint !== limits.water_off && (
-                    <span className="muted raw" title="Value read from the receiver doesn't match WATER_ON/WATER_OFF in const.py">
-                      {t.setpoint}°?
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="stepper">
-                  <button className="round" onClick={() => bump(i, -0.5)} aria-label="Lower">
-                    <Icon name="minus" />
-                  </button>
-                  <span className="stepper-value">{t.setpoint <= limits.heat_min ? "Off" : `${t.setpoint.toFixed(1)}°`}</span>
-                  <button className="round" onClick={() => bump(i, 0.5)} aria-label="Raise">
-                    <Icon name="plus" />
-                  </button>
-                </div>
-              )}
-              <button className="round danger" onClick={() => updateDay(transitions.filter((_, j) => j !== i))} aria-label="Remove">
-                <Icon name="delete-outline" />
+                className={`slot-badge ${off ? "off" : ""}`}
+                style={off ? undefined : { borderColor: isWater ? "var(--hl-brand)" : heatColor(t.setpoint, range, limits) }}
+              >
+                {off ? <Icon name={isWater ? "power" : "snowflake"} /> : isWater ? "On" : `${t.setpoint}°`}
+              </span>
+              <span className="slot-time">{t.time} – {end}</span>
+              <Icon name="chevron-right" className="slot-chev" />
+            </button>
+          );
+        })}
+        <button className="slot slot-add" onClick={() => { addTransition(); setEditing(transitions.length); }} disabled={transitions.length >= max}>
+          <span className="slot-badge add"><Icon name="plus" /></span>
+          <span className="slot-time">{transitions.length >= max ? `${max} times a day at most` : "Add a time"}</span>
+        </button>
+      </div>
+
+      {dirty && (
+        <div className="sched-save">
+          <Icon name="pencil-outline" className="sched-save-icon" />
+          <span className="sched-changed" title={`Changed: ${changedDays.map(label).join(", ")}`}>
+            Unsaved changes
+          </span>
+          <button className="sched-undo" onClick={() => { setSchedule(loaded); setEditing(null); }}>Undo</button>
+          <button className="sched-write" onClick={write} disabled={status.kind === "busy"}>
+            Save
+          </button>
+        </div>
+      )}
+
+      <div className={`fab-wrap ${dirty ? "raised" : ""}`}>
+        {menu && (
+          <>
+            <div className="fab-backdrop" onClick={() => setMenu(false)} />
+            <div className="fab-menu" role="menu">
+              <button role="menuitem" onClick={() => { setMenu(false); read(); }} disabled={status.kind === "busy"}>
+                <Icon name="download" /> Read from the receiver
+              </button>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKDAYS); }} disabled={!transitions.length}>
+                <Icon name="content-copy" /> Copy {label(day)} to weekdays
+              </button>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKEND); }} disabled={!transitions.length}>
+                <Icon name="content-copy" /> Copy {label(day)} to the weekend
+              </button>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo([...DAYS]); }} disabled={!transitions.length}>
+                <Icon name="content-copy" /> Copy {label(day)} to every day
               </button>
             </div>
-          ))}
-        </div>
-        <div className="actions">
-          <button onClick={addTransition} disabled={transitions.length >= max}>
-            <Icon name="plus" /> Add event
-          </button>
-          <span className="spacer" />
-          <span className="muted small">Copy this day to</span>
-          <div className="segmented">
-            <button onClick={() => copyTo(WEEKDAYS)} disabled={!transitions.length}>Weekdays</button>
-            <button onClick={() => copyTo(WEEKEND)} disabled={!transitions.length}>Weekend</button>
-            <button onClick={() => copyTo([...DAYS])} disabled={!transitions.length}>All</button>
-          </div>
-        </div>
-      </section>
+          </>
+        )}
+        <button className="fab" aria-label="More" aria-expanded={menu} onClick={() => setMenu(!menu)}>
+          <Icon name={menu ? "close" : "dots-horizontal"} />
+        </button>
+      </div>
+
+      {editing != null && transitions[editing] && (
+        <SlotSheet
+          slot={transitions[editing]}
+          dayName={day[0].toUpperCase() + day.slice(1)}
+          isWater={isWater}
+          limits={limits}
+          canDelete
+          onChange={(next) => updateDay(transitions.map((x, j) => (j === editing ? next : x)))}
+          onDelete={() => { updateDay(transitions.filter((_, j) => j !== editing)); setEditing(null); }}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </div>
   );
-
-  function bump(i: number, delta: number) {
-    updateDay(
-      transitions.map((x, j) =>
-        j === i
-          ? { ...x, setpoint: Math.min(limits.heat_max, Math.max(limits.heat_min, Math.round((x.setpoint + delta) * 2) / 2)) }
-          : x,
-      ),
-    );
-  }
 }
 
 function nextFreeTime(ts: Transition[], start: number) {
@@ -278,20 +256,6 @@ function nextFreeTime(ts: Transition[], start: number) {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
 
-/** Minutes since midnight, refreshed every minute. */
-function useNow() {
-  const get = () => {
-    const d = new Date();
-    return d.getHours() * 60 + d.getMinutes();
-  };
-  const [now, setNow] = useState(get);
-  useEffect(() => {
-    const id = setInterval(() => setNow(get()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
-
 /** Soft amber for cooler setpoints through to deep orange-red for warmer; schedule "off" (1°C) is neutral. */
 function heatColor(setpoint: number, range: { lo: number; hi: number }, limits: Limits) {
   if (setpoint <= limits.heat_min) return "var(--hl-off-fill)";
@@ -299,48 +263,80 @@ function heatColor(setpoint: number, range: { lo: number; hi: number }, limits: 
   return `hsl(${Math.round(42 - 34 * f)} ${Math.round(88 + 4 * f)}% ${Math.round(64 - 14 * f)}%)`;
 }
 
-function Timeline({
-  transitions,
+/** Edit one time slot: when it starts, and the temperature (or on/off for hot water). Changes apply as you go. */
+function SlotSheet({
+  slot,
+  dayName,
   isWater,
   limits,
-  range,
-  now,
+  canDelete,
+  onChange,
+  onDelete,
+  onClose,
 }: {
-  transitions?: Transition[];
+  slot: Transition;
+  dayName: string;
   isWater: boolean;
   limits: Limits;
-  range: { lo: number; hi: number };
-  now: number | null;
+  canDelete: boolean;
+  onChange: (t: Transition) => void;
+  onDelete: () => void;
+  onClose: () => void;
 }) {
-  const marker = now != null && <i className="now" style={{ left: `${(now / 1440) * 100}%` }} />;
-  if (!transitions?.length) return <div className="timeline empty">{marker}</div>;
-  const sorted = [...transitions].sort((a, b) => toMin(a.time) - toMin(b.time));
-  // Before the first event of the day the previous day's last setpoint applies;
-  // approximate with this day's last one.
-  const segs = [{ time: "00:00", setpoint: sorted[sorted.length - 1].setpoint }, ...sorted];
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const off = isWater ? slot.setpoint < limits.water_on : slot.setpoint <= limits.heat_min;
+  const clamp = (t: number) => Math.min(limits.heat_max, Math.max(5, Math.round(t * 2) / 2));
+  const warm = off ? 20 : slot.setpoint;
+
   return (
-    <div className="timeline">
-      {segs.map((t, i) => {
-        const start = toMin(t.time);
-        const end = i + 1 < segs.length ? toMin(segs[i + 1].time) : 1440;
-        if (end <= start) return null;
-        const off = isWater ? t.setpoint < limits.water_on : t.setpoint <= limits.heat_min;
-        return (
-          <span
-            key={i}
-            className={off ? "off" : ""}
-            title={`${t.time} → ${isWater ? (off ? "Off" : "On") : off ? "Off" : `${t.setpoint}°`}`}
-            style={{
-              left: `${(start / 1440) * 100}%`,
-              width: `${((end - start) / 1440) * 100}%`,
-              background: off ? undefined : isWater ? "var(--hl-water)" : heatColor(t.setpoint, range, limits),
-            }}
-          >
-            {!isWater && !off && end - start >= 120 ? `${t.setpoint}°` : ""}
-          </span>
-        );
-      })}
-      {marker}
+    <div className="sheet-backdrop" onClick={onClose}>
+      <div className="sheet heat" role="dialog" aria-modal="true" aria-label={`Edit ${dayName} at ${slot.time}`} onClick={(e) => e.stopPropagation()}>
+        <span className="sheet-handle" />
+        <div className="sheet-title">
+          <h2>{slot.time}</h2>
+          <span className="muted">{dayName}</span>
+        </div>
+
+        <div className="sheet-field">
+          <span className="sheet-label">Starts at</span>
+          <input className="sheet-time" type="time" value={slot.time} onChange={(e) => e.target.value && onChange({ ...slot, time: e.target.value })} />
+        </div>
+
+        <div className="sheet-field">
+          <span className="sheet-label">{isWater ? "Hot water" : "Heating"}</span>
+          <div className="sheet-lengths">
+            <button className={!off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_on : warm })}>
+              {isWater ? "On" : "Heat to"}
+            </button>
+            <button className={off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_off : limits.heat_min })}>
+              Off
+            </button>
+          </div>
+        </div>
+
+        {!isWater && !off && (
+          <div className="sheet-field">
+            <span className="sheet-label">Temperature</span>
+            <div className="sheet-temp">
+              <button className="round sheet-step" onClick={() => onChange({ ...slot, setpoint: clamp(slot.setpoint - 0.5) })} aria-label="Lower"><Icon name="minus" /></button>
+              <span className="sheet-temp-value">{slot.setpoint.toFixed(1)}°</span>
+              <button className="round sheet-step" onClick={() => onChange({ ...slot, setpoint: clamp(slot.setpoint + 0.5) })} aria-label="Raise"><Icon name="plus" /></button>
+            </div>
+          </div>
+        )}
+        {!isWater && off && <p className="muted small sheet-note">Off means the thermostat only keeps the house above its frost protection temperature.</p>}
+
+        <button className="sheet-go" onClick={onClose}>Done</button>
+        {canDelete && (
+          <button className="ghost sheet-cancel danger-text" onClick={onDelete}>
+            <Icon name="delete-outline" /> Remove this time
+          </button>
+        )}
+      </div>
     </div>
   );
 }

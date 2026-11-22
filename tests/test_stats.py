@@ -63,3 +63,9 @@ def test_sample_from_state():
     w = st.sample_from_state("water", 5, "on", {"heating": True})
     assert w.mode == "manual" and w.heating
     assert not st.sample_from_state("water", 5, "off", {"heating": True}).heating
+
+
+def test_days_have_temperature_range():
+    samples = [S(0, "schedule", current=18.0), S(H, "schedule", current=20.5), S(2 * H, "schedule", current=19.0)]
+    s = run(samples, end=3 * H, day_starts=[0], period_end=3 * H)
+    assert (s["days"][0]["temp_min"], s["days"][0]["temp_max"]) == (18.0, 20.5)
