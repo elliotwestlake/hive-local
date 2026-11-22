@@ -109,3 +109,32 @@ export interface Receiver {
   entry_id: string;
   name: string;
 }
+
+export type StatsPeriod = 1 | 7 | 30;
+
+export interface StatsBucket {
+  t: number; // epoch seconds
+  current: number | null;
+  target: number | null;
+  heating: number | null; // fraction of the bucket spent heating; null = no data
+}
+
+/** hive_local/stats: one channel over a period, from HA's recorder. */
+export interface Stats {
+  start: number;
+  end: number;
+  period: StatsPeriod;
+  entity_id: string;
+  has_data: boolean;
+  heating_minutes: number;
+  known_minutes: number;
+  unknown_minutes: number;
+  cycles: number;
+  boosts: number;
+  mode_minutes: Record<Mode, number>;
+  temperature: { avg: number | null; min: number | null; max: number | null };
+  target_avg: number | null;
+  previous: { has_data: boolean; heating_minutes: number; known_minutes: number; cycles: number } | null;
+  days: { start: number; heating_minutes: number | null; known_minutes: number; temp_avg: number | null }[];
+  series: StatsBucket[];
+}

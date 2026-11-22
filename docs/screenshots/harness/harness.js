@@ -114,6 +114,69 @@ const CANDIDATES = {
   receivers: RECEIVERS,
 };
 
+// hive_local/stats: a plausible week of heating, made up but deterministic.
+function fakeStats(entry, channel, days) {
+  const water = channel === "water";
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000;
+  const start = today - (days - 1) * 86400;
+  const end = now.getTime() / 1000;
+  const step = { 1: 900, 7: 3600, 30: 21600 }[days];
+  const rnd = (i) => (Math.sin(i * 12.9898 + (entry === "e2" ? 3 : 0)) * 43758.5453) % 1;
+  // Schedule shape: warm 06:30–08:30 and 17:00–22:30.
+  const want = (t) => {
+    const h = ((t - today) / 3600 + 240) % 24;
+    if (water) return (h >= 6 && h < 8) || (h >= 17.5 && h < 20);
+    return (h >= 6.5 && h < 8.5) ? 20.5 : (h >= 17 && h < 22.5) ? 21 : null;
+  };
+  const series = [];
+  let temp = 16.5;
+  for (let t = start; t < today + 86400; t += step) {
+    if (t >= end) { series.push({ t, current: null, target: null, heating: null }); continue; }
+    // Average the 15-minute shape over the bucket.
+    let heat = 0, tg = 0, tgN = 0, n = 0, tempSum = 0;
+    for (let u = t; u < t + step; u += 900, n++) {
+      const w = want(u);
+      if (water) { heat += w ? 1 : 0; continue; }
+      if (w != null) { tg += w; tgN++; }
+      const goal = w ?? 15.5;
+      const on = w != null && temp < goal - 0.2;
+      heat += on ? 0.55 + 0.4 * Math.abs(rnd(u / 900)) : 0;
+      temp += on ? 0.22 : (goal > temp ? 0.05 : -0.06);
+      temp = Math.max(15, temp);
+      tempSum += temp;
+    }
+    series.push({ t, current: water ? null : +(tempSum / n).toFixed(1), target: water || !tgN ? null : +(tg / tgN).toFixed(1), heating: +(heat / n).toFixed(3) });
+  }
+  const known = series.filter((b) => b.heating != null);
+  const heatingMin = known.reduce((a, b) => a + (b.heating * step) / 60, 0);
+  const dayList = [];
+  for (let i = 0; i < days; i++) {
+    const a = start + i * 86400;
+    const bs = known.filter((b) => b.t >= a && b.t < a + 86400);
+    const temps = bs.filter((b) => b.current != null);
+    dayList.push({
+      start: a,
+      heating_minutes: bs.length ? Math.round(bs.reduce((x, b) => x + (b.heating * step) / 60, 0)) : null,
+      known_minutes: (bs.length * step) / 60,
+      temp_avg: temps.length ? +(temps.reduce((x, b) => x + b.current, 0) / temps.length).toFixed(1) : null,
+    });
+  }
+  const knownMin = (end - start) / 60;
+  const temps = known.map((b) => b.current).filter((v) => v != null);
+  return {
+    start, end, period: days, entity_id: water ? "water_heater.hive_receiver_hot_water" : "climate.hive_receiver_heating",
+    has_data: true, heating_minutes: Math.round(heatingMin), known_minutes: knownMin, unknown_minutes: 0,
+    cycles: Math.round(days * (water ? 2 : 4.4)), boosts: days === 1 ? 1 : Math.round(days / 2.5),
+    mode_minutes: { schedule: knownMin * 0.86, manual: knownMin * 0.05, off: knownMin * 0.06, boost: knownMin * 0.03 },
+    temperature: water ? { avg: null, min: null, max: null } : {
+      avg: +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1), min: Math.min(...temps), max: Math.max(...temps) },
+    target_avg: water ? null : 20.7,
+    previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30 },
+    days: dayList, series,
+  };
+}
+
 const hass = {
   async callWS(msg) {
     switch (msg.type) {
@@ -129,6 +192,8 @@ const hass = {
         };
       case "hive_local/rooms/candidates":
         return CANDIDATES;
+      case "hive_local/stats":
+        return fakeStats(msg.entry_id, msg.channel, msg.days);
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
       default:

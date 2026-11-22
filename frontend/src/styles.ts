@@ -21,19 +21,22 @@ export const styles = /* css */ `
 .muted { color: var(--secondary-text-color); font-size: 14px; }
 .small { font-size: 12px; }
 
-/* Header: toolbar + tabs, like HA's own panels */
+/* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */
 header { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }
-.toolbar-row { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 16px; }
-.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; }
-.toolbar-row .brand { --mdc-icon-size: 24px; opacity: .9; }
+.toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }
+.brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }
+.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }
 .logo-mark { display: block; flex: none; }
 .empty-state .logo-mark { opacity: .9; }
-.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; border-radius: 50%; }
+.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; margin-right: -10px; border-radius: 50%; }
 .toolbar-row .menu:hover { background: rgba(255,255,255,.12); }
-.tabs { display: flex; gap: 2px; padding: 0 8px; overflow-x: auto; scrollbar-width: none; }
-.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 0; background: transparent; color: inherit; opacity: .72; padding: 12px 14px 10px; border-bottom: 2px solid transparent; font-weight: 500; letter-spacing: .01em; }
-.tabs button:hover { opacity: .95; background: rgba(255,255,255,.06); }
-.tabs button.on { opacity: 1; border-bottom-color: currentColor; }
+/* Pills. flex-shrink 0: when they don't fit beside the logo, the tabs wrap onto their own row instead of squashing. */
+.tabs { display: flex; align-items: center; gap: 4px; flex: 1 0 auto; padding: 10px 0; margin: 0 -8px 0 -4px; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; opacity: .75; padding: 0 14px; font-weight: 500; letter-spacing: .01em; }
+.tabs button:hover:not(:disabled) { opacity: .95; background: color-mix(in srgb, currentColor 7%, transparent); }
+.tabs button:active:not(:disabled) { transform: none; }
+.tabs button.on, .tabs button.on:hover:not(:disabled) { opacity: 1; background: color-mix(in srgb, currentColor 13%, transparent); }
 .tabs .icon-wrap { --mdc-icon-size: 18px; }
 
 main { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }
@@ -195,6 +198,47 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .checklist > .muted { width: 100%; }
 .pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
 
+/* Stats */
+.stats { gap: 18px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.kpi { padding: 12px 14px; border-radius: 12px; background: var(--hl-soft); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kpi-label { font-size: 13px; color: var(--secondary-text-color); }
+.kpi-value { font-size: 28px; font-weight: 400; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.kpi-sub { font-size: 12px; color: var(--secondary-text-color); }
+.delta { display: inline-flex; align-items: center; gap: 2px; }
+.delta .icon-wrap { --mdc-icon-size: 14px; }
+.stats-block { display: flex; flex-direction: column; gap: 10px; }
+.stats-block h3 { margin: 0; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; overflow: visible; touch-action: pan-y; }
+.chart .axis { font-size: 11px; fill: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+.chart .grid-line { stroke: var(--divider-color); stroke-width: 1; opacity: .7; }
+.chart .baseline { stroke: var(--divider-color); stroke-width: 1; }
+.chart .strip-bg { fill: var(--hl-soft); }
+.chart .temp-line { fill: none; stroke: var(--primary-text-color); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .target-line { fill: none; stroke: var(--hl-heat); stroke-width: 2; stroke-dasharray: 5 4; opacity: .9; }
+.chart .now-line { stroke: var(--secondary-text-color); stroke-width: 1; stroke-dasharray: 2 3; }
+.chart .crosshair line { stroke: var(--secondary-text-color); stroke-width: 1; }
+.chart .crosshair circle { fill: var(--primary-text-color); stroke: var(--card-background-color); stroke-width: 2; }
+.chart .bar { transition: opacity .15s; }
+.chart .bar.hover { opacity: .75; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--secondary-text-color); margin-bottom: 6px; }
+.chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--primary-text-color); }
+.key.dashed { border-top: 2px dashed var(--hl-heat); }
+.key.band { height: 10px; border: 0; border-radius: 3px; background: var(--hl-heat); }
+.tooltip { position: absolute; top: 0; transform: translate(-50%, -100%); margin-top: -6px; pointer-events: none; z-index: 1; background: var(--card-background-color); border: 1px solid var(--divider-color); border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.14); padding: 8px 10px; font-size: 12px; line-height: 1.5; white-space: nowrap; }
+.tooltip-title { font-weight: 500; margin-bottom: 2px; }
+.tooltip b { font-weight: 500; font-variant-numeric: tabular-nums; margin-left: 4px; }
+.modes { display: flex; flex-direction: column; gap: 6px; }
+.mode-row { display: grid; grid-template-columns: 20px 84px 1fr 64px 40px; align-items: center; gap: 10px; font-size: 14px; }
+.mode-row .icon-wrap { --mdc-icon-size: 18px; color: var(--secondary-text-color); }
+.mode-bar { height: 8px; border-radius: 4px; background: var(--hl-soft); overflow: hidden; }
+.mode-bar i { display: block; height: 100%; border-radius: 4px; background: var(--hl-accent); }
+.mode-time, .mode-share { text-align: right; font-variant-numeric: tabular-nums; }
+.mode-share { color: var(--secondary-text-color); font-size: 12px; }
+code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
+
 @media (max-width: 600px) {
   main { padding: 12px 8px 24px; gap: 12px; }
   .card { padding: 14px; }
@@ -204,9 +248,11 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
   .mode-tile .icon-wrap { margin: 0; }
   .mode-tile .small { margin-left: auto; text-align: right; }
   /* Labels always visible on phones; drop the icons to make room. */
-  .tabs { padding: 0 4px; }
-  .tabs { gap: 0; }
-  .tabs button { padding: 12px 7px 10px; font-size: 12.5px; letter-spacing: 0; }
+  /* Phones: the tabs get their own row and scroll sideways if they still don't fit. */
+  .tabs { gap: 0; flex: 1 1 100%; min-width: 0; padding: 0 0 8px; margin: 0 -10px; }
+  .tabs button { padding: 0 7px; height: 30px; font-size: 12.5px; letter-spacing: 0; }
+  .mode-row { grid-template-columns: 18px 72px 1fr 56px; }
+  .mode-share { display: none; }
   .tabs .icon-wrap { display: none; }
 }
 `;
