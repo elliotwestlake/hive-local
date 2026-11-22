@@ -38,17 +38,19 @@ The receiver type (heating only, or heating + hot water) is detected automatical
 
 ## The Hive panel
 
-- **Overview:** each channel's current temperature, mode, heating/idle, and boost time left. Click a card to open its controls.
-- **Heating** / **Hot water:** the weekly schedule editor. **Read** fetches the schedule from the receiver (also on open). Edit a day, use **Copy to** for weekdays, the weekend or every day, then **Write to receiver**. Only the days you changed are sent, one command per day, so the rest of the week is never rewritten.
-- **Boost & mode:** switch between Schedule, Manual (a fixed temperature) and Off, start a boost for a set time (and temperature, for heating), or cancel one.
+Four tabs: Overview, Rooms, Schedule and Stats. On a phone they move to a bar along the bottom of the screen.
 
-With more than one receiver, Heating, Hot water and Boost & mode start with a card per receiver showing its temperature and mode; click one to open it, and **All receivers** to go back.
+- **Overview:** a card for each channel with its current temperature, mode, heating/idle and boost time left, and all the controls: switch between Schedule, Manual (with the temperature it holds) and Off, **Boost** with your default length and temperature, or open the arrow beside it to pick the length (and temperature, for heating) first. Cancel a boost from the same card.
+- **Schedule:** the weekly schedule editor, with a **Heating | Hot water** switch when the receiver has hot water (switching keeps unwritten changes). The **Schedule** chip on an Overview card opens it too. **Read** fetches the schedule from the receiver (also on open). Edit a day, use **Copy to** for weekdays, the weekend or every day, then **Write to receiver**. Only the days you changed are sent, one command per day, so the rest of the week is never rewritten.
+- **Stats:** see [Stats](#stats).
+
+With more than one receiver, the Overview shows every receiver's cards, and Schedule starts with a card per receiver showing its temperature and mode; click one to open it, and **All receivers** to go back.
 
 Schedule limits: 6 events per day, setpoints 1–32 °C in 0.5 steps.
 
 ![The heating schedule: a week of colour-coded events, read from the receiver.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/schedule.png)
 
-![Boost & mode: Schedule, Manual or Off, and a boost with its length and temperature.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/controls.png)
+![The Overview on Manual, with the boost options open: a length and a temperature.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/controls.png)
 
 ![The Overview in a dark theme.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/overview-dark.png)
 

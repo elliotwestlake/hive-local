@@ -79,6 +79,11 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }
 .water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }
 .chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }
+.chip-link { border: 0; cursor: pointer; padding: 4px 6px 4px 10px; gap: 4px; }
+.chip-link:hover:not(:disabled) { background: color-mix(in srgb, var(--primary-text-color) 10%, transparent); color: var(--primary-text-color); }
+.chip-link .icon-wrap:last-child { --mdc-icon-size: 16px; margin-left: -2px; }
+.channel-switch { align-self: flex-start; }
+.channel-switch .icon-wrap { --mdc-icon-size: 18px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip-btn { border-radius: 999px; padding: 6px 14px; }
 .chip-btn.on { background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 16%, transparent); border-color: var(--hl-accent, var(--primary-color)); color: var(--hl-accent, var(--primary-color)); font-weight: 500; }
@@ -118,16 +123,16 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .boost-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-accent) 22%, transparent); }
 .boost-btn.cancel { background: var(--hl-soft); color: var(--primary-text-color); }
 
-/* Boost & mode */
-.mode-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.mode-tile { flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px; border-radius: 14px; text-align: left; height: 100%; }
-.mode-tile .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); margin-bottom: 4px; }
-.mode-tile .mode-label { font-weight: 500; }
-.mode-tile.on { border-color: var(--hl-accent); background: color-mix(in srgb, var(--hl-accent) 10%, transparent); }
-.mode-tile.on .icon-wrap { color: var(--hl-accent); }
-.boost-live { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px; border-radius: 14px; background: color-mix(in srgb, var(--hl-accent) 10%, transparent); }
-.boost-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--hl-accent); color: #fff; --mdc-icon-size: 22px; }
-.boost-title { font-weight: 500; }
+/* Boost split button and its options */
+.split { flex: 1; display: flex; gap: 2px; }
+.split .boost-btn:first-child { border-radius: 10px 4px 4px 10px; }
+.boost-more { flex: none; width: 44px; padding: 0; border-radius: 4px 10px 10px 4px; }
+.boost-more.on { background: color-mix(in srgb, var(--hl-accent) 24%, transparent); }
+.boost-options { display: flex; flex-direction: column; gap: 12px; padding: 14px; margin-top: -4px; border-radius: 14px; background: var(--hl-soft); }
+.boost-options .chip-btn { background: var(--card-background-color); }
+.boost-options .chip-btn.on { background: color-mix(in srgb, var(--hl-accent) 16%, var(--card-background-color)); }
+.boost-options .stepper { background: var(--card-background-color); }
+.hold-row { margin-top: -4px; }
 .stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }
 .stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }
 .stepper button.round:hover { background: var(--card-background-color); }
@@ -240,19 +245,23 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
 
 @media (max-width: 600px) {
-  main { padding: 12px 8px 24px; gap: 12px; }
+  /* Room at the bottom for the tab bar (and the phone's home indicator). */
+  main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }
   .card { padding: 14px; }
   .grid { grid-template-columns: 1fr; }
-  .mode-grid { grid-template-columns: 1fr; }
-  .mode-tile { flex-direction: row; align-items: center; gap: 10px; }
-  .mode-tile .icon-wrap { margin: 0; }
-  .mode-tile .small { margin-left: auto; text-align: right; }
-  /* Labels always visible on phones; drop the icons to make room. */
-  /* Phones: the tabs get their own row and scroll sideways if they still don't fit. */
-  .tabs { gap: 0; flex: 1 1 100%; min-width: 0; padding: 0 0 8px; margin: 0 -10px; }
-  .tabs button { padding: 0 7px; height: 30px; font-size: 12.5px; letter-spacing: 0; }
+  /* Phones: the tabs become a bar along the bottom, in thumb reach. */
+  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;
+    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); box-shadow: 0 -2px 10px rgba(0,0,0,.06); }
+  .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }
+  .tabs button:hover:not(:disabled) { background: transparent; }
+  .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }
+  .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }
+  .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }
   .mode-row { grid-template-columns: 18px 72px 1fr 56px; }
   .mode-share { display: none; }
-  .tabs .icon-wrap { display: none; }
+  .kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kpi { padding: 10px 12px; }
+  .kpi-value { font-size: 24px; }
 }
 `;

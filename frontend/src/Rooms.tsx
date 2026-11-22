@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Stepper } from "./Controls";
+import { Stepper } from "./Stepper";
 import { Icon } from "./Icon";
 import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveState } from "./types";
 
