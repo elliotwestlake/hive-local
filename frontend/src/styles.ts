@@ -1,12 +1,15 @@
 // HA theme variables pierce the shadow root, so the panel follows light/dark themes.
 export const styles = /* css */ `
 :host {
-  --hl-heat: var(--state-climate-heat-color, #ff8100);
-  --hl-water: var(--state-water_heater-color, #2196f3);
+  /* One accent for everything that's on or active (heating, hot water, boosting, the selected tab):
+     HA's heating orange. Heating and hot water share it. */
+  --hl-brand: var(--state-climate-heat-color, #ff8100);
+  --hl-heat: var(--hl-brand);
+  --hl-water: var(--hl-brand);
   --hl-idle: var(--secondary-text-color, #727272);
   --hl-off: var(--disabled-text-color, #9e9e9e);
   --hl-off-fill: color-mix(in srgb, var(--secondary-text-color, #888) 18%, transparent);
-  --hl-radius: var(--ha-card-border-radius, 16px);
+  --hl-radius: 18px;
   --hl-soft: color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent);
   display: block; height: 100%;
   background: var(--primary-background-color);
@@ -43,10 +46,10 @@ main { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex
 .stack { display: flex; flex-direction: column; gap: 16px; }
 
 /* Cards */
-.card { background: var(--card-background-color); border-radius: var(--hl-radius); box-shadow: var(--ha-card-box-shadow, 0 1px 3px rgba(0,0,0,.08)); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--card-background-color); border-radius: var(--hl-radius); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .title { display: flex; align-items: center; gap: 12px; }
-.title-icon { width: 40px; height: 40px; border-radius: 12px; --mdc-icon-size: 22px; background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 14%, transparent); color: var(--hl-accent, var(--primary-color)); }
+.title-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; --mdc-icon-size: 22px; color: var(--secondary-text-color); background: var(--hl-soft); }
 .card.heat { --hl-accent: var(--hl-heat); }
 .card.water { --hl-accent: var(--hl-water); }
 h2 { font-size: 18px; font-weight: 500; margin: 0; }
@@ -71,7 +74,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .segmented.full { display: flex; }
 .segmented.full button { flex: 1; }
 .segmented button { border: 0; border-radius: 9px; background: transparent; padding: 7px 12px; color: var(--secondary-text-color); }
-.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); box-shadow: 0 1px 3px rgba(0,0,0,.15); font-weight: 500; }
+.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); font-weight: 500; }
 .segmented .raw { padding: 7px 10px; }
 
 .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--secondary-text-color); white-space: nowrap; }
@@ -79,9 +82,6 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }
 .water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }
 .chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }
-.chip-link { border: 0; cursor: pointer; padding: 4px 6px 4px 10px; gap: 4px; }
-.chip-link:hover:not(:disabled) { background: color-mix(in srgb, var(--primary-text-color) 10%, transparent); color: var(--primary-text-color); }
-.chip-link .icon-wrap:last-child { --mdc-icon-size: 16px; margin-left: -2px; }
 .channel-switch { align-self: flex-start; }
 .channel-switch .icon-wrap { --mdc-icon-size: 18px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -96,43 +96,94 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 48px 16px; color: var(--secondary-text-color); }
 .empty-state .icon-wrap { --mdc-icon-size: 48px; opacity: .5; }
 
-/* Overview */
+/* Overview: quick actions, filter pills and device cards */
+.home { display: flex; flex-direction: column; gap: 12px; }
+.home-section { font-size: 19px; font-weight: 700; letter-spacing: -.01em; text-transform: none; letter-spacing: 0; color: var(--primary-text-color); margin: 6px 0 0; }
+.quick { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; }
+.quick::-webkit-scrollbar { display: none; }
+.quick-action { flex: none; padding: 0; gap: 0; border-radius: 14px; overflow: hidden; align-items: stretch; background: var(--card-background-color); }
+.quick-icon { padding-left: 14px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); }
+.quick-icon .icon-wrap { --mdc-icon-size: 22px; }
+.quick-label { padding: 14px 16px 14px 10px; white-space: nowrap; }
+.pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.pills::-webkit-scrollbar { display: none; }
+.pill { flex: none; border-radius: 999px; padding: 8px 16px; background: var(--card-background-color); }
+.pill .icon-wrap { --mdc-icon-size: 18px; }
+.pill.on, .pill.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; border-color: transparent; font-weight: 500; }
+/* Cards in a row share its height; an opened card takes the whole row so its neighbours don't stretch. */
+.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: stretch; }
+.device.open { grid-column: 1 / -1; }
+.card.device { padding: 0; gap: 0; overflow: hidden; height: 100%; }
+.device-head { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 20px; cursor: pointer; outline: none; transition: background .15s; }
+.device-head:hover { background: color-mix(in srgb, var(--primary-text-color) 3%, transparent); }
+.device-head:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color); }
+.device-row { display: flex; align-items: center; gap: 12px; }
+/* Our own icon tile: a rounded square with the logo's warm gradient (not a diamond). */
+/* Icons: grey, in a shaded rounded box. */
+.device-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); background: var(--hl-soft); }
+.device-icon .icon-wrap { --mdc-icon-size: 22px; }
+.device-name { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; font-weight: 500; }
+.device-name .small { font-weight: 400; }
+.device-status { font-size: 14px; color: var(--secondary-text-color); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.device-status b { color: var(--primary-text-color); font-weight: 600; }
+.status-icon { --mdc-icon-size: 18px; color: var(--hl-heat); }
+.water .status-icon { color: var(--hl-water); }
+.device-big { flex: 1; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; }
+.device-big span { font-size: 30px; line-height: 1.1; }
+.device-big small { grid-column: 1 / -1; font-size: 13px; letter-spacing: 0; color: var(--secondary-text-color); margin-top: 4px; font-weight: 400; }
+.device-action { min-width: 120px; height: 50px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 500; color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 12%, transparent); }
+.device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }
+.device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }
+.status-icon.done { color: var(--success-color, #43a047); }
+.stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }
+.device.heat { --hl-accent: var(--hl-heat); }
+.device.water { --hl-accent: var(--hl-water); }
+.device-name .warn { color: var(--warning-color, #ffa600); font-weight: 500; }
+
+
+.device-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; border-top: 1px solid var(--divider-color); }
+.schedule-link { align-self: center; }
+
+/* Boost sheet: slides up from the bottom on phones, a centred dialog on wider screens */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); animation: hl-fade .15s ease-out; }
+.sheet { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; padding: 14px 20px 18px; border-radius: 24px; background: var(--card-background-color); color: var(--primary-text-color); }
+.sheet.heat { --hl-accent: var(--hl-heat); }
+.sheet.water { --hl-accent: var(--hl-water); }
+.sheet-handle { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--divider-color); }
+.sheet-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.sheet-title h2 { font-size: 24px; }
+.sheet-field { display: flex; flex-direction: column; gap: 10px; }
+.sheet-label { font-size: 14px; color: var(--secondary-text-color); }
+.sheet-temp { display: flex; align-items: center; gap: 12px; }
+.sheet-step { width: 52px; height: 52px; flex: none; border-color: var(--divider-color); }
+.sheet-step .icon-wrap { --mdc-icon-size: 24px; }
+.sheet-temp-value { flex: 1; text-align: center; padding: 14px 0; border-radius: 18px; color: #fff; font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; background: linear-gradient(135deg, #FF9F43, #F0532B); }
+.sheet-lengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }
+.sheet-lengths button { height: 46px; padding: 0 6px; border-radius: 12px; }
+.sheet-lengths button.on, .sheet-lengths button.on:hover:not(:disabled) { background: var(--hl-accent); border-color: transparent; color: #fff; font-weight: 500; }
+.sheet-live { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; padding: 8px 0; }
+.sheet-live .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); }
+.sheet-go { height: 52px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 600; color: #fff; background: var(--hl-accent); }
+.sheet-go:hover:not(:disabled) { background: var(--hl-accent); filter: brightness(1.06); }
+.sheet-go.stop { color: var(--error-color, #db4437); background: color-mix(in srgb, var(--error-color, #db4437) 12%, transparent); }
+.sheet-cancel { align-self: center; padding: 8px 16px; font-size: 15px; }
+@keyframes hl-fade { from { opacity: 0; } }
+@keyframes hl-rise { from { transform: translateY(40px); opacity: 0; } }
+
+/* Device controls (opened from a card) */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .channel { gap: 16px; }
-.dial { position: relative; width: 100%; max-width: 240px; margin: 0 auto -28px; aspect-ratio: 1; }
-.dial svg { width: 100%; height: 100%; display: block; }
-.dial path { fill: none; stroke-width: 12; stroke-linecap: round; }
-.dial .track { stroke: var(--hl-soft); }
-.dial .value { stroke: var(--hl-heat); transition: d .4s; }
-.dial.idle .value { stroke: color-mix(in srgb, var(--hl-heat) 45%, var(--card-background-color)); }
-.dial .dot { fill: var(--card-background-color); stroke: var(--primary-text-color); stroke-width: 3; }
-.dial-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-.dial-temp { font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; line-height: 1; }
-.dial-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }
-.dial-caption { font-size: 14px; color: var(--secondary-text-color); text-align: center; }
-.dial.heating .dial-caption { color: var(--hl-heat); font-weight: 500; }
-.water-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: 200px; }
-.water-orb { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--hl-soft); color: var(--hl-off); --mdc-icon-size: 52px; transition: background .3s, color .3s, box-shadow .3s; }
-/* The icon's own wrapper sets 20px, so size it there. */
-.water-orb .icon-wrap { --mdc-icon-size: 52px; }
-.water-state.idle .water-orb { background: color-mix(in srgb, var(--hl-water) 12%, transparent); color: var(--hl-water); }
-.water-state.heating .water-orb { background: var(--hl-water); color: #fff; box-shadow: 0 0 0 10px color-mix(in srgb, var(--hl-water) 15%, transparent); }
-.water-state.heating .dial-caption { color: var(--hl-water); font-weight: 500; }
+.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }
+.target-text { display: flex; flex-direction: column; gap: 2px; }
+.target-label { font-size: 16px; font-weight: 500; }
+.target-control { display: inline-flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }
+.target-btn { width: 44px; height: 44px; background: var(--card-background-color); }
+.target-btn .icon-wrap { --mdc-icon-size: 22px; }
+.target-value { min-width: 76px; text-align: center; font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.target-value.pending { color: var(--hl-heat); }
 .card-actions { display: flex; align-items: center; gap: 8px; }
-.boost-btn { flex: 1; border-color: transparent; background: color-mix(in srgb, var(--hl-accent) 14%, transparent); color: var(--hl-accent); font-weight: 500; }
-.boost-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-accent) 22%, transparent); }
-.boost-btn.cancel { background: var(--hl-soft); color: var(--primary-text-color); }
 
-/* Boost split button and its options */
-.split { flex: 1; display: flex; gap: 2px; }
-.split .boost-btn:first-child { border-radius: 10px 4px 4px 10px; }
-.boost-more { flex: none; width: 44px; padding: 0; border-radius: 4px 10px 10px 4px; }
-.boost-more.on { background: color-mix(in srgb, var(--hl-accent) 24%, transparent); }
-.boost-options { display: flex; flex-direction: column; gap: 12px; padding: 14px; margin-top: -4px; border-radius: 14px; background: var(--hl-soft); }
-.boost-options .chip-btn { background: var(--card-background-color); }
-.boost-options .chip-btn.on { background: color-mix(in srgb, var(--hl-accent) 16%, var(--card-background-color)); }
-.boost-options .stepper { background: var(--card-background-color); }
-.hold-row { margin-top: -4px; }
+.stepper { background: var(--card-background-color); }
 .stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }
 .stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }
 .stepper button.round:hover { background: var(--card-background-color); }
@@ -232,7 +283,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .key { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--primary-text-color); }
 .key.dashed { border-top: 2px dashed var(--hl-heat); }
 .key.band { height: 10px; border: 0; border-radius: 3px; background: var(--hl-heat); }
-.tooltip { position: absolute; top: 0; transform: translate(-50%, -100%); margin-top: -6px; pointer-events: none; z-index: 1; background: var(--card-background-color); border: 1px solid var(--divider-color); border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.14); padding: 8px 10px; font-size: 12px; line-height: 1.5; white-space: nowrap; }
+.tooltip { position: absolute; top: 0; transform: translate(-50%, -100%); margin-top: -6px; pointer-events: none; z-index: 1; background: var(--card-background-color); border: 1px solid var(--divider-color); border-radius: 10px; padding: 8px 10px; font-size: 12px; line-height: 1.5; white-space: nowrap; }
 .tooltip-title { font-weight: 500; margin-bottom: 2px; }
 .tooltip b { font-weight: 500; font-variant-numeric: tabular-nums; margin-left: 4px; }
 .modes { display: flex; flex-direction: column; gap: 6px; }
@@ -249,10 +300,14 @@ code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--
   main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }
   .card { padding: 14px; }
   .grid { grid-template-columns: 1fr; }
+  .device-grid { grid-template-columns: 1fr; }
+    .device-big { font-size: 46px; }
+  .sheet-backdrop { align-items: flex-end; padding: 0; }
+  .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }
   /* Phones: the tabs become a bar along the bottom, in thumb reach. */
   .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;
-    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); box-shadow: 0 -2px 10px rgba(0,0,0,.06); }
+    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); }
   .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }
   .tabs button:hover:not(:disabled) { background: transparent; }
   .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }

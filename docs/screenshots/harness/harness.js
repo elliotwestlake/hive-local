@@ -225,6 +225,11 @@ if (tab) {
   button?.click();
 }
 await wait(500);
+// ?open=1 opens the first device card's controls on the Overview.
+if (params.get("open") === "1") {
+  panel.shadowRoot.querySelector(".device-head")?.click();
+  await wait(300);
+}
 const click = params.get("click");
 if (click) {
   // Exact button text or aria-label, or a card whose text starts with it (e.g. a receiver's name).

@@ -7,6 +7,7 @@ hive_local/set   {entry_id, channel, schedule}
 hive_local/mode  {entry_id, channel, mode, setpoint?}   mode = schedule | manual | off
 hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
+hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
 hive_local/stats {entry_id, channel, days: 1|7|30} -> heating time, cycles, modes, temperatures (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
@@ -65,6 +66,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_mode,
         ws_boost,
         ws_cancel_boost,
+        ws_target,
         ws_stats,
         ws_rooms_subscribe,
         ws_rooms_candidates,
@@ -211,6 +213,21 @@ async def ws_mode(hass: HomeAssistant, connection, msg: dict[str, Any], entry: H
 @_with_entry
 async def ws_boost(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
     await entry.runtime_data.async_boost(msg["channel"], msg.get("minutes"), msg.get("temperature"))
+    connection.send_result(msg["id"], {"ok": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/target",
+        vol.Required("temperature"): vol.All(vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)),
+    }
+    | ENTRY
+    | CHANNEL
+)
+@websocket_api.async_response
+@_with_entry
+async def ws_target(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    await entry.runtime_data.async_set_target(msg["channel"], msg["temperature"])
     connection.send_result(msg["id"], {"ok": True})
 
 

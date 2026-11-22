@@ -147,7 +147,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
           </div>
         )}
 
-        {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} limits={limits} onSchedule={openSchedule} />}
+        {tab === "overview" && <Overview getHass={getHass} devices={devices} status={status} limits={limits} onSchedule={openSchedule} onRooms={() => setTab("rooms")} />}
 
         {tab === "rooms" && devices.length > 0 && <Rooms getHass={getHass} />}
 

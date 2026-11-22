@@ -30,13 +30,13 @@ compose() { # out WxH query
 }
 
 # Raw tabs (900 px wide CSS, captured at 2x).
-shot overview 900,620 "tab=Overview"
+shot overview 900,760 "tab=Overview"
 shot schedule 900,680 "tab=Schedule"
-shot controls 900,760 "tab=Overview&mode=manual&click=Boost%20options"
+shot controls 900,760 "tab=Overview&click=Boost"
 shot rooms 900,452 "tab=Rooms"
 shot stats 900,900 "tab=Stats"
 shot phone 400,820 "tab=Overview&narrow=1"
-shot overview-dark 900,620 "tab=Overview&theme=dark"
+shot overview-dark 900,760 "tab=Overview&theme=dark"
 
 # Framed versions, the hero and the social preview.
 frame_h() { echo $((34 + $1 + 56 + 72)); }
@@ -44,7 +44,7 @@ compose frame-schedule "1028,$(frame_h 680)" "kind=frame&img=schedule.png&w=900"
 compose frame-controls "1028,$(frame_h 760)" "kind=frame&img=controls.png&w=900"
 compose frame-rooms "1028,$(frame_h 452)" "kind=frame&img=rooms.png&w=900"
 compose frame-stats "1028,$(frame_h 900)" "kind=frame&img=stats.png&w=900"
-compose frame-overview-dark "1028,$(frame_h 620)" "kind=frame&img=overview-dark.png&w=900&theme=night"
+compose frame-overview-dark "1028,$(frame_h 760)" "kind=frame&img=overview-dark.png&w=900&theme=night"
 compose hero 1400,860 "kind=hero"
 cp "$REPO/docs/logo/logo.svg" "$WORK/"
 compose social 1280,640 "kind=social&logo=logo.svg"
