@@ -1,11 +1,12 @@
 name: Pre-release
 # Publishes a GitHub pre-release for the version in manifest.json from a pull request's
+# branch: normally release-please's release PR (release-please.yml), whose notes it uses.
 # branch, so it can be tested through the Marketplace (with beta versions shown) before it
 # reaches main. Add the `pre-release` label to the PR to publish. Each later push to a
 # labelled PR publishes it again from the new head: a pre-release of the same version is
 # deleted (with its tag) and recreated, so it always matches the PR. A full release of that
 # version is never touched. It can also be run by hand on any branch.
-# Merging to main promotes it (release.yml).
+# Merging the release PR replaces it with the real release (release-please.yml).
 on:
   pull_request:
     types: [labeled, synchronize]
@@ -29,6 +30,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR: ${{ github.event.pull_request.number }}
         run: |
           version=$(python3 -c 'import json; print(json.load(open("custom_components/hive_local/manifest.json"))["version"])')
           tag="v$version"
@@ -47,6 +49,10 @@ jobs:
           notes="docs/releases/$tag.md"
           if [ -f "$notes" ]; then
             gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --notes-file "$notes"
+          elif [ -n "$PR" ]; then
+            # The PR's description: on a release PR, release-please's notes for this version.
+            gh pr view "$PR" --json body --jq .body > "$RUNNER_TEMP/notes.md"
+            gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --notes-file "$RUNNER_TEMP/notes.md"
           else
             gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --generate-notes
           fi

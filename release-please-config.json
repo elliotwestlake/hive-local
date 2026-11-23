@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": false,
+  "pull-request-title-pattern": "chore(release): ${version}",
+  "pull-request-header": "This release is ready when you are. Merging it tags it, publishes the GitHub release and offers it as an update in the Marketplace. Add the `pre-release` label to try it first.",
+  "last-release-sha": "daafe0454895cb83a6527c541913b70fbd6c4792",
+  "changelog-sections": [
+    { "type": "feat", "section": "New" },
+    { "type": "fix", "section": "Fixed" },
+    { "type": "perf", "section": "Faster" },
+    { "type": "revert", "section": "Reverted" },
+    { "type": "docs", "section": "Docs", "hidden": true },
+    { "type": "style", "section": "Style", "hidden": true },
+    { "type": "refactor", "section": "Refactoring", "hidden": true },
+    { "type": "test", "section": "Tests", "hidden": true },
+    { "type": "build", "section": "Build", "hidden": true },
+    { "type": "ci", "section": "CI", "hidden": true },
+    { "type": "chore", "section": "Chores", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "extra-files": [
+        { "type": "json", "path": "custom_components/hive_local/manifest.json", "jsonpath": "$.version" }
+      ]
+    }
+  }
+}

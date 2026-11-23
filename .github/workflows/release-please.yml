@@ -1,0 +1,42 @@
+name: Release
+# release-please keeps one open release PR ("chore(release): x.y.z") up to date with the
+# changes merged to main since the last release: the version bump (manifest.json too), the
+# CHANGELOG and the notes, grouped from the conventional commit messages (feat → New,
+# fix → Fixed). Merging that PR tags the version and publishes the GitHub release, which the
+# Marketplace (formerly HACS) offers as an update.
+#
+# The release PR can be tried first: add the `pre-release` label and prerelease.yml
+# publishes it as a pre-release. When it merges, that pre-release is removed here so
+# release-please can publish the real release under the same tag.
+#
+# RELEASE_PLEASE_TOKEN (a fine-grained token: Contents and Pull requests, read/write) lets
+# the release PR trigger the other workflows (tests, commit check, pre-release). Without it
+# the built-in token is used, and the release PR gets no checks.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency: release
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove a pre-release of the version on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("custom_components/hive_local/manifest.json"))["version"])')
+          tag="v$version"
+          if [ "$(gh release view "$tag" --json isPrerelease --jq .isPrerelease 2>/dev/null)" = "true" ]; then
+            gh release delete "$tag" --cleanup-tag --yes
+            echo "::notice::Removed the $tag pre-release so the release can be published"
+          fi
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
