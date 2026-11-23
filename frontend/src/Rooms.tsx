@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Stepper } from "./Stepper";
 import { Icon } from "./Icon";
-import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveState } from "./types";
+import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveInfo, type ValveState } from "./types";
 
 interface Props {
   getHass: () => Hass;
@@ -203,6 +203,55 @@ interface EditorProps {
   dialog?: boolean;
 }
 
+/**
+ * Valves as tiles, grouped by area (the area matching the room's name first): name, reading,
+ * battery, and which room it's in already. Tap to choose.
+ */
+function ValvePicker({ valves, info, roomName, thisRoom, chosen, onToggle }: { valves: Candidate[]; info: Map<string, ValveInfo>; roomName: string; thisRoom: string | null; chosen: Set<string>; onToggle: (id: string) => void }) {
+  const byArea = new Map<string, Candidate[]>();
+  for (const c of valves) byArea.set(c.area ?? "No area", [...(byArea.get(c.area ?? "No area") ?? []), c]);
+  const wanted = roomName.trim().toLowerCase();
+  const areas = [...byArea].sort(([a], [b]) => Number(b.toLowerCase() === wanted) - Number(a.toLowerCase() === wanted));
+  return (
+    <div className="valve-picker">
+      {areas.map(([area, list]) => (
+        <div key={area} className="valve-area">
+          <span className="muted small">{area}</span>
+          <div className="valve-tiles">
+            {list.map((c) => {
+              const v = info.get(c.entity_id);
+              const on = chosen.has(c.entity_id);
+              const battery = v?.battery == null ? null : Number(v.battery);
+              const low = battery != null && !Number.isNaN(battery) && battery <= LOW_BATTERY;
+              const elsewhere = v?.room && v.room !== thisRoom ? v.room : null;
+              return (
+                <button key={c.entity_id} type="button" role="checkbox" aria-checked={on} className={`valve-tile ${on ? "on" : ""}`} onClick={() => onToggle(c.entity_id)}>
+                  <span className="valve-tile-icon"><Icon name="radiator" /></span>
+                  <span className="valve-tile-text">
+                    <span className="valve-tile-name">{c.name}</span>
+                    <span className="muted small">
+                      {v && !v.available ? (
+                        "Not responding"
+                      ) : (
+                        <>
+                          {v?.current_temperature != null ? `${v.current_temperature.toFixed(1)}°` : ""}
+                          {battery != null && !Number.isNaN(battery) && <span className={low ? "warn" : ""}>{v?.current_temperature != null ? " · " : ""}{Math.round(battery)}%</span>}
+                        </>
+                      )}
+                    </span>
+                    {elsewhere && <span className="valve-tile-room small">In {elsewhere}</span>}
+                  </span>
+                  <span className="valve-tile-check" aria-hidden="true">{on && <Icon name="check" />}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** A card, or a dialog (a sheet from the bottom on phones). Top level, so typing doesn't remount the form. */
 function EditorFrame({ dialog, label, onClose, children }: { dialog: boolean; label: string; onClose: () => void; children: React.ReactNode }) {
   if (!dialog) return <section className="card room-editor">{children}</section>;
@@ -238,11 +287,17 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
 
+  // Each valve's reading, battery and room, for the picker.
+  const [info, setInfo] = useState<Map<string, ValveInfo>>(new Map());
   useEffect(() => {
     getHass()
       .callWS<{ valves: Candidate[]; sensors: Candidate[]; receivers: Receiver[] }>({ type: "hive_local/rooms/candidates" })
       .then(setCandidates)
       .catch((e) => setError(errorText(e)));
+    getHass()
+      .callWS<{ valves: ValveInfo[] }>({ type: "hive_local/rooms/valves" })
+      .then((r) => setInfo(new Map(r.valves.map((v) => [v.entity_id, v]))))
+      .catch(() => {});
   }, [getHass]);
   const manyReceivers = (candidates?.receivers.length ?? 0) > 1;
 
@@ -265,9 +320,6 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
       return next;
     });
 
-  // Group valves by area, the way people think about them.
-  const byArea = new Map<string, Candidate[]>();
-  for (const c of candidates?.valves ?? []) byArea.set(c.area ?? "No area", [...(byArea.get(c.area ?? "No area") ?? []), c]);
 
   return (
     <EditorFrame dialog={!!dialog} label={room ? `Edit ${room.name}` : "New room"} onClose={onDone}>
@@ -292,21 +344,15 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
         </label>
 
         <fieldset className="field">
-          <legend>Hive radiator valves</legend>
+          <legend>
+            Hive radiator valves
+            {valves.size > 0 && <span className="valve-count">{valves.size} chosen</span>}
+          </legend>
           {!candidates && !error && <span className="muted small">Loading…</span>}
           {candidates && !candidates.valves.length && (
             <span className="muted small">No Hive radiator valves found. Pair them with ZHA or Zigbee2MQTT first.</span>
           )}
-          {[...byArea].map(([area, list]) => (
-            <div key={area} className="checklist">
-              <span className="muted small">{area}</span>
-              {list.map((c) => (
-                <label key={c.entity_id} className="pick">
-                  <input type="checkbox" checked={valves.has(c.entity_id)} onChange={() => toggle(c.entity_id)} /> {c.name}
-                </label>
-              ))}
-            </div>
-          ))}
+          <ValvePicker valves={candidates?.valves ?? []} info={info} roomName={name} thisRoom={room?.name ?? null} chosen={valves} onToggle={toggle} />
         </fieldset>
 
         <label className="field">

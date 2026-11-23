@@ -234,6 +234,20 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .room-sheet .sheet-live .heating { color: var(--hl-heat); }
 .room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
 .room-sheet-actions .sheet-cancel { align-self: auto; }
+.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }
+.valve-picker { display: flex; flex-direction: column; gap: 14px; }
+.valve-area { display: flex; flex-direction: column; gap: 8px; }
+.valve-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.valve-tile .valve-tile-icon { width: 32px; height: 32px; }
+.valve-tile { justify-content: flex-start; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; text-align: left; transition: background .15s, border-color .15s; }
+.valve-tile.on, .valve-tile.on:hover:not(:disabled) { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 9%, var(--card-background-color)); }
+.valve-tile-icon { width: 36px; height: 36px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }
+.valve-tile-text { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.valve-tile-check { width: 22px; height: 22px; flex: none; align-self: flex-start; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }
+.valve-tile.on .valve-tile-check { background: var(--hl-brand); border-color: var(--hl-brand); }
+.valve-tile-name { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.valve-tile-room { color: var(--secondary-text-color); }
+.valve-tile .warn { color: var(--warning-color, #ffa600); }
 .room-sheet.room-editor h2 { text-align: center; font-size: 22px; }
 .danger-text { color: var(--error-color, #db4437); }
 
@@ -358,7 +372,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
 .adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .adjust .stepper-value { min-width: 72px; text-align: center; }
-@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } }
+@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-tiles { grid-template-columns: 1fr; } .valve-tile-check { align-self: center; } }
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
 
 @media (max-width: 600px) {
