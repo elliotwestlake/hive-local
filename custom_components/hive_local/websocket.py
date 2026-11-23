@@ -9,11 +9,16 @@ hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
 hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
 hive_local/preheat {entry_id, channel?, enabled?, max_lead?}  pre-heat settings (heating only)
-hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures (from the recorder)
+hive_local/defaults {entry_id, channel, boost_minutes?, boost_temperature?, frost_temperature?} (through the number entities)
+hive_local/settings                                -> {"outdoor_entity", "outdoor_candidates"} (house-wide)
+hive_local/settings/set {outdoor_entity?}
+hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures, outdoor temperature if set (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
 hive_local/rooms/candidates                        -> {"valves", "sensors", "receivers"} for the room editor
-hive_local/rooms/valves                            -> {"valves": every Hive valve with state, battery, area and room} for the Devices tab
+hive_local/rooms/valves                            -> {"valves": every Hive valve with state, battery, area, room and identify} for the Devices tab
+hive_local/rooms/suggest                           -> {"rooms": a room per area with free Hive valves, "receivers"} for first-time setup
+hive_local/rooms/identify {entity_id}              -> presses the valve's Identify button (it flashes its light)
 hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?}
 hive_local/rooms/delete {room_id}
 hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]}
@@ -39,6 +44,8 @@ from .const import (
     PREHEAT_MAX_LEAD_MAX,
     PREHEAT_MAX_LEAD_MIN,
     BOOST_MIN_TEMP,
+    FROST_MAX,
+    FROST_MIN,
     CHANNEL_HEAT,
     CHANNEL_WATER,
     CONF_TRANSPORT,
@@ -54,8 +61,9 @@ from .const import (
 )
 from .data import HiveConfigEntry
 from .room_manager import DATA_ROOMS, SIGNAL_ROOMS, RoomManager
+from .settings import DATA_SETTINGS, HouseSettings, SettingsError
 from .schedule import ScheduleError, validate
-from .history import async_samples, channel_entity_id
+from .history import async_outdoor, async_samples, channel_entity_id
 from .stats import summarise
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -75,10 +83,15 @@ def async_register(hass: HomeAssistant) -> None:
         ws_cancel_boost,
         ws_target,
         ws_preheat,
+        ws_defaults,
+        ws_settings,
+        ws_settings_set,
         ws_stats,
         ws_rooms_subscribe,
         ws_rooms_candidates,
         ws_rooms_valves,
+        ws_rooms_suggest,
+        ws_rooms_identify,
         ws_rooms_save,
         ws_rooms_delete,
         ws_rooms_set_target,
@@ -285,6 +298,61 @@ async def ws_preheat(hass: HomeAssistant, connection, msg: dict[str, Any], entry
     connection.send_result(msg["id"], entry.runtime_data.preheat.as_dict())
 
 
+# The Settings tab's boost and frost fields -> our number entities (so they're restored).
+DEFAULTS = {
+    "boost_minutes": "boost_minutes",
+    "boost_temperature": "boost_temperature",
+    "frost_temperature": "frost_temperature",
+}
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/defaults",
+        vol.Optional("boost_minutes"): vol.All(vol.Coerce(int), vol.Range(1, BOOST_MAX_MINUTES)),
+        vol.Optional("boost_temperature"): vol.All(vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)),
+        vol.Optional("frost_temperature"): vol.All(vol.Coerce(float), vol.Range(FROST_MIN, FROST_MAX)),
+    }
+    | ENTRY
+    | CHANNEL
+)
+@websocket_api.async_response
+@_with_entry
+async def ws_defaults(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    """Change a channel's boost defaults or frost protection through its number entities."""
+    registry = er.async_get(hass)
+    for field, key in DEFAULTS.items():
+        if field not in msg:
+            continue
+        entity_id = registry.async_get_entity_id("number", DOMAIN, f"{entry.entry_id}_{msg['channel']}_{key}")
+        if entity_id is None:
+            raise ScheduleError("That setting isn't available on this channel")
+        await hass.services.async_call("number", "set_value", {"entity_id": entity_id, "value": msg[field]}, blocking=True)
+    d = entry.runtime_data.boost_defaults(msg["channel"])
+    connection.send_result(msg["id"], {"boost_minutes": d.minutes, "boost_temperature": d.temperature, "frost_temperature": d.frost})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/settings"})
+@callback
+def ws_settings(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    connection.send_result(msg["id"], hass.data[DATA_SETTINGS].as_dict())
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "hive_local/settings/set", vol.Optional("outdoor_entity"): vol.Any(str, None)}
+)
+@websocket_api.async_response
+async def ws_settings_set(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    settings: HouseSettings = hass.data[DATA_SETTINGS]
+    try:
+        if "outdoor_entity" in msg:
+            await settings.async_set_outdoor(msg["outdoor_entity"])
+    except SettingsError as err:
+        connection.send_error(msg["id"], "invalid", str(err))
+        return
+    connection.send_result(msg["id"], settings.as_dict())
+
+
 ROOM = {vol.Required("room_id"): str}
 
 
@@ -343,6 +411,21 @@ def ws_rooms_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> 
 @_rooms_handler
 async def ws_rooms_candidates(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
     connection.send_result(msg["id"], rooms.candidates())
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/suggest"})
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_suggest(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(msg["id"], {"rooms": rooms.suggestions(), "receivers": rooms.receivers()})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/identify", vol.Required("entity_id"): str})
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_identify(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    await rooms.async_identify(msg["entity_id"])
+    connection.send_result(msg["id"], {"ok": True})
 
 
 @websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/valves"})
@@ -433,6 +516,9 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     prev_start, prev_end = start - timedelta(days=days), end - timedelta(days=days)
 
     samples = await async_samples(hass, channel, entity_id, prev_start, end)
+    # The house's optional outdoor temperature (a weather entity or a sensor), from Settings.
+    outdoor_id = hass.data[DATA_SETTINGS].outdoor_entity
+    outdoor = await async_outdoor(hass, outdoor_id, prev_start, end) if outdoor_id else None
 
     def ts(d: datetime) -> float:
         return dt_util.as_utc(d).timestamp()
@@ -445,5 +531,6 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
         bucket_starts=[ts(d) for d in buckets],
         period_end=ts(period_end),
         previous=(ts(prev_start), ts(prev_end)),
+        outdoor=outdoor,
     )
-    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "period": days, "offset": offset, "period_end": ts(period_end)})
+    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "outdoor_entity": outdoor_id, "period": days, "offset": offset, "period_end": ts(period_end)})

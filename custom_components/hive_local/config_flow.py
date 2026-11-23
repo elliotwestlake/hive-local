@@ -169,3 +169,4 @@ class HiveLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             }
         )
         return self.async_show_form(step_id="zha", data_schema=schema, errors=errors)
+

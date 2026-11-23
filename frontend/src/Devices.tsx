@@ -170,7 +170,7 @@ function AddDeviceSheet({ onClose }: { onClose: () => void }) {
               <b>Radiator valve</b>
               <span className="muted small">
                 {valveHelp
-                  ? "Pair it with ZHA or Zigbee2MQTT first (Settings → Devices & services). It then appears here, and you can put it in a room on the Rooms tab."
+                  ? "Pair it with ZHA or Zigbee2MQTT first (Settings → Devices & services). It then appears here, and you can put it in a room in the Settings tab."
                   : "A Hive radiator valve (UK7004240)."}
               </span>
             </span>

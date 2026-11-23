@@ -76,3 +76,31 @@ def test_preheat_boost_counts_as_schedule():
     pre = st.sample_from_state("heat", 0, "auto", {"preset_mode": "boost", "preheat": True, "hvac_action": "heating"})
     assert boost.mode == "boost"
     assert pre.mode == "schedule" and pre.heating
+
+
+def test_outdoor_per_day_bucket_and_period():
+    R = st.Reading
+    samples = [S(0, "schedule", current=19.0)]
+    outdoor = [R(-2 * H, 2.0), R(0, 4.0), R(H, None), R(2 * H, 10.0), R(3 * H, 6.0)]
+    s = run(samples, end=4 * H, day_starts=[0, 2 * H], bucket_starts=[0, H, 2 * H, 3 * H],
+            period_end=4 * H, previous=(-2 * H, 0), outdoor=outdoor)
+    # Unavailable (None) counts for nothing.
+    assert s["outdoor"] == {"avg": 6.7, "min": 4.0, "max": 10.0}
+    assert [(d["outdoor_min"], d["outdoor_max"], d["outdoor_avg"]) for d in s["days"]] == [(4.0, 4.0, 4.0), (6.0, 10.0, 8.0)]
+    assert [b["outdoor"] for b in s["series"]] == [4.0, None, 10.0, 6.0]
+    assert s["previous"]["outdoor_avg"] == 2.0
+
+
+def test_no_outdoor_source():
+    s = run([S(0, "schedule")], previous=(-H, 0))
+    assert s["outdoor"] is None and "outdoor_avg" not in s["previous"]
+    assert s["days"][0]["outdoor_avg"] is None
+
+
+def test_outdoor_from_state():
+    f = st.outdoor_from_state
+    assert f("weather", "rainy", {"temperature": 7.5, "temperature_unit": "°C"}) == (7.5, "°C")
+    assert f("weather", "unavailable", {}) is None
+    assert f("sensor", "41", {"unit_of_measurement": "°F"}) == (41.0, "°F")
+    assert f("sensor", "unknown", {}) is None
+    assert f("sensor", "nan", {}) is None

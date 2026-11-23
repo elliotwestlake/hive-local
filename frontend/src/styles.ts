@@ -28,6 +28,10 @@ export const styles = /* css */ `
 
 /* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */
 header { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }
+/* In the companion app HA already places the panel below the status bar / Dynamic Island,
+   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own
+   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */
+header::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }
 .toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }
 .brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }
 .toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }
@@ -230,6 +234,40 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }
 .sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }
 .sheet-note { margin: -6px 0 0; text-align: center; }
+.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }
+.room-sheet .sheet-live .heating { color: var(--hl-heat); }
+.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
+.room-sheet-actions .sheet-cancel { align-self: auto; }
+.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }
+.valve-picker { display: flex; flex-direction: column; gap: 8px; }
+.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }
+.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }
+.valve-search input::-webkit-search-cancel-button { display: none; }
+.valve-search .round { width: 30px; height: 30px; }
+.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }
+.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow-y: auto; max-height: 300px; overscroll-behavior: contain; }
+.valve-pick { flex: none; display: flex; align-items: center; gap: 8px; padding-right: 10px; }
+.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }
+.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }
+.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }
+.valve-pick-main:hover:not(:disabled) { background: transparent; }
+.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }
+.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }
+.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }
+.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.valve-pick .warn { color: var(--warning-color, #ffa600); }
+.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }
+.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }
+.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }
+.setup-list { display: flex; flex-direction: column; gap: 8px; }
+.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }
+.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }
+.setup-room.on select { margin: 0 14px 12px 48px; }
+.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }
+.setup-room-main:hover:not(:disabled) { background: transparent; }
+.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }
+.setup-room-text .muted { font-weight: 400; }
+.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }
 .danger-text { color: var(--error-color, #db4437); }
 
 /* Rooms */
@@ -237,7 +275,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .zone { display: flex; flex-direction: column; gap: 10px; }
 .zone h3 { margin: 4px 0 0; }
 /* Room for the + button under the last room / device. */
-.rooms-page, .devices-page { padding-bottom: 72px; }
+.devices-page { padding-bottom: 72px; }
 .add-options { display: flex; flex-direction: column; gap: 8px; }
 .add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }
 .add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
@@ -331,6 +369,29 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
 .history-temps span { color: var(--primary-text-color); }
+.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }
+.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }
+.history-key span { display: inline-flex; align-items: center; gap: 4px; }
+.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.history-hint { text-align: center; margin: 0; }
+
+/* Settings: grouped rows, like a phone's settings */
+.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }
+.settings-section { display: flex; flex-direction: column; gap: 8px; }
+.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }
+.settings-help { margin: -2px 4px 2px; }
+.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }
+.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }
+.settings-group > * + * { border-top: 1px solid var(--divider-color); }
+.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }
+.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }
+.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
+.settings-row select { max-width: 220px; }
+.settings-chevron { color: var(--secondary-text-color); }
+.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
+.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.adjust .stepper-value { min-width: 72px; text-align: center; }
+@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
 
 @media (max-width: 600px) {

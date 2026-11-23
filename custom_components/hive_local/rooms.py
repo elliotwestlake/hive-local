@@ -71,6 +71,26 @@ def clean_room(
     return {"name": name, "valves": valves, "sensor": sensor, "receiver": receiver}
 
 
+def suggest_rooms(
+    valves: list[dict[str, Any]], sensors: list[dict[str, Any]], taken: set[str]
+) -> list[dict[str, Any]]:
+    """A room per HA area that has Hive valves not in a room yet, for first-time setup.
+
+    valves: {"entity_id", "area"}; sensors: {"entity_id", "area"} (temperature sensors
+    that aren't on a valve). Each suggestion takes the area's free valves and its first
+    sensor (None: the valves' own readings). Valves with no area aren't suggested.
+    """
+    by_area: dict[str, list[str]] = {}
+    for valve in valves:
+        if valve.get("area") and valve["entity_id"] not in taken:
+            by_area.setdefault(valve["area"], []).append(valve["entity_id"])
+    out = []
+    for area in sorted(by_area, key=str.lower):
+        sensor = next((s["entity_id"] for s in sensors if s.get("area") == area), None)
+        out.append({"name": area[:NAME_MAX], "valves": by_area[area], "sensor": sensor})
+    return out
+
+
 def _number(value: Any) -> float | None:
     try:
         number = float(value)

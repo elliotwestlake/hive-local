@@ -1,4 +1,4 @@
-"""Reading our own entities' recorded history (for Stats and pre-heat)."""
+"""Reading recorded history: our own entities (for Stats and pre-heat), and the outdoor temperature."""
 
 from __future__ import annotations
 
@@ -6,9 +6,10 @@ from datetime import datetime
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util.unit_conversion import TemperatureConverter
 
 from .const import CHANNEL_HEAT, CHANNEL_WATER, DOMAIN
-from .stats import Sample, sample_from_state
+from .stats import Reading, Sample, outdoor_from_state, sample_from_state
 
 _ENTITY = {CHANNEL_HEAT: ("climate", "climate"), CHANNEL_WATER: ("water_heater", "water_heater")}
 
@@ -47,3 +48,22 @@ async def async_samples(
         sample_from_state(channel, s.last_updated.timestamp(), s.state, dict(s.attributes))
         for s in states
     ]
+
+
+async def async_outdoor(hass: HomeAssistant, entity_id: str, start: datetime, end: datetime) -> list[Reading]:
+    """A weather entity's or temperature sensor's recorded temperatures, in HA's unit system."""
+    from homeassistant.components.recorder import get_instance  # noqa: PLC0415
+
+    states = await get_instance(hass).async_add_executor_job(_history, hass, entity_id, start, end)
+    domain = entity_id.split(".", 1)[0]
+    to_unit = hass.config.units.temperature_unit
+    out = []
+    for s in states:
+        found = outdoor_from_state(domain, s.state, dict(s.attributes))
+        value = None
+        if found is not None:
+            value, unit = found
+            if unit and unit != to_unit and unit in TemperatureConverter.VALID_UNITS:
+                value = TemperatureConverter.convert(value, unit, to_unit)
+        out.append(Reading(s.last_updated.timestamp(), value))
+    return out

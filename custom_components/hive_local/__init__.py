@@ -30,6 +30,7 @@ from .const import (
 )
 from .data import HiveConfigEntry, HiveData
 from .preheat_controller import Preheat
+from .settings import DATA_SETTINGS, HouseSettings
 from .room_manager import DATA_ROOMS, RoomManager
 from .transports import Transport, Z2MTransport
 
@@ -60,6 +61,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     rooms = RoomManager(hass)
     await rooms.async_load()
     hass.data[DATA_ROOMS] = rooms
+    settings = HouseSettings(hass)
+    await settings.async_load()
+    hass.data[DATA_SETTINGS] = settings
     return True
 
 

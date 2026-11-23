@@ -113,6 +113,7 @@ export interface ValveState {
   target: number | null;
   hvac_action: string | null;
   battery: string | null; // the battery sensor's state, e.g. "85"
+  identify?: boolean; // HA has an Identify button for it (Find flashes its light)
 }
 
 /** hive_local/rooms/valves: any Hive valve, for the Devices tab. */
@@ -159,6 +160,7 @@ export interface StatsBucket {
   current: number | null;
   target: number | null;
   heating: number | null; // fraction of the bucket spent heating; null = no data
+  outdoor: number | null; // average outdoor temperature, if an outdoor source is set
 }
 
 /** hive_local/stats: one channel over a period, from HA's recorder. */
@@ -176,7 +178,16 @@ export interface Stats {
   mode_minutes: Record<Mode, number>;
   temperature: { avg: number | null; min: number | null; max: number | null };
   target_avg: number | null;
-  previous: { has_data: boolean; heating_minutes: number; known_minutes: number; cycles: number } | null;
+  /** null when the receiver has no outdoor temperature set (its options). */
+  outdoor: { avg: number | null; min: number | null; max: number | null } | null;
+  outdoor_entity: string | null;
+  previous: {
+    has_data: boolean;
+    heating_minutes: number;
+    known_minutes: number;
+    cycles: number;
+    outdoor_avg?: number | null;
+  } | null;
   days: {
     start: number;
     heating_minutes: number | null;
@@ -184,6 +195,9 @@ export interface Stats {
     temp_avg: number | null;
     temp_min: number | null;
     temp_max: number | null;
+    outdoor_avg: number | null;
+    outdoor_min: number | null;
+    outdoor_max: number | null;
   }[];
   offset: number;
   period_end: number;
