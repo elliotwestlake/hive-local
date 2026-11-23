@@ -236,6 +236,11 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .room-sheet-actions .sheet-cancel { align-self: auto; }
 .valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }
 .valve-picker { display: flex; flex-direction: column; gap: 8px; }
+.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }
+.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }
+.valve-search input::-webkit-search-cancel-button { display: none; }
+.valve-search .round { width: 30px; height: 30px; }
+.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }
 .valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow: hidden; }
 .valve-pick { display: flex; align-items: center; gap: 8px; padding-right: 10px; }
 .valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }

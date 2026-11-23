@@ -208,13 +208,22 @@ interface EditorProps {
  * its area (and the room it's already in), the reading and battery, and Find, which makes
  * the valve flash its light (when HA has an Identify button for it).
  */
+/** Show a search box above the valves once there are more than this many. */
+const SEARCH_FROM = 8;
+
 function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onToggle }: { getHass: () => Hass; valves: Candidate[]; info: Map<string, ValveInfo>; roomName: string; thisRoom: string | null; chosen: Set<string>; onToggle: (id: string) => void }) {
   const [flashing, setFlashing] = useState<string | null>(null);
   const [note, setNote] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const timer = useRef<number>();
   useEffect(() => () => window.clearTimeout(timer.current), []);
+  // With a lot of valves, a search box filters by valve name or area.
+  const [query, setQuery] = useState("");
+  const searchable = valves.length > SEARCH_FROM;
+  const q = query.trim().toLowerCase();
   const wanted = roomName.trim().toLowerCase();
-  const list = [...valves].sort((a, b) => Number((b.area ?? "").toLowerCase() === wanted) - Number((a.area ?? "").toLowerCase() === wanted));
+  const list = [...valves]
+    .filter((c) => !q || c.name.toLowerCase().includes(q) || (c.area ?? "").toLowerCase().includes(q))
+    .sort((a, b) => Number((b.area ?? "").toLowerCase() === wanted) - Number((a.area ?? "").toLowerCase() === wanted));
 
   const find = async (c: Candidate) => {
     setNote(null);
@@ -233,10 +242,22 @@ function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onTogg
     }
   };
 
-  if (!list.length) return null;
+  if (!valves.length) return null;
   return (
     <div className="valve-picker">
-      <div className="valve-list">
+      {searchable && (
+        <label className="valve-search">
+          <Icon name="magnify" />
+          <input type="search" value={query} placeholder="Search valves or areas" aria-label="Search valves or areas" onChange={(e) => setQuery(e.target.value)} />
+          {query && (
+            <button type="button" className="ghost round" aria-label="Clear the search" onClick={() => setQuery("")}>
+              <Icon name="close" />
+            </button>
+          )}
+        </label>
+      )}
+      {!list.length && <span className="muted small">No valves match "{query.trim()}".</span>}
+      {list.length > 0 && <div className="valve-list">
         {list.map((c) => {
           const v = info.get(c.entity_id);
           const on = chosen.has(c.entity_id);
@@ -271,7 +292,7 @@ function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onTogg
             </div>
           );
         })}
-      </div>
+      </div>}
       {note && <div className={`status ${note.kind} small`}>{note.text}</div>}
     </div>
   );
