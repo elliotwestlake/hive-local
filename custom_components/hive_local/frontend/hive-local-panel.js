@@ -6742,7 +6742,7 @@ function Mp({ onClose: e }) {
         /* @__PURE__ */ i.jsx("span", { className: "device-icon", children: /* @__PURE__ */ i.jsx(P, { name: "thermostat" }) }),
         /* @__PURE__ */ i.jsxs("span", { className: "add-text", children: [
           /* @__PURE__ */ i.jsx("b", { children: "Radiator valve" }),
-          /* @__PURE__ */ i.jsx("span", { className: "muted small", children: t ? "Pair it with ZHA or Zigbee2MQTT first (Settings → Devices & services). It then appears here, and you can put it in a room on the Rooms tab." : "A Hive radiator valve (UK7004240)." })
+          /* @__PURE__ */ i.jsx("span", { className: "muted small", children: t ? "Pair it with ZHA or Zigbee2MQTT first (Settings → Devices & services). It then appears here, and you can put it in a room in the Settings tab." : "A Hive radiator valve (UK7004240)." })
         ] }),
         /* @__PURE__ */ i.jsx(P, { name: t ? "chevron-up" : "chevron-down" })
       ] })
@@ -7571,7 +7571,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .zone { display: flex; flex-direction: column; gap: 10px; }
 .zone h3 { margin: 4px 0 0; }
 /* Room for the + button under the last room / device. */
-.rooms-page, .devices-page { padding-bottom: 72px; }
+.devices-page { padding-bottom: 72px; }
 .add-options { display: flex; flex-direction: column; gap: 8px; }
 .add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }
 .add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }

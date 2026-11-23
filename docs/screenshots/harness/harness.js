@@ -102,6 +102,12 @@ if (TWO)
     current_temperature: 18.9, temperature_source: "valves", target: 19, target_range: null, heating: false,
     heating_valves: [], unavailable: [], lowest_battery: 52, battery_low: false,
   });
+// ?many=1 adds 13 more valves, for a big house.
+const MANY = params.has("many") ? [
+  ["Bedroom 2", "Front bedroom valve"], ["Bedroom 2", "Window valve"], ["Bedroom 3", "Back bedroom valve"], ["Bathroom", "Towel rail valve"],
+  ["Dining room", "Dining valve"], ["Dining room", "Bay valve"], ["Hall", "Hall valve"], ["Utility", "Utility valve"],
+  ["Conservatory", "Conservatory valve"], ["Conservatory", "Door valve (conservatory)"], ["Loft", "Loft valve"], ["Playroom", "Playroom valve"], ["Snug", "Snug valve"],
+].map(([area, name], i) => ({ entity_id: `climate.extra_${i}`, name, area })) : [];
 const CANDIDATES = {
   valves: [
     { entity_id: "climate.bedroom", name: "Bedroom valve", area: "Bedroom" },
@@ -111,6 +117,7 @@ const CANDIDATES = {
     { entity_id: "climate.lounge_door", name: "Door valve", area: "Lounge" },
     { entity_id: "climate.landing", name: "Landing valve", area: "Landing" },
     { entity_id: "climate.study", name: "Study valve", area: "Study" },
+    ...MANY,
   ],
   sensors: [
     { entity_id: "sensor.lounge", name: "Lounge temperature", area: "Lounge" },
@@ -214,6 +221,7 @@ const hass = {
             { entity_id: "climate.landing", name: "Landing valve", available: true, current_temperature: 18.4, target: 18, hvac_action: "idle", battery: "83", area: "Landing", room: null },
             { entity_id: "climate.study", name: "Study valve", available: true, current_temperature: 19.0, target: 19, hvac_action: "idle", battery: "40", area: "Study", room: null },
             ...(TWO ? [] : [{ entity_id: "climate.kitchen", name: "Kitchen valve", available: true, current_temperature: 18.9, target: 19, hvac_action: "idle", battery: "52", area: "Kitchen", room: null }]),
+            ...MANY.map((m, i) => ({ ...m, available: true, current_temperature: 17 + (i % 5) * 0.6, target: 19, hvac_action: "idle", battery: String(35 + i * 4), room: i % 3 ? "Bedroom" : null })),
           ].map((v) => ({ ...v, identify: true })),
         };
       case "hive_local/stats":
@@ -271,12 +279,30 @@ if (params.get("open") === "1") {
   panel.shadowRoot.querySelector(".device-head")?.click();
   await wait(300);
 }
-const click = params.get("click");
-if (click) {
-  // Exact button text or aria-label, or a card whose text starts with it (e.g. a receiver's name).
+// ?room=Lounge opens a room's pop-up from its Overview card.
+const room = params.get("room");
+if (room) {
+  [...panel.shadowRoot.querySelectorAll(".room-device .device-head")].find((e) => e.textContent.includes(room))?.click();
+  await wait(400);
+}
+// ?click=… (repeatable): exact button text or aria-label, or a button whose text starts with it.
+for (const click of params.getAll("click")) {
   const buttons = [...panel.shadowRoot.querySelectorAll("button")];
   (buttons.find((b) => b.textContent.trim() === click || b.getAttribute("aria-label") === click) ??
     buttons.find((b) => b.textContent.trim().startsWith(click)))?.click();
-  await wait(400);
+  await wait(500);
+}
+// ?type=… types into the room editor's valve search; ?scroll=N scrolls its valve list.
+const typed = params.get("type");
+if (typed) {
+  const input = panel.shadowRoot.querySelector(".valve-search input");
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, typed);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  await wait(300);
+}
+const scroll = params.get("scroll");
+if (scroll) {
+  panel.shadowRoot.querySelector(".valve-list").scrollTop = Number(scroll);
+  await wait(200);
 }
 document.title = "ready";
