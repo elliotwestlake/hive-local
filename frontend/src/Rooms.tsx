@@ -210,6 +210,8 @@ interface EditorProps {
  */
 /** Show a search box above the valves once there are more than this many. */
 const SEARCH_FROM = 8;
+/** How many valves the room editor shows before "Show all" (chosen ones are always shown). */
+const SHOW_FIRST = 5;
 
 function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onToggle }: { getHass: () => Hass; valves: Candidate[]; info: Map<string, ValveInfo>; roomName: string; thisRoom: string | null; chosen: Set<string>; onToggle: (id: string) => void }) {
   const [flashing, setFlashing] = useState<string | null>(null);
@@ -218,12 +220,31 @@ function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onTogg
   useEffect(() => () => window.clearTimeout(timer.current), []);
   // With a lot of valves, a search box filters by valve name or area.
   const [query, setQuery] = useState("");
+  const [all, setAll] = useState(false);
   const searchable = valves.length > SEARCH_FROM;
   const q = query.trim().toLowerCase();
   const wanted = roomName.trim().toLowerCase();
-  const list = [...valves]
-    .filter((c) => !q || c.name.toLowerCase().includes(q) || (c.area ?? "").toLowerCase().includes(q))
-    .sort((a, b) => Number((b.area ?? "").toLowerCase() === wanted) - Number((a.area ?? "").toLowerCase() === wanted));
+  const inArea = (c: Candidate) => !!wanted && (c.area ?? "").toLowerCase() === wanted;
+  const elsewhereOf = (c: Candidate) => {
+    const room = info.get(c.entity_id)?.room;
+    return room && room !== thisRoom ? room : null;
+  };
+  // Most likely first: chosen, this room's area, not in a room yet, then the rest. Ordered by
+  // what was chosen when the editor opened, so ticking doesn't move rows about.
+  const [initial] = useState(() => new Set(chosen));
+  const rank = (c: Candidate) => (initial.has(c.entity_id) ? 0 : inArea(c) ? 1 : !elsewhereOf(c) ? 2 : 3);
+  const sorted = [...valves].sort((a, b) => rank(a) - rank(b));
+  let list: Candidate[];
+  if (q) {
+    list = sorted.filter((c) => c.name.toLowerCase().includes(q) || (c.area ?? "").toLowerCase().includes(q));
+  } else if (all) {
+    list = sorted;
+  } else {
+    // Only a few: the likely ones (never valves in other rooms), at most SHOW_FIRST, but every chosen one.
+    const likely = sorted.filter((c) => rank(c) < 3);
+    list = likely.filter((c, i) => initial.has(c.entity_id) || chosen.has(c.entity_id) || i < SHOW_FIRST);
+  }
+  const hidden = q ? 0 : valves.length - list.length;
 
   const find = async (c: Candidate) => {
     setNote(null);
@@ -256,7 +277,8 @@ function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onTogg
           )}
         </label>
       )}
-      {!list.length && <span className="muted small">No valves match "{query.trim()}".</span>}
+      {!list.length && q && <span className="muted small">No valves match "{query.trim()}".</span>}
+      {!list.length && !q && <span className="muted small">Every valve is in another room. Search, or show them all, to move one here.</span>}
       {list.length > 0 && <div className="valve-list">
         {list.map((c) => {
           const v = info.get(c.entity_id);
@@ -264,7 +286,7 @@ function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onTogg
           const battery = v?.battery == null ? null : Number(v.battery);
           const hasBattery = battery != null && !Number.isNaN(battery);
           const low = hasBattery && battery <= LOW_BATTERY;
-          const elsewhere = v?.room && v.room !== thisRoom ? v.room : null;
+          const elsewhere = elsewhereOf(c);
           return (
             <div key={c.entity_id} className={`valve-pick ${on ? "on" : ""}`}>
               <button type="button" role="checkbox" aria-checked={on} className="valve-pick-main" onClick={() => onToggle(c.entity_id)}>
@@ -293,6 +315,16 @@ function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onTogg
           );
         })}
       </div>}
+      {hidden > 0 && (
+        <button type="button" className="ghost valve-more" onClick={() => setAll(true)}>
+          <Icon name="chevron-down" /> Show all {valves.length} valves
+        </button>
+      )}
+      {all && !q && valves.length > SHOW_FIRST && (
+        <button type="button" className="ghost valve-more" onClick={() => setAll(false)}>
+          <Icon name="chevron-up" /> Show fewer
+        </button>
+      )}
       {note && <div className={`status ${note.kind} small`}>{note.text}</div>}
     </div>
   );

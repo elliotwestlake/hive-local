@@ -241,6 +241,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .valve-search input::-webkit-search-cancel-button { display: none; }
 .valve-search .round { width: 30px; height: 30px; }
 .valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }
+.valve-more { align-self: flex-start; padding: 6px 8px; color: var(--hl-brand); font-weight: 500; --mdc-icon-size: 18px; }
 .valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow: hidden; }
 .valve-pick { display: flex; align-items: center; gap: 8px; padding-right: 10px; }
 .valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }
