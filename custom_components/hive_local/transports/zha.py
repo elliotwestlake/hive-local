@@ -50,6 +50,7 @@ from ..zcl import (
     mode_attributes,
     parse_schedule_response,
     receiver_endpoints,
+    reporting_accepted,
     schedule_commands,
     setpoint_attributes,
 )
@@ -180,20 +181,20 @@ class _ThermostatReporting:
     async def _apply(self, ieee: str, cluster: Cluster) -> None:
         min_s, max_s, change = TEMPERATURE_REPORTING
         try:
-            records = await cluster.configure_reporting("measured_value", min_s, max_s, change)
+            result = await cluster.configure_reporting("measured_value", min_s, max_s, change)
         except (TimeoutError, ZigbeeException) as err:
             _LOGGER.debug("Thermostat %s asleep, will retry on its next report: %s", ieee, err)
             return
         finally:
             self._busy.discard(ieee)
-        if all(r.status == Status.SUCCESS for r in records):
+        if reporting_accepted(result):
             if ieee not in self._done:
                 _LOGGER.info(
                     "Hive thermostat %s now reports temperature at least every %s s", ieee, max_s
                 )
             self._done[ieee] = dt_util.utcnow()
         else:
-            _LOGGER.warning("Hive thermostat %s refused the reporting change: %s", ieee, records)
+            _LOGGER.warning("Hive thermostat %s refused the reporting change: %s", ieee, result)
 
 
 class ZHATransport(Transport):

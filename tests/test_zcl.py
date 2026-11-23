@@ -106,3 +106,26 @@ def test_is_hive_thermostat(manufacturer, model, expected):
 def test_parse_schedule_response_zero_is_off():
     parsed = z.parse_schedule_response(0x02, 0x01, [390, 2000, 1320, 0, 1320, 0])
     assert parsed["monday"] == [{"time": "06:30", "setpoint": 20.0}, {"time": "22:00", "setpoint": 1.0}]
+
+
+class _Record:
+    def __init__(self, status, attrid=None):
+        self.status, self.attrid = status, attrid
+
+def test_reporting_accepted_zigpy_0x_records():
+    # zigpy 0.x: a list of ConfigureReportingResponseRecord.
+    assert z.reporting_accepted([_Record(0)])
+    assert not z.reporting_accepted([_Record(0x86, 0x0000)])
+    assert not z.reporting_accepted([])
+
+def test_reporting_accepted_zigpy_2x_dict():
+    # zigpy 2.x: {ZCLAttributeDef: Status} (issue #1).
+    attr = object()
+    assert z.reporting_accepted({attr: 0})
+    assert not z.reporting_accepted({attr: 0x86})
+    assert not z.reporting_accepted({})
+    assert z.reporting_statuses({attr: 0x8D}) == [0x8D]
+
+def test_reporting_accepted_response_with_status_records():
+    rsp = types.SimpleNamespace(status_records=[_Record(0), _Record(0)])
+    assert z.reporting_accepted(rsp)
