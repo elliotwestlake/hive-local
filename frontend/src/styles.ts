@@ -336,6 +336,27 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .history-key span { display: inline-flex; align-items: center; gap: 4px; }
 .history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .history-hint { text-align: center; margin: 0; }
+
+/* Settings: grouped rows, like a phone's settings */
+.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }
+.settings-section { display: flex; flex-direction: column; gap: 8px; }
+.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }
+.settings-help { margin: -2px 4px 2px; }
+.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }
+.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }
+.settings-group > * + * { border-top: 1px solid var(--divider-color); }
+.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }
+.settings-row.add .settings-text span { color: var(--hl-brand); font-weight: 500; }
+.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
+.settings-row select { max-width: 220px; }
+.settings-chevron { color: var(--secondary-text-color); }
+.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
+.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.adjust .stepper-value { min-width: 72px; text-align: center; }
+.settings-edit { padding: 0; }
+.page-head .page-action { margin-left: auto; }
+.settings-edit > .card { border: 0; border-radius: 0; }
+@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } }
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
 
 @media (max-width: 600px) {

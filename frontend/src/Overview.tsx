@@ -24,14 +24,14 @@ export function Overview({
   status,
   limits,
   onOpenDevice,
-  onRooms,
+  onOpenRoom,
 }: {
   getHass: () => Hass;
   devices: Device[];
   status: StatusMap;
   limits: Limits | null;
   onOpenDevice: (entryId: string, channel: Channel) => void;
-  onRooms: () => void;
+  onOpenRoom: (id: string) => void;
 }) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
@@ -88,7 +88,7 @@ export function Overview({
                 />
               ))}
             {(filter === "all" || filter === "rooms") &&
-              rooms.map((r) => <RoomCard key={r.id} room={r} showReceiver={several} onOpen={onRooms} />)}
+              rooms.map((r) => <RoomCard key={r.id} room={r} showReceiver={several} onOpen={() => onOpenRoom(r.id)} />)}
           </div>
         </>
       )}

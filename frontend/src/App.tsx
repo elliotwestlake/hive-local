@@ -4,7 +4,8 @@ import { Logo } from "./Logo";
 import { Overview } from "./Overview";
 import { DevicePage, type DeviceTab } from "./DevicePage";
 import { Devices } from "./Devices";
-import { Rooms } from "./Rooms";
+import { RoomPage } from "./Rooms";
+import { Settings } from "./Settings";
 import { Stats } from "./Stats";
 import { errorText, type Channel, type Device, type Hass, type Limits, type StatusMap } from "./types";
 
@@ -14,13 +15,13 @@ interface Props {
   onToggleMenu: () => void;
 }
 
-type Tab = "overview" | "rooms" | "devices" | "stats";
+type Tab = "overview" | "devices" | "stats" | "settings";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Overview", icon: "view-dashboard-outline" },
-  { id: "rooms", label: "Rooms", icon: "home-thermometer-outline" },
   { id: "devices", label: "Devices", icon: "devices" },
   { id: "stats", label: "Stats", icon: "chart-box-outline" },
+  { id: "settings", label: "Settings", icon: "tune-variant" },
 ];
 
 export function App({ getHass, narrow, onToggleMenu }: Props) {
@@ -31,6 +32,8 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   // Heating or hot water opened from its Overview card, and which of its tabs is showing.
   const [opened, setOpened] = useState<{ entry: string; channel: Channel } | null>(null);
   const [deviceTab, setDeviceTab] = useState<DeviceTab>("control");
+  // A room opened from its Overview card.
+  const [openedRoom, setOpenedRoom] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -58,6 +61,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   const goTo = (t: Tab) => {
     setTab(t);
     setOpened(null);
+    setOpenedRoom(null);
   };
   const openedDevice = opened && devices.find((d) => d.entry_id === opened.entry);
   const tabs = TABS;
@@ -109,14 +113,16 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
             onTab={setDeviceTab}
             onBack={() => setOpened(null)}
           />
+        ) : openedRoom ? (
+          <RoomPage getHass={getHass} roomId={openedRoom} several={devices.length > 1} onBack={() => setOpenedRoom(null)} />
         ) : (
           <>
             {tab === "overview" && (
-              <Overview getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} onRooms={() => goTo("rooms")} />
+              <Overview getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} onOpenRoom={setOpenedRoom} />
             )}
-            {tab === "rooms" && devices.length > 0 && <Rooms getHass={getHass} />}
             {tab === "devices" && devices.length > 0 && <Devices getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} />}
             {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
+            {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} />}
           </>
         )}
       </main>

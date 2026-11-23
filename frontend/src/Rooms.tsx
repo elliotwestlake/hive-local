@@ -82,7 +82,7 @@ function groups(rooms: Room[], receivers: Receiver[]): [string | null, Room[]][]
   return out;
 }
 
-function RoomCard({ getHass, room, onEdit }: { getHass: () => Hass; room: Room; onEdit: () => void }) {
+export function RoomCard({ getHass, room, onEdit, page }: { getHass: () => Hass; room: Room; onEdit?: () => void; page?: boolean }) {
   // The stepper moves straight away; the valves are told after a short pause.
   const [pending, setPending] = useState<number | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -124,7 +124,7 @@ function RoomCard({ getHass, room, onEdit }: { getHass: () => Hass; room: Room; 
 
   return (
     <section className={`card room ${room.heating ? "heating" : ""}`}>
-      <div className="card-head">
+      {!page && <div className="card-head">
         <div className="title">
           <Icon name="home-thermometer-outline" className="title-icon" />
           <h2>{room.name}</h2>
@@ -137,11 +137,13 @@ function RoomCard({ getHass, room, onEdit }: { getHass: () => Hass; room: Room; 
           ) : (
             <span className="chip">Idle</span>
           )}
-          <button className="ghost round" onClick={onEdit} aria-label={`Edit ${room.name}`}>
-            <Icon name="pencil-outline" />
-          </button>
+          {onEdit && (
+            <button className="ghost round" onClick={onEdit} aria-label={`Edit ${room.name}`}>
+              <Icon name="pencil-outline" />
+            </button>
+          )}
         </div>
-      </div>
+      </div>}
 
       <div className="room-now">
         <div>
@@ -199,7 +201,7 @@ interface EditorProps {
   onDone: () => void;
 }
 
-function RoomEditor({ getHass, room, onDone }: EditorProps) {
+export function RoomEditor({ getHass, room, onDone }: EditorProps) {
   const [candidates, setCandidates] = useState<{ valves: Candidate[]; sensors: Candidate[]; receivers: Receiver[] } | null>(null);
   const [receiver, setReceiver] = useState(room?.receiver ?? "");
   const [name, setName] = useState(room?.name ?? "");
@@ -338,5 +340,45 @@ function RoomEditor({ getHass, room, onDone }: EditorProps) {
         </div>
       </form>
     </section>
+  );
+}
+
+/** A room on its own page, opened from its Overview card: its temperature, target and valves. */
+export function RoomPage({ getHass, roomId, several, onBack }: { getHass: () => Hass; roomId: string; several: boolean; onBack: () => void }) {
+  const [room, setRoom] = useState<Room | null>(null);
+  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    const unsub = getHass().connection.subscribeMessage<{ rooms: Room[] }>(
+      (msg) => setRoom(msg.rooms.find((r) => r.id === roomId) ?? null),
+      { type: "hive_local/rooms/subscribe" },
+    );
+    return () => {
+      unsub.then((u) => u()).catch(() => {});
+    };
+  }, [getHass, roomId]);
+  if (!room) return null;
+  const valves = `${room.valves.length} valve${room.valves.length === 1 ? "" : "s"}`;
+  return (
+    <div className="device-page">
+      <div className="page-head">
+        <button className="round ghost" onClick={onBack} aria-label="Back to the overview">
+          <Icon name="chevron-left" />
+        </button>
+        <div className="page-title">
+          <h2>{room.name}</h2>
+          <span className="muted small">{[room.heating ? "Heating" : "Idle", several ? room.receiver_name : null, valves].filter(Boolean).join(" · ")}</span>
+        </div>
+        {!editing && (
+          <button className="round ghost page-action" onClick={() => setEditing(true)} aria-label={`Edit ${room.name}`}>
+            <Icon name="pencil-outline" />
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <RoomEditor getHass={getHass} room={room} onDone={() => setEditing(false)} />
+      ) : (
+        <RoomCard getHass={getHass} room={room} page />
+      )}
+    </div>
   );
 }

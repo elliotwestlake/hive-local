@@ -211,6 +211,14 @@ const hass = {
         };
       case "hive_local/stats":
         return fakeStats(msg.entry_id, msg.channel, msg.days, msg.offset || 0);
+      case "hive_local/settings":
+        return {
+          outdoor_entity: params.has("noout") ? null : "weather.home",
+          outdoor_candidates: [
+            { entity_id: "weather.home", name: "Forecast Home", area: null },
+            { entity_id: "sensor.garden_temperature", name: "Garden temperature", area: "Garden" },
+          ],
+        };
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
       default:
