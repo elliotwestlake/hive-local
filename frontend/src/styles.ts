@@ -27,9 +27,11 @@ export const styles = /* css */ `
 .small { font-size: 12px; }
 
 /* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */
-/* Like HA's own top bars: the header's colour runs up under the status bar / Dynamic Island
-   in the companion app (viewport-fit=cover), and the toolbar sits below the safe area. */
-header { position: sticky; top: 0; z-index: 2; padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px)); background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }
+header { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }
+/* In the companion app HA already places the panel below the status bar / Dynamic Island,
+   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own
+   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */
+header::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }
 .toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }
 .brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }
 .toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }
@@ -232,7 +234,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }
 .sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }
 .sheet-note { margin: -6px 0 0; text-align: center; }
-.room-sheet { max-height: calc(100vh - 32px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px))); overflow-y: auto; }
+.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }
 .room-sheet .sheet-live .heating { color: var(--hl-heat); }
 .room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
 .room-sheet-actions .sheet-cancel { align-self: auto; }
