@@ -50,6 +50,8 @@ class Transport(ABC):
         self._deadline: dict[str, datetime] = {}
         self._deadline_unsub: dict[str, Callable[[], None]] = {}
         # Deadlines and pre-boost modes are saved, so a restart mid-boost can still end it.
+        # The last schedule read per channel, for diagnostics.
+        self._last_read: dict[str, dict[str, Any]] = {}
         self._boost_store: Store[dict[str, Any]] = Store(
             hass, BOOST_STORE_VERSION, f"{DOMAIN}.boost.{entry_id}"
         )
@@ -142,6 +144,30 @@ class Transport(ABC):
         """Stop the timers on unload. The deadlines stay saved for the next start."""
         while self._deadline_unsub:
             self._deadline_unsub.popitem()[1]()
+
+    @callback
+    def _record_read(
+        self, channel: str, raw: list[Any], schedule: Schedule, complete: bool
+    ) -> None:
+        """Keep what the receiver sent for the last read (shown in diagnostics)."""
+        self._last_read[channel] = {
+            "at": dt_util.utcnow().isoformat(),
+            "complete": complete,
+            "raw": raw,
+            "schedule": schedule,
+        }
+
+    def diagnostics(self) -> dict[str, Any]:
+        """Transport state for the diagnostics download. Subclasses add their own."""
+        return {
+            "type": type(self).__name__,
+            "channels": list(self.channels),
+            "status": self._status,
+            "boost_deadlines": {c: d.isoformat() for c, d in self._deadline.items()},
+            "boost_timers": sorted(self._deadline_unsub),
+            "resume": {c: list(r) for c, r in self._resume.items()},
+            "last_read": self._last_read,
+        }
 
     def resume_mode(self, channel: str) -> str:
         """The non-boost mode this channel was in last (what cancelling a boost returns to)."""

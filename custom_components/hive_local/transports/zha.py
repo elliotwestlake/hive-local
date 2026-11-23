@@ -92,12 +92,20 @@ class _ScheduleListener:
 
     def __init__(self) -> None:
         self.collected: Schedule = {}
+        self.raw: list[dict[str, Any]] = []
         self.all_days = asyncio.Event()
 
     def cluster_command(self, tsn: int, command_id: int, args: Any) -> None:
         if not isinstance(args, SCHEDULE_RESPONSE):
             return
         _LOGGER.debug("get_weekly_schedule_response: %s", args)
+        self.raw.append(
+            {
+                "day_of_week_for_sequence": int(args.day_of_week_for_sequence),
+                "mode_for_sequence": int(args.mode_for_sequence),
+                "values": [int(v) for v in args.values],
+            }
+        )
         self.collected.update(
             parse_schedule_response(
                 args.day_of_week_for_sequence, args.mode_for_sequence, list(args.values)
@@ -105,6 +113,28 @@ class _ScheduleListener:
         )
         if all(day in self.collected for day in DAYS):
             self.all_days.set()
+
+
+def _plain(value: Any) -> Any:
+    """A zigpy attribute value as JSON (enums and bitmaps become ints)."""
+    if value is None or isinstance(value, (bool, str)):
+        return value
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def _versions() -> dict[str, str | None]:
+    from importlib.metadata import PackageNotFoundError, version  # noqa: PLC0415
+
+    out: dict[str, str | None] = {}
+    for package in ("zigpy", "zha", "zha-quirks"):
+        try:
+            out[package] = version(package)
+        except PackageNotFoundError:
+            out[package] = None
+    return out
 
 
 TEMPERATURE_CLUSTER = 0x0402
@@ -156,6 +186,13 @@ class _ThermostatReporting:
                 )
             # It might be awake now (e.g. just paired); otherwise its next report will do.
             self._apply_soon(ieee, cluster)
+
+    def diagnostics(self) -> dict[str, Any]:
+        return {
+            # Only the end of each IEEE address, enough to tell thermostats apart.
+            "watching": sorted(f"…{ieee[-5:]}" for ieee in self._mine),
+            "reporting_configured": {f"…{ieee[-5:]}": at.isoformat() for ieee, at in self._done.items()},
+        }
 
     @callback
     def stop(self) -> None:
@@ -329,7 +366,33 @@ class ZHATransport(Transport):
             cluster.remove_listener(listener)
 
         schedule = {d: listener.collected[d] for d in DAYS if d in listener.collected}
-        return schedule, len(schedule) == len(DAYS)
+        complete = len(schedule) == len(DAYS)
+        self._record_read(channel, listener.raw, schedule, complete)
+        return schedule, complete
+
+    def diagnostics(self) -> dict[str, Any]:
+        device = next(iter(self._clusters.values())).endpoint.device
+        return super().diagnostics() | {
+            "endpoints": {
+                str(ep_id): {
+                    "profile_id": getattr(ep, "profile_id", None),
+                    "device_type": getattr(ep, "device_type", None),
+                    "in_clusters": [f"0x{c:04x}" for c in ep.in_clusters],
+                    "out_clusters": [f"0x{c:04x}" for c in ep.out_clusters],
+                }
+                for ep_id, ep in device.endpoints.items()
+                if ep_id != 0
+            },
+            "thermostat_endpoints": {
+                channel: cluster.endpoint.endpoint_id for channel, cluster in self._clusters.items()
+            },
+            "attributes": {
+                channel: {name: _plain(cluster.get(name)) for name in STATE_ATTRS}
+                for channel, cluster in self._clusters.items()
+            },
+            "thermostats": self._thermostats.diagnostics(),
+            "versions": _versions(),
+        }
 
     async def async_write(self, channel: str, schedule: Schedule) -> int:
         cluster = self._cluster(channel)
