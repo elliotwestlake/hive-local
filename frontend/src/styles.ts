@@ -235,19 +235,29 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
 .room-sheet-actions .sheet-cancel { align-self: auto; }
 .valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }
-.valve-picker { display: flex; flex-direction: column; gap: 14px; }
-.valve-area { display: flex; flex-direction: column; gap: 8px; }
-.valve-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.valve-tile .valve-tile-icon { width: 32px; height: 32px; }
-.valve-tile { justify-content: flex-start; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; text-align: left; transition: background .15s, border-color .15s; }
-.valve-tile.on, .valve-tile.on:hover:not(:disabled) { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 9%, var(--card-background-color)); }
-.valve-tile-icon { width: 36px; height: 36px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }
-.valve-tile-text { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.valve-tile-check { width: 22px; height: 22px; flex: none; align-self: flex-start; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }
-.valve-tile.on .valve-tile-check { background: var(--hl-brand); border-color: var(--hl-brand); }
-.valve-tile-name { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
-.valve-tile-room { color: var(--secondary-text-color); }
-.valve-tile .warn { color: var(--warning-color, #ffa600); }
+.valve-picker { display: flex; flex-direction: column; gap: 8px; }
+.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow: hidden; }
+.valve-pick { display: flex; align-items: center; gap: 8px; padding-right: 10px; }
+.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }
+.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }
+.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }
+.valve-pick-main:hover:not(:disabled) { background: transparent; }
+.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }
+.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }
+.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }
+.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.valve-pick .warn { color: var(--warning-color, #ffa600); }
+.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }
+.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }
+.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }
+.setup-list { display: flex; flex-direction: column; gap: 8px; }
+.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }
+.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }
+.setup-room.on select { margin: 0 14px 12px 48px; }
+.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }
+.setup-room-main:hover:not(:disabled) { background: transparent; }
+.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }
+.setup-room-text .muted { font-weight: 400; }
 .room-sheet.room-editor h2 { text-align: center; font-size: 22px; }
 .danger-text { color: var(--error-color, #db4437); }
 
@@ -365,14 +375,14 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }
 .settings-group > * + * { border-top: 1px solid var(--divider-color); }
 .settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }
-.settings-row.add .settings-text span { color: var(--hl-brand); font-weight: 500; }
+.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }
 .settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
 .settings-row select { max-width: 220px; }
 .settings-chevron { color: var(--secondary-text-color); }
 .settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
 .adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .adjust .stepper-value { min-width: 72px; text-align: center; }
-@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-tiles { grid-template-columns: 1fr; } .valve-tile-check { align-self: center; } }
+@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
 
 @media (max-width: 600px) {

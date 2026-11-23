@@ -204,50 +204,75 @@ interface EditorProps {
 }
 
 /**
- * Valves as tiles, grouped by area (the area matching the room's name first): name, reading,
- * battery, and which room it's in already. Tap to choose.
+ * Valves as a compact list, the area matching the room's name first: a tick, the name with
+ * its area (and the room it's already in), the reading and battery, and Find, which makes
+ * the valve flash its light (when HA has an Identify button for it).
  */
-function ValvePicker({ valves, info, roomName, thisRoom, chosen, onToggle }: { valves: Candidate[]; info: Map<string, ValveInfo>; roomName: string; thisRoom: string | null; chosen: Set<string>; onToggle: (id: string) => void }) {
-  const byArea = new Map<string, Candidate[]>();
-  for (const c of valves) byArea.set(c.area ?? "No area", [...(byArea.get(c.area ?? "No area") ?? []), c]);
+function ValvePicker({ getHass, valves, info, roomName, thisRoom, chosen, onToggle }: { getHass: () => Hass; valves: Candidate[]; info: Map<string, ValveInfo>; roomName: string; thisRoom: string | null; chosen: Set<string>; onToggle: (id: string) => void }) {
+  const [flashing, setFlashing] = useState<string | null>(null);
+  const [note, setNote] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+  const timer = useRef<number>();
+  useEffect(() => () => window.clearTimeout(timer.current), []);
   const wanted = roomName.trim().toLowerCase();
-  const areas = [...byArea].sort(([a], [b]) => Number(b.toLowerCase() === wanted) - Number(a.toLowerCase() === wanted));
+  const list = [...valves].sort((a, b) => Number((b.area ?? "").toLowerCase() === wanted) - Number((a.area ?? "").toLowerCase() === wanted));
+
+  const find = async (c: Candidate) => {
+    setNote(null);
+    setFlashing(c.entity_id);
+    try {
+      await getHass().callWS({ type: "hive_local/rooms/identify", entity_id: c.entity_id });
+      setNote({ kind: "ok", text: `${c.name} is flashing its light.` });
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => {
+        setFlashing(null);
+        setNote(null);
+      }, 10_000);
+    } catch (e) {
+      setFlashing(null);
+      setNote({ kind: "error", text: errorText(e) });
+    }
+  };
+
+  if (!list.length) return null;
   return (
     <div className="valve-picker">
-      {areas.map(([area, list]) => (
-        <div key={area} className="valve-area">
-          <span className="muted small">{area}</span>
-          <div className="valve-tiles">
-            {list.map((c) => {
-              const v = info.get(c.entity_id);
-              const on = chosen.has(c.entity_id);
-              const battery = v?.battery == null ? null : Number(v.battery);
-              const low = battery != null && !Number.isNaN(battery) && battery <= LOW_BATTERY;
-              const elsewhere = v?.room && v.room !== thisRoom ? v.room : null;
-              return (
-                <button key={c.entity_id} type="button" role="checkbox" aria-checked={on} className={`valve-tile ${on ? "on" : ""}`} onClick={() => onToggle(c.entity_id)}>
-                  <span className="valve-tile-icon"><Icon name="radiator" /></span>
-                  <span className="valve-tile-text">
-                    <span className="valve-tile-name">{c.name}</span>
-                    <span className="muted small">
-                      {v && !v.available ? (
-                        "Not responding"
-                      ) : (
-                        <>
-                          {v?.current_temperature != null ? `${v.current_temperature.toFixed(1)}°` : ""}
-                          {battery != null && !Number.isNaN(battery) && <span className={low ? "warn" : ""}>{v?.current_temperature != null ? " · " : ""}{Math.round(battery)}%</span>}
-                        </>
-                      )}
-                    </span>
-                    {elsewhere && <span className="valve-tile-room small">In {elsewhere}</span>}
-                  </span>
-                  <span className="valve-tile-check" aria-hidden="true">{on && <Icon name="check" />}</span>
+      <div className="valve-list">
+        {list.map((c) => {
+          const v = info.get(c.entity_id);
+          const on = chosen.has(c.entity_id);
+          const battery = v?.battery == null ? null : Number(v.battery);
+          const hasBattery = battery != null && !Number.isNaN(battery);
+          const low = hasBattery && battery <= LOW_BATTERY;
+          const elsewhere = v?.room && v.room !== thisRoom ? v.room : null;
+          return (
+            <div key={c.entity_id} className={`valve-pick ${on ? "on" : ""}`}>
+              <button type="button" role="checkbox" aria-checked={on} className="valve-pick-main" onClick={() => onToggle(c.entity_id)}>
+                <span className={`valve-check ${on ? "on" : ""}`} aria-hidden="true">{on && <Icon name="check" />}</span>
+                <span className="valve-pick-text">
+                  <span>{c.name}</span>
+                  <span className="muted small">{[c.area ?? "No area", elsewhere ? `in ${elsewhere}` : null].filter(Boolean).join(" · ")}</span>
+                </span>
+                <span className="valve-pick-read small">
+                  {v && !v.available ? (
+                    "Not responding"
+                  ) : (
+                    <>
+                      {v?.current_temperature != null ? `${v.current_temperature.toFixed(1)}°` : ""}
+                      {hasBattery && <span className={low ? "warn" : ""}>{v?.current_temperature != null ? " · " : ""}{Math.round(battery)}%</span>}
+                    </>
+                  )}
+                </span>
+              </button>
+              {v?.identify && (
+                <button type="button" className={`valve-find ${flashing === c.entity_id ? "on" : ""}`} onClick={() => find(c)} disabled={flashing === c.entity_id} aria-label={`Find ${c.name}: flash its light`}>
+                  <Icon name="lightbulb-on-outline" /> <span className="valve-find-label">{flashing === c.entity_id ? "Flashing" : "Find"}</span>
                 </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {note && <div className={`status ${note.kind} small`}>{note.text}</div>}
     </div>
   );
 }
@@ -352,7 +377,7 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
           {candidates && !candidates.valves.length && (
             <span className="muted small">No Hive radiator valves found. Pair them with ZHA or Zigbee2MQTT first.</span>
           )}
-          <ValvePicker valves={candidates?.valves ?? []} info={info} roomName={name} thisRoom={room?.name ?? null} chosen={valves} onToggle={toggle} />
+          <ValvePicker getHass={getHass} valves={candidates?.valves ?? []} info={info} roomName={name} thisRoom={room?.name ?? null} chosen={valves} onToggle={toggle} />
         </fieldset>
 
         <label className="field">
@@ -507,5 +532,129 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
         </div>
       </div>
     </div>
+  );
+}
+
+interface Suggestion {
+  name: string;
+  valves: string[];
+  sensor: string | null;
+}
+
+/** A rough icon for a room, from its name. */
+function roomIcon(name: string) {
+  const n = name.toLowerCase();
+  if (/lounge|living|sitting|family|snug/.test(n)) return "sofa-outline";
+  if (/bed|nursery|guest/.test(n)) return "bed-outline";
+  if (/kitchen|dining/.test(n)) return "silverware-fork-knife";
+  if (/landing|hall|stair/.test(n)) return "stairs";
+  if (/study|office/.test(n)) return "desk";
+  if (/bath|shower|en-?suite|wc|toilet/.test(n)) return "shower";
+  return "home-thermometer-outline";
+}
+
+/**
+ * First-time setup: a room per HA area that has Hive valves not in a room yet, with the
+ * area's temperature sensor if it has one. Untick any to leave out, then create them.
+ */
+export function RoomSetupDialog({ getHass, onDone }: { getHass: () => Hass; onDone: () => void }) {
+  const [found, setFound] = useState<{ rooms: Suggestion[]; receivers: Receiver[] } | null>(null);
+  const [names, setNames] = useState<Map<string, string>>(new Map());
+  const [picked, setPicked] = useState<Set<number>>(new Set());
+  const [receiver, setReceiver] = useState<Record<number, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getHass()
+      .callWS<{ rooms: Suggestion[]; receivers: Receiver[] }>({ type: "hive_local/rooms/suggest" })
+      .then((r) => {
+        setFound(r);
+        setPicked(new Set(r.rooms.map((_, i) => i)));
+      })
+      .catch((e) => setError(errorText(e)));
+    getHass()
+      .callWS<{ valves: Candidate[]; sensors: Candidate[] }>({ type: "hive_local/rooms/candidates" })
+      .then((r) => setNames(new Map([...r.valves, ...r.sensors].map((c) => [c.entity_id, c.name]))))
+      .catch(() => {});
+  }, [getHass]);
+
+  const several = (found?.receivers.length ?? 0) > 1;
+  const chosen = (found?.rooms ?? []).map((s, i) => [s, i] as const).filter(([, i]) => picked.has(i));
+  const ready = chosen.length > 0 && (!several || chosen.every(([, i]) => receiver[i]));
+  const valveCount = (found?.rooms ?? []).reduce((n, s) => n + s.valves.length, 0);
+
+  const create = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      for (const [s, i] of chosen) {
+        await getHass().callWS({ type: "hive_local/rooms/save", name: s.name, valves: s.valves, sensor: s.sensor, receiver: receiver[i] ?? null });
+      }
+      onDone();
+    } catch (e) {
+      setError(errorText(e));
+      setBusy(false);
+    }
+  };
+  const toggle = (i: number) =>
+    setPicked((p) => {
+      const next = new Set(p);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+
+  return (
+    <EditorFrame dialog label="Set up your rooms" onClose={onDone}>
+      <h2>Set up your rooms</h2>
+      {!found && !error && <p className="muted setup-intro">Looking for your valves…</p>}
+      {found && !found.rooms.length && (
+        <p className="muted setup-intro">Every Hive radiator valve with an area is already in a room. Give the others an area in Home Assistant, or add rooms by hand.</p>
+      )}
+      {found && found.rooms.length > 0 && (
+        <>
+          <p className="muted setup-intro">
+            Found {valveCount} Hive radiator valve{valveCount === 1 ? "" : "s"} in {found.rooms.length} area{found.rooms.length === 1 ? "" : "s"}. Pick the rooms to create. You can rename or change any of them later.
+          </p>
+          <div className="setup-list">
+            {found.rooms.map((s, i) => {
+              const on = picked.has(i);
+              const valveNames = s.valves.map((v) => names.get(v) ?? v).join(", ");
+              const source = s.sensor ? `Temperature: ${names.get(s.sensor) ?? s.sensor}` : s.valves.length === 1 ? "Temperature: from the valve" : "Temperature: average of the valves";
+              return (
+                <div key={s.name} className={`setup-room ${on ? "on" : ""}`}>
+                  <button type="button" role="checkbox" aria-checked={on} className="setup-room-main" onClick={() => toggle(i)}>
+                    <span className={`valve-check ${on ? "on" : ""}`} aria-hidden="true">{on && <Icon name="check" />}</span>
+                    <span className="setup-room-text">
+                      <span>{s.name}</span>
+                      <span className="muted small">{valveNames}</span>
+                      <span className="muted small">{source}</span>
+                    </span>
+                    <span className="device-icon"><Icon name={roomIcon(s.name)} /></span>
+                  </button>
+                  {several && on && (
+                    <select aria-label={`Which receiver heats ${s.name}`} value={receiver[i] ?? ""} onChange={(e) => setReceiver((r) => ({ ...r, [i]: e.target.value }))}>
+                      <option value="" disabled>Heated by…</option>
+                      {found.receivers.map((r) => (
+                        <option key={r.entry_id} value={r.entry_id}>{r.name}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+      {error && <div className="status error">{error}</div>}
+      {found && found.rooms.length > 0 && (
+        <button className="sheet-go" style={{ ["--hl-accent" as string]: "var(--hl-brand)" }} disabled={busy || !ready} onClick={create}>
+          {busy ? "Creating…" : `Create ${chosen.length} room${chosen.length === 1 ? "" : "s"}`}
+        </button>
+      )}
+      <button className="ghost sheet-cancel" onClick={onDone} disabled={busy}>
+        {found?.rooms.length ? "I'll set them up myself" : "Close"}
+      </button>
+    </EditorFrame>
   );
 }

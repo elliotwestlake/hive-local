@@ -109,8 +109,13 @@ const CANDIDATES = {
     { entity_id: "climate.kitchen", name: "Kitchen valve", area: "Kitchen" },
     { entity_id: "climate.lounge_bay", name: "Bay window valve", area: "Lounge" },
     { entity_id: "climate.lounge_door", name: "Door valve", area: "Lounge" },
+    { entity_id: "climate.landing", name: "Landing valve", area: "Landing" },
+    { entity_id: "climate.study", name: "Study valve", area: "Study" },
   ],
-  sensors: [{ entity_id: "sensor.lounge", name: "Lounge temperature", area: "Lounge" }],
+  sensors: [
+    { entity_id: "sensor.lounge", name: "Lounge temperature", area: "Lounge" },
+    { entity_id: "sensor.study", name: "Study temperature", area: "Study" },
+  ],
   receivers: RECEIVERS,
 };
 
@@ -207,10 +212,21 @@ const hass = {
           valves: [
             ...ROOMS.flatMap((r) => r.valve_states.map((v) => ({ ...v, area: r.name, room: r.name }))),
             { entity_id: "climate.landing", name: "Landing valve", available: true, current_temperature: 18.4, target: 18, hvac_action: "idle", battery: "83", area: "Landing", room: null },
-          ],
+            { entity_id: "climate.study", name: "Study valve", available: true, current_temperature: 19.0, target: 19, hvac_action: "idle", battery: "40", area: "Study", room: null },
+            ...(TWO ? [] : [{ entity_id: "climate.kitchen", name: "Kitchen valve", available: true, current_temperature: 18.9, target: 19, hvac_action: "idle", battery: "52", area: "Kitchen", room: null }]),
+          ].map((v) => ({ ...v, identify: true })),
         };
       case "hive_local/stats":
         return fakeStats(msg.entry_id, msg.channel, msg.days, msg.offset || 0);
+      case "hive_local/rooms/suggest":
+        return {
+          receivers: RECEIVERS,
+          rooms: [
+            ...(TWO ? [] : [{ name: "Kitchen", valves: ["climate.kitchen"], sensor: null }]),
+            { name: "Landing", valves: ["climate.landing"], sensor: null },
+            { name: "Study", valves: ["climate.study"], sensor: "sensor.study" },
+          ],
+        };
       case "hive_local/settings":
         return {
           outdoor_entity: params.has("noout") ? null : "weather.home",

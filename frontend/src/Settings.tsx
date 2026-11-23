@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
-import { RoomEditorDialog } from "./Rooms";
+import { RoomEditorDialog, RoomSetupDialog } from "./Rooms";
 import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
 
 /**
@@ -76,8 +76,17 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
 function RoomSettings({ getHass }: { getHass: () => Hass }) {
   const [rooms, setRooms] = useState<Room[] | null>(null);
   const [receivers, setReceivers] = useState<Receiver[]>([]);
-  // The room being edited (or "new"), in a dialog.
+  // The room being edited (or "new"), in a dialog; and the set-up-from-areas dialog.
   const [editing, setEditing] = useState<string | "new" | null>(null);
+  const [setup, setSetup] = useState(false);
+  // How many rooms the areas suggest (valves with an area that aren't in a room).
+  const [suggested, setSuggested] = useState(0);
+  useEffect(() => {
+    getHass()
+      .callWS<{ rooms: unknown[] }>({ type: "hive_local/rooms/suggest" })
+      .then((r) => setSuggested(r.rooms.length))
+      .catch(() => {});
+  }, [getHass, rooms]);
 
   useEffect(() => {
     const unsub = getHass().connection.subscribeMessage<{ rooms: Room[]; receivers: Receiver[] }>(
@@ -116,6 +125,17 @@ function RoomSettings({ getHass }: { getHass: () => Hass }) {
               <Icon name="chevron-right" className="settings-chevron" />
             </button>
         ))}
+        {suggested > 0 && (
+          <button className="settings-row link add" onClick={() => setSetup(true)}>
+            <span className="device-icon"><Icon name="auto-fix" /></span>
+            <div className="settings-text">
+              <span>{rooms?.length ? "Add rooms from your areas" : "Set up rooms from your areas"}</span>
+              <span className="muted small">
+                {suggested} area{suggested === 1 ? " has" : "s have"} Hive valves that aren't in a room yet
+              </span>
+            </div>
+          </button>
+        )}
         <button className="settings-row link add" onClick={() => setEditing("new")}>
           <span className="device-icon"><Icon name="plus" /></span>
           <div className="settings-text">
@@ -123,6 +143,7 @@ function RoomSettings({ getHass }: { getHass: () => Hass }) {
           </div>
         </button>
       </div>
+      {setup && <RoomSetupDialog getHass={getHass} onDone={() => setSetup(false)} />}
       {editing && (
         <RoomEditorDialog
           getHass={getHass}

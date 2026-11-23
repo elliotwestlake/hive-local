@@ -13,7 +13,9 @@ hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> hea
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
 hive_local/rooms/candidates                        -> {"valves", "sensors", "receivers"} for the room editor
-hive_local/rooms/valves                            -> {"valves": every Hive valve with state, battery, area and room} for the Devices tab
+hive_local/rooms/valves                            -> {"valves": every Hive valve with state, battery, area, room and identify} for the Devices tab
+hive_local/rooms/suggest                           -> {"rooms": a room per area with free Hive valves, "receivers"} for first-time setup
+hive_local/rooms/identify {entity_id}              -> presses the valve's Identify button (it flashes its light)
 hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?}
 hive_local/rooms/delete {room_id}
 hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]}
@@ -80,6 +82,8 @@ def async_register(hass: HomeAssistant) -> None:
         ws_rooms_subscribe,
         ws_rooms_candidates,
         ws_rooms_valves,
+        ws_rooms_suggest,
+        ws_rooms_identify,
         ws_rooms_save,
         ws_rooms_delete,
         ws_rooms_set_target,
@@ -344,6 +348,21 @@ def ws_rooms_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> 
 @_rooms_handler
 async def ws_rooms_candidates(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
     connection.send_result(msg["id"], rooms.candidates())
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/suggest"})
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_suggest(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(msg["id"], {"rooms": rooms.suggestions(), "receivers": rooms.receivers()})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/identify", vol.Required("entity_id"): str})
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_identify(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    await rooms.async_identify(msg["entity_id"])
+    connection.send_result(msg["id"], {"ok": True})
 
 
 @websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/valves"})

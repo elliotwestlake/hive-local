@@ -91,6 +91,7 @@ export interface ValveState {
   target: number | null;
   hvac_action: string | null;
   battery: string | null; // the battery sensor's state, e.g. "85"
+  identify?: boolean; // HA has an Identify button for it (Find flashes its light)
 }
 
 /** hive_local/rooms/valves: any Hive valve, for the Devices tab. */
