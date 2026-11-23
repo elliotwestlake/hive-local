@@ -22,7 +22,7 @@ sleep 1
 
 shot() { # name WxH query
   "$CHROME" --screenshot="$WORK/$1.png" --window-size="$2" --force-device-scale-factor=2 \
-    --hide-scrollbars --virtual-time-budget=5000 "http://127.0.0.1:$PORT/harness.html?$3" >/dev/null 2>&1
+    --hide-scrollbars --virtual-time-budget=12000 "http://127.0.0.1:$PORT/harness.html?$3" >/dev/null 2>&1
 }
 compose() { # out WxH query
   "$CHROME" --screenshot="$WORK/$1.png" --window-size="$2" --force-device-scale-factor=2 \
@@ -33,7 +33,7 @@ compose() { # out WxH query
 shot overview 900,760 "tab=Overview"
 shot schedule 900,860 "tab=Overview&open=1&click=Schedule"
 shot controls 900,760 "tab=Overview&click=Boost"
-shot rooms 900,500 "tab=Rooms"
+shot rooms 900,760 "tab=Overview&room=Lounge"
 shot stats 900,780 "tab=Stats"
 # A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
 shot phone 390,770 "tab=Overview&narrow=1"
@@ -43,7 +43,7 @@ shot overview-dark 900,760 "tab=Overview&theme=dark"
 frame_h() { echo $((34 + $1 + 56 + 72)); }
 compose frame-schedule "1028,$(frame_h 860)" "kind=frame&img=schedule.png&w=900"
 compose frame-controls "1028,$(frame_h 760)" "kind=frame&img=controls.png&w=900"
-compose frame-rooms "1028,$(frame_h 500)" "kind=frame&img=rooms.png&w=900"
+compose frame-rooms "1028,$(frame_h 760)" "kind=frame&img=rooms.png&w=900"
 compose frame-stats "1028,$(frame_h 780)" "kind=frame&img=stats.png&w=900"
 compose frame-overview-dark "1028,$(frame_h 760)" "kind=frame&img=overview-dark.png&w=900&theme=night"
 compose hero 1400,860 "kind=hero"

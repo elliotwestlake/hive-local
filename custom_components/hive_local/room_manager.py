@@ -21,7 +21,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
-from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, summarise
+from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, suggest_rooms, summarise
 
 STORAGE_VERSION = 1
 DATA_ROOMS = f"{DOMAIN}_rooms"
@@ -100,6 +100,43 @@ class RoomManager:
         key = lambda c: ((c["area"] or "~").lower(), c["name"].lower())  # noqa: E731
         return {"valves": sorted(valves, key=key), "sensors": sorted(sensors, key=key), "receivers": self.receivers()}
 
+    def _device_id(self, entity_id: str) -> str | None:
+        entry = er.async_get(self.hass).async_get(entity_id)
+        return entry.device_id if entry else None
+
+    @callback
+    def suggestions(self) -> list[dict[str, Any]]:
+        """A room per area with Hive valves that aren't in a room yet (first-time setup)."""
+        found = self.candidates()
+        valve_devices = {self._device_id(v["entity_id"]) for v in found["valves"]} - {None}
+        # A valve's own temperature sensor isn't a room sensor.
+        sensors = [s for s in found["sensors"] if self._device_id(s["entity_id"]) not in valve_devices]
+        taken = {v for room in self.rooms for v in room["valves"]}
+        return suggest_rooms(found["valves"], sensors, taken)
+
+    def _identify_button(self, entity_id: str) -> str | None:
+        """The Identify button on the valve's device (ZHA, or Z2M if it exposes one), if any."""
+        registry = er.async_get(self.hass)
+        entry = registry.async_get(entity_id)
+        if not entry or not entry.device_id:
+            return None
+        for other in er.async_entries_for_device(registry, entry.device_id):
+            if other.domain == "button" and (other.device_class or other.original_device_class) == "identify":
+                return other.entity_id
+        return None
+
+    async def async_identify(self, entity_id: str) -> None:
+        """Make a Hive valve flash its light, to tell which one it is."""
+        if not self._is_hive_valve(entity_id):
+            raise RoomError("Not a Hive radiator valve")
+        button = self._identify_button(entity_id)
+        if button is None:
+            raise RoomError("This valve can't flash its light (no Identify button in Home Assistant)")
+        try:
+            await self.hass.services.async_call("button", "press", {"entity_id": button}, blocking=True)
+        except HomeAssistantError as err:
+            raise RoomError(f"The valve didn't respond: {err}") from err
+
     # --- live state ----------------------------------------------------------------
 
     def _battery_entity(self, entity_id: str) -> str | None:
@@ -127,6 +164,7 @@ class RoomManager:
             "hvac_action": state.attributes.get(ATTR_HVAC_ACTION) if state else None,
             "battery": battery.state if battery else None,
             "battery_entity": battery_id,
+            "identify": self._identify_button(entity_id) is not None,
         }
 
     @callback

@@ -1,8 +1,10 @@
 name: Pre-release
 # Publishes a GitHub pre-release for the version in manifest.json from a pull request's
 # branch, so it can be tested through the Marketplace (with beta versions shown) before it
-# reaches main. Add the `pre-release` label to the PR to publish; pushes to a labelled PR
-# publish again once the version is bumped. It can also be run by hand on any branch.
+# reaches main. Add the `pre-release` label to the PR to publish. Each later push to a
+# labelled PR publishes it again from the new head: a pre-release of the same version is
+# deleted (with its tag) and recreated, so it always matches the PR. A full release of that
+# version is never touched. It can also be run by hand on any branch.
 # Merging to main promotes it (release.yml).
 on:
   pull_request:
@@ -23,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Create the pre-release if this version hasn't been released
+      - name: Publish (or republish) the pre-release for this version
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -31,8 +33,16 @@ jobs:
           version=$(python3 -c 'import json; print(json.load(open("custom_components/hive_local/manifest.json"))["version"])')
           tag="v$version"
           if gh release view "$tag" >/dev/null 2>&1; then
-            echo "::notice::$tag is already released. Bump the version in manifest.json to publish another."
-            exit 0
+            if [ "$(gh release view "$tag" --json isPrerelease --jq .isPrerelease)" != "true" ]; then
+              echo "::notice::$tag is already a full release. Bump the version in manifest.json to publish another."
+              exit 0
+            fi
+            if [ "$(gh release view "$tag" --json targetCommitish --jq .targetCommitish)" = "$SHA" ]; then
+              echo "::notice::$tag is already published from $SHA."
+              exit 0
+            fi
+            # Replace the pre-release (and its tag) so it's built from this commit.
+            gh release delete "$tag" --cleanup-tag --yes
           fi
           notes="docs/releases/$tag.md"
           if [ -f "$notes" ]; then

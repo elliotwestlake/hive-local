@@ -67,3 +67,21 @@ def test_new_room_id_is_unique():
     for _ in range(50):
         ids.add(r.new_room_id(ids))
     assert len(ids) == 50
+
+
+def test_suggest_rooms():
+    valves = [
+        {"entity_id": "climate.bay", "area": "Lounge"},
+        {"entity_id": "climate.door", "area": "Lounge"},
+        {"entity_id": "climate.bed", "area": "bedroom"},
+        {"entity_id": "climate.kit", "area": "Kitchen"},
+        {"entity_id": "climate.loose", "area": None},
+    ]
+    sensors = [{"entity_id": "sensor.hall", "area": "Hall"}, {"entity_id": "sensor.lounge", "area": "Lounge"}]
+    out = r.suggest_rooms(valves, sensors, taken={"climate.kit"})
+    # Sorted by area, ignoring case; taken valves and valves with no area are left out.
+    assert out == [
+        {"name": "bedroom", "valves": ["climate.bed"], "sensor": None},
+        {"name": "Lounge", "valves": ["climate.bay", "climate.door"], "sensor": "sensor.lounge"},
+    ]
+    assert r.suggest_rooms(valves, sensors, taken={v["entity_id"] for v in valves}) == []

@@ -102,6 +102,12 @@ if (TWO)
     current_temperature: 18.9, temperature_source: "valves", target: 19, target_range: null, heating: false,
     heating_valves: [], unavailable: [], lowest_battery: 52, battery_low: false,
   });
+// ?many=1 adds 13 more valves, for a big house.
+const MANY = params.has("many") ? [
+  ["Bedroom 2", "Front bedroom valve"], ["Bedroom 2", "Window valve"], ["Bedroom 3", "Back bedroom valve"], ["Bathroom", "Towel rail valve"],
+  ["Dining room", "Dining valve"], ["Dining room", "Bay valve"], ["Hall", "Hall valve"], ["Utility", "Utility valve"],
+  ["Conservatory", "Conservatory valve"], ["Conservatory", "Door valve (conservatory)"], ["Loft", "Loft valve"], ["Playroom", "Playroom valve"], ["Snug", "Snug valve"],
+].map(([area, name], i) => ({ entity_id: `climate.extra_${i}`, name, area })) : [];
 const CANDIDATES = {
   valves: [
     { entity_id: "climate.bedroom", name: "Bedroom valve", area: "Bedroom" },
@@ -109,8 +115,14 @@ const CANDIDATES = {
     { entity_id: "climate.kitchen", name: "Kitchen valve", area: "Kitchen" },
     { entity_id: "climate.lounge_bay", name: "Bay window valve", area: "Lounge" },
     { entity_id: "climate.lounge_door", name: "Door valve", area: "Lounge" },
+    { entity_id: "climate.landing", name: "Landing valve", area: "Landing" },
+    { entity_id: "climate.study", name: "Study valve", area: "Study" },
+    ...MANY,
   ],
-  sensors: [{ entity_id: "sensor.lounge", name: "Lounge temperature", area: "Lounge" }],
+  sensors: [
+    { entity_id: "sensor.lounge", name: "Lounge temperature", area: "Lounge" },
+    { entity_id: "sensor.study", name: "Study temperature", area: "Study" },
+  ],
   receivers: RECEIVERS,
 };
 
@@ -132,7 +144,7 @@ function fakeStats(entry, channel, days, offset = 0) {
   const series = [];
   let temp = 16.5;
   for (let t = start; t < today + 86400; t += step) {
-    if (t >= end) { series.push({ t, current: null, target: null, heating: null }); continue; }
+    if (t >= end) { series.push({ t, current: null, target: null, heating: null, outdoor: null }); continue; }
     // Average the 15-minute shape over the bucket.
     let heat = 0, tg = 0, tgN = 0, n = 0, tempSum = 0;
     for (let u = t; u < t + step; u += 900, n++) {
@@ -146,7 +158,10 @@ function fakeStats(entry, channel, days, offset = 0) {
       temp = Math.max(15, temp);
       tempSum += temp;
     }
-    series.push({ t, current: water ? null : +(tempSum / n).toFixed(1), target: water || !tgN ? null : +(tg / tgN).toFixed(1), heating: +(heat / n).toFixed(3) });
+    // Outside: colder overnight, a few degrees' drift from day to day.
+    const h = ((t - today) / 3600 + 240) % 24;
+    const outdoor = +(6 + 3 * Math.sin(((h - 9) / 24) * 2 * Math.PI) + 2 * Math.sin((t - today) / 86400 * 1.3)).toFixed(1);
+    series.push({ t, current: water ? null : +(tempSum / n).toFixed(1), target: water || !tgN ? null : +(tg / tgN).toFixed(1), heating: +(heat / n).toFixed(3), outdoor });
   }
   const known = series.filter((b) => b.heating != null);
   const heatingMin = known.reduce((a, b) => a + (b.heating * step) / 60, 0);
@@ -162,6 +177,9 @@ function fakeStats(entry, channel, days, offset = 0) {
       temp_avg: temps.length ? +(temps.reduce((x, b) => x + b.current, 0) / temps.length).toFixed(1) : null,
       temp_min: temps.length ? Math.min(...temps.map((b) => b.current)) : null,
       temp_max: temps.length ? Math.max(...temps.map((b) => b.current)) : null,
+      outdoor_avg: bs.length ? +(bs.reduce((x, b) => x + b.outdoor, 0) / bs.length).toFixed(1) : null,
+      outdoor_min: bs.length ? Math.min(...bs.map((b) => b.outdoor)) : null,
+      outdoor_max: bs.length ? Math.max(...bs.map((b) => b.outdoor)) : null,
     });
   }
   const knownMin = (end - start) / 60;
@@ -174,7 +192,9 @@ function fakeStats(entry, channel, days, offset = 0) {
     temperature: water ? { avg: null, min: null, max: null } : {
       avg: +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1), min: Math.min(...temps), max: Math.max(...temps) },
     target_avg: water ? null : 20.7,
-    previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30 },
+    outdoor: { avg: +(known.reduce((a, b) => a + b.outdoor, 0) / known.length).toFixed(1), min: Math.min(...known.map((b) => b.outdoor)), max: Math.max(...known.map((b) => b.outdoor)) },
+    outdoor_entity: "weather.home",
+    previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30, outdoor_avg: 3.1 },
     days: dayList, series, offset, period_end: today + 86400,
   };
 }
@@ -199,10 +219,30 @@ const hass = {
           valves: [
             ...ROOMS.flatMap((r) => r.valve_states.map((v) => ({ ...v, area: r.name, room: r.name }))),
             { entity_id: "climate.landing", name: "Landing valve", available: true, current_temperature: 18.4, target: 18, hvac_action: "idle", battery: "83", area: "Landing", room: null },
-          ],
+            { entity_id: "climate.study", name: "Study valve", available: true, current_temperature: 19.0, target: 19, hvac_action: "idle", battery: "40", area: "Study", room: null },
+            ...(TWO ? [] : [{ entity_id: "climate.kitchen", name: "Kitchen valve", available: true, current_temperature: 18.9, target: 19, hvac_action: "idle", battery: "52", area: "Kitchen", room: null }]),
+            ...MANY.map((m, i) => ({ ...m, available: true, current_temperature: 17 + (i % 5) * 0.6, target: 19, hvac_action: "idle", battery: String(35 + i * 4), room: i % 3 ? "Bedroom" : null })),
+          ].map((v) => ({ ...v, identify: true })),
         };
       case "hive_local/stats":
         return fakeStats(msg.entry_id, msg.channel, msg.days, msg.offset || 0);
+      case "hive_local/rooms/suggest":
+        return {
+          receivers: RECEIVERS,
+          rooms: [
+            ...(TWO ? [] : [{ name: "Kitchen", valves: ["climate.kitchen"], sensor: null }]),
+            { name: "Landing", valves: ["climate.landing"], sensor: null },
+            { name: "Study", valves: ["climate.study"], sensor: "sensor.study" },
+          ],
+        };
+      case "hive_local/settings":
+        return {
+          outdoor_entity: params.has("noout") ? null : "weather.home",
+          outdoor_candidates: [
+            { entity_id: "weather.home", name: "Forecast Home", area: null },
+            { entity_id: "sensor.garden_temperature", name: "Garden temperature", area: "Garden" },
+          ],
+        };
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
       default:
@@ -239,12 +279,30 @@ if (params.get("open") === "1") {
   panel.shadowRoot.querySelector(".device-head")?.click();
   await wait(300);
 }
-const click = params.get("click");
-if (click) {
-  // Exact button text or aria-label, or a card whose text starts with it (e.g. a receiver's name).
+// ?room=Lounge opens a room's pop-up from its Overview card.
+const room = params.get("room");
+if (room) {
+  [...panel.shadowRoot.querySelectorAll(".room-device .device-head")].find((e) => e.textContent.includes(room))?.click();
+  await wait(400);
+}
+// ?click=… (repeatable): exact button text or aria-label, or a button whose text starts with it.
+for (const click of params.getAll("click")) {
   const buttons = [...panel.shadowRoot.querySelectorAll("button")];
   (buttons.find((b) => b.textContent.trim() === click || b.getAttribute("aria-label") === click) ??
     buttons.find((b) => b.textContent.trim().startsWith(click)))?.click();
-  await wait(400);
+  await wait(500);
+}
+// ?type=… types into the room editor's valve search; ?scroll=N scrolls its valve list.
+const typed = params.get("type");
+if (typed) {
+  const input = panel.shadowRoot.querySelector(".valve-search input");
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, typed);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  await wait(300);
+}
+const scroll = params.get("scroll");
+if (scroll) {
+  panel.shadowRoot.querySelector(".valve-list").scrollTop = Number(scroll);
+  await wait(200);
 }
 document.title = "ready";
