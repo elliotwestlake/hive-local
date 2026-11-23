@@ -8,6 +8,7 @@ hive_local/mode  {entry_id, channel, mode, setpoint?}   mode = schedule | manual
 hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
 hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
+hive_local/preheat {entry_id, enabled?, max_lead?}  pre-heat settings (heating)
 hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
@@ -35,6 +36,8 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_track_state_change_event
 
 from .const import (
+    PREHEAT_MAX_LEAD_MAX,
+    PREHEAT_MAX_LEAD_MIN,
     BOOST_MIN_TEMP,
     CHANNEL_HEAT,
     CHANNEL_WATER,
@@ -52,7 +55,8 @@ from .const import (
 from .data import HiveConfigEntry
 from .room_manager import DATA_ROOMS, SIGNAL_ROOMS, RoomManager
 from .schedule import ScheduleError, validate
-from .stats import sample_from_state, summarise
+from .history import async_samples, channel_entity_id
+from .stats import summarise
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
 CHANNEL = {vol.Optional("channel", default=CHANNEL_HEAT): vol.In([CHANNEL_HEAT, CHANNEL_WATER])}
@@ -70,6 +74,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_boost,
         ws_cancel_boost,
         ws_target,
+        ws_preheat,
         ws_stats,
         ws_rooms_subscribe,
         ws_rooms_candidates,
@@ -114,6 +119,7 @@ def _status(hass: HomeAssistant) -> dict[str, Any]:
                 "boost_minutes": data.boost_defaults(channel).minutes,
                 "boost_temperature": data.boost_defaults(channel).temperature,
                 "frost_temperature": data.boost_defaults(channel).frost,
+                **({"preheat": data.preheat.as_dict()} if channel == CHANNEL_HEAT else {}),
             }
             for channel in data.transport.channels
         }
@@ -168,6 +174,7 @@ def ws_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
 @_with_entry
 async def ws_get(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
     schedule, complete = await entry.runtime_data.transport.async_read(msg["channel"])
+    entry.runtime_data.preheat.schedule_seen(msg["channel"], schedule)
     connection.send_result(msg["id"], {"schedule": schedule, "complete": complete})
 
 
@@ -184,6 +191,7 @@ async def ws_set(hass: HomeAssistant, connection, msg: dict[str, Any], entry: Hi
         max_setpoint=HEAT_MAX,
     )
     commands = await entry.runtime_data.transport.async_write(msg["channel"], clean)
+    entry.runtime_data.preheat.schedule_seen(msg["channel"], clean)
     connection.send_result(msg["id"], {"commands": commands, "schedule": clean})
 
 
@@ -242,6 +250,38 @@ async def ws_target(hass: HomeAssistant, connection, msg: dict[str, Any], entry:
 async def ws_cancel_boost(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
     await entry.runtime_data.transport.async_cancel_boost(msg["channel"])
     connection.send_result(msg["id"], {"ok": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/preheat",
+        vol.Optional("enabled"): bool,
+        vol.Optional("max_lead"): vol.All(vol.Coerce(int), vol.Range(PREHEAT_MAX_LEAD_MIN, PREHEAT_MAX_LEAD_MAX)),
+    }
+    | ENTRY
+)
+@websocket_api.async_response
+@_with_entry
+async def ws_preheat(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    """Change pre-heat settings through its switch and number, so they're restored after a restart."""
+    if not entry.runtime_data.preheat.available:
+        raise ScheduleError("This receiver has no heating")
+    registry = er.async_get(hass)
+    if "enabled" in msg:
+        entity_id = registry.async_get_entity_id("switch", DOMAIN, f"{entry.entry_id}_{CHANNEL_HEAT}_preheat")
+        if entity_id is None:
+            raise ScheduleError("The pre-heat switch is missing")
+        await hass.services.async_call(
+            "switch", "turn_on" if msg["enabled"] else "turn_off", {"entity_id": entity_id}, blocking=True
+        )
+    if "max_lead" in msg:
+        entity_id = registry.async_get_entity_id("number", DOMAIN, f"{entry.entry_id}_{CHANNEL_HEAT}_preheat_max_lead")
+        if entity_id is None:
+            raise ScheduleError("The pre-heat limit is missing")
+        await hass.services.async_call(
+            "number", "set_value", {"entity_id": entity_id, "value": msg["max_lead"]}, blocking=True
+        )
+    connection.send_result(msg["id"], entry.runtime_data.preheat.as_dict())
 
 
 ROOM = {vol.Required("room_id"): str}
@@ -354,26 +394,6 @@ async def ws_rooms_set_target(hass, connection, msg: dict[str, Any], rooms: Room
 
 # Chart bucket length for each period: 15 min over a day, 1 h over a week, 6 h over a month.
 STATS_BUCKETS = {1: timedelta(minutes=15), 7: timedelta(hours=1), 30: timedelta(hours=6)}
-_STATS_ENTITY = {CHANNEL_HEAT: ("climate", "climate"), CHANNEL_WATER: ("water_heater", "water_heater")}
-
-
-def _history(hass: HomeAssistant, entity_id: str, start: datetime, end: datetime) -> list:
-    """Every recorded state (attribute changes too), plus the one in force at `start`. Executor."""
-    from homeassistant.components.recorder import history  # noqa: PLC0415
-
-    states = history.get_significant_states(
-        hass,
-        start,
-        end,
-        entity_ids=[entity_id],
-        include_start_time_state=True,
-        significant_changes_only=False,
-        minimal_response=False,
-        no_attributes=False,
-    )
-    return states.get(entity_id, [])
-
-
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "hive_local/stats",
@@ -390,15 +410,10 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     if "recorder" not in hass.config.components:
         connection.send_error(msg["id"], "no_recorder", "Stats need Home Assistant's recorder")
         return
-    platform, key = _STATS_ENTITY[channel]
-    entity_id = er.async_get(hass).async_get_entity_id(
-        platform, DOMAIN, f"{entry.entry_id}_{channel}_{key}"
-    )
+    entity_id = channel_entity_id(hass, entry.entry_id, channel)
     if entity_id is None:
         connection.send_error(msg["id"], "not_found", "This receiver has no entity for that channel")
         return
-
-    from homeassistant.components.recorder import get_instance  # noqa: PLC0415
 
     now = dt_util.now()
     # offset 0 is the period up to now; 1 the one before it, and so on.
@@ -416,11 +431,7 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     # The same stretch of the previous period, for "vs last week" and so on.
     prev_start, prev_end = start - timedelta(days=days), end - timedelta(days=days)
 
-    states = await get_instance(hass).async_add_executor_job(_history, hass, entity_id, prev_start, end)
-    samples = [
-        sample_from_state(channel, s.last_updated.timestamp(), s.state, dict(s.attributes))
-        for s in states
-    ]
+    samples = await async_samples(hass, channel, entity_id, prev_start, end)
 
     def ts(d: datetime) -> float:
         return dt_util.as_utc(d).timestamp()

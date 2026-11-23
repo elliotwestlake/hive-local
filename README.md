@@ -41,6 +41,7 @@ The receiver type (heating only, or heating + hot water) is detected automatical
 Four tabs: Overview, Rooms, Devices and Stats. On a phone they move to a bar along the bottom of the screen. Heating and hot water each have their own page, opened from their card on the Overview, with **Control**, **Schedule** and **History** tabs.
 
 - **Overview:** **Quick actions** (boost heating or hot water with your defaults, or put everything back on its schedule), and **Your devices**, with filters, a card each for heating, hot water and your rooms. Each card shows the temperature (or On/Off), what it's doing (with a tick once a room is up to temperature), and **Boost**: it opens a sheet to pick the temperature (heating) and how long, then **Boost to 22.0° for 2 h**. While boosting the button reads **Boosting**, and opens the time left and **Stop boost**. Tap a heating or hot water card to open its page. **Control** has **−** / **+** for the heating target (like the thermostat: on Schedule it lasts until the next scheduled change, on Manual it changes the held temperature, during a boost it keeps the time left), and Schedule / Manual / Off. Tap a room to open it on the Rooms tab.
+- **Pre-heat** (on the heating page's **Control** tab): starts heating early so the house is warm at the time your schedule says, rather than only starting to warm up then. See [Pre-heat](#pre-heat).
 - **Schedule** (on the heating or hot water page): says whether your schedule is in use, then a row of days (M–S). Pick a day to see its times, like "06:30 – 08:30" with the temperature in a circle (a snowflake means off). Tap a time to change when it starts or its temperature, or remove it; **Add a time** adds one. The **⋯** button reads the schedule from the receiver again or copies the day to weekdays, the weekend or every day. Changes are kept in the panel until you press **Save** on the **Unsaved changes** bar, which writes them to the receiver, and only the days you changed are sent, one command per day, so the rest of the week is never rewritten.
 - **Devices:** a card for each device: your receivers (model, Zigbee2MQTT or ZHA, online, and links to its Heating and Hot water pages) and every Hive radiator valve (its room, battery, whether it's responding, and its temperature). The **+** button adds a receiver (Home Assistant's setup for Hive Local) or explains how to pair a valve.
 - **Stats:** see [Stats](#stats).
@@ -80,6 +81,17 @@ It's worked out from Home Assistant's own history of the Hive Local heating and 
 
 ![Stats: a week of heating, with the boiler's time on each day and the room's low and high.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/stats.png)
 
+## Pre-heat
+
+Off by default. Turn it on from the heating page's **Control** tab, or with `switch.<receiver>_pre_heat`.
+
+- **How fast your home warms up** is learned from Home Assistant's history of the heating: each time the boiler ran from at least 1° below the target for 20 minutes or more, how quickly the temperature rose. It takes the middle value of the last 14 days, and starts once it has seen 3 warm-ups (the card says how many so far).
+- **When to start:** before each rise in the schedule (say 16° to 20° at 06:30), it works out how long the climb takes from the current temperature, adds 10 minutes, and starts then. **Start at most** (default 2 h, `number.<receiver>_pre_heat_starts_at_most`) caps how early that can be.
+- **How:** it boosts to the new temperature until the scheduled time, so the cards say **Pre-heating for 06:30**. When the boost ends the receiver is already on the new temperature, and if Home Assistant stops halfway, the receiver ends the boost itself and carries on with its schedule. Only from Schedule mode, never on Manual or Off, and never over a boost you started. If you stop a pre-heat, that change is left alone. Stats counts pre-heating as following the schedule, not as a boost.
+- **The schedule** is the one on the receiver. Hive Local keeps a copy whenever the panel reads or saves it, reads it when you turn pre-heat on (if it hasn't got a full week yet), and reads it again every night at 03:17, because the thermostat can change it too.
+
+Needs the recorder (it's on by default in Home Assistant).
+
 ## Entities and actions
 
 **`climate.<receiver>_heating`**: the main heating control.
@@ -98,6 +110,7 @@ Also, for each channel:
 | `sensor.<receiver>_temperature` | Room temperature reported by the thermostat (heating only), with long-term statistics. |
 | `button.<receiver>_boost_heating` / `cancel_heating_boost` | Start or cancel a boost. |
 | `number.<receiver>_heating_boost_duration` / `heating_boost_temperature` | Defaults used by the button, the select and the actions. These are stored in HA, not on the receiver. |
+| `switch.<receiver>_pre_heat` / `number.<receiver>_pre_heat_starts_at_most` | [Pre-heat](#pre-heat) on or off, and how early it may start (15–240 minutes). Stored in HA. |
 | `number.<receiver>_heating_frost_protection` | Set this to match the frost protection on your Hive thermostat (default 12 °C). During a schedule "off" period the receiver reports 1 °C, so this is shown as the target instead. Display only: it's never sent to the receiver. |
 
 Actions: `hive_local.boost_heating` (`minutes`, `temperature`), `hive_local.boost_water` (`minutes`), `hive_local.cancel_boost_heating`, `hive_local.cancel_boost_water`. Each takes an optional `device_id`, which is only needed if you have more than one receiver. Cancelling a boost returns the channel to whatever it was doing before. If the receiver is still boosting a couple of minutes after a boost should have ended (it can lose track of the time), Hive Local ends it for you the same way.

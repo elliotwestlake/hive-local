@@ -85,6 +85,9 @@
       },
       "heat_frost_temperature": {
         "name": "Heating frost protection"
+      },
+      "heat_preheat_max_lead": {
+        "name": "Pre-heat starts at most"
       }
     },
     "button": {
@@ -115,6 +118,11 @@
           "off": "Off",
           "boost": "Boost"
         }
+      }
+    },
+    "switch": {
+      "heat_preheat": {
+        "name": "Pre-heat"
       }
     }
   },

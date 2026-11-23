@@ -9,6 +9,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import CHANNEL_HEAT, DEFAULT_BOOST_MINUTES, DEFAULT_BOOST_TEMP, DEFAULT_FROST_TEMP, SIGNAL_STATUS
 from .schedule import ScheduleError
+from .preheat_controller import Preheat
 from .transports import Transport
 from .z2m import MODE_BOOST, MODE_MANUAL, MODE_OFF
 
@@ -29,6 +30,7 @@ class BoostDefaults:
 @dataclass
 class HiveData:
     transport: Transport
+    preheat: Preheat
     boost: dict[str, BoostDefaults] = field(default_factory=dict)
 
     def boost_defaults(self, channel: str) -> BoostDefaults:

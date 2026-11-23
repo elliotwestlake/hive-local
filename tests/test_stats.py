@@ -69,3 +69,10 @@ def test_days_have_temperature_range():
     samples = [S(0, "schedule", current=18.0), S(H, "schedule", current=20.5), S(2 * H, "schedule", current=19.0)]
     s = run(samples, end=3 * H, day_starts=[0], period_end=3 * H)
     assert (s["days"][0]["temp_min"], s["days"][0]["temp_max"]) == (18.0, 20.5)
+
+
+def test_preheat_boost_counts_as_schedule():
+    boost = st.sample_from_state("heat", 0, "auto", {"preset_mode": "boost", "hvac_action": "heating"})
+    pre = st.sample_from_state("heat", 0, "auto", {"preset_mode": "boost", "preheat": True, "hvac_action": "heating"})
+    assert boost.mode == "boost"
+    assert pre.mode == "schedule" and pre.heating

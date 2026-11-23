@@ -29,6 +29,7 @@ from .const import (
     TRANSPORT_ZHA,
 )
 from .data import HiveConfigEntry, HiveData
+from .preheat_controller import Preheat
 from .room_manager import DATA_ROOMS, RoomManager
 from .transports import Transport, Z2MTransport
 
@@ -42,6 +43,7 @@ PLATFORMS = [
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SENSOR,
+    Platform.SWITCH,
     Platform.WATER_HEATER,
 ]
 
@@ -64,7 +66,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     transport = await _async_transport(hass, entry)
     await transport.async_start()
-    entry.runtime_data = HiveData(transport)
+    preheat = Preheat(hass, transport)
+    await preheat.async_start()
+    entry.runtime_data = HiveData(transport, preheat)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if PANEL_URL not in hass.data.get(frontend.DATA_PANELS, {}):
@@ -107,6 +111,7 @@ async def _async_transport(hass: HomeAssistant, entry: HiveConfigEntry) -> Trans
 async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False
+    await entry.runtime_data.preheat.async_stop()
     await entry.runtime_data.transport.async_stop()
     others = [
         e for e in hass.config_entries.async_loaded_entries(DOMAIN) if e.entry_id != entry.entry_id
