@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import { ChannelCard } from "./Overview";
+import { PreheatCard } from "./Preheat";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { Stats } from "./Stats";
 import { CHANNEL_LABEL, type Channel, type ChannelInfo, type Device, type Hass, type Limits } from "./types";
@@ -47,7 +48,7 @@ export function DevicePage({
   const s = info?.status;
   const subtitle = [
     showDevice ? device.name : null,
-    !s ? "Waiting for the receiver" : s.mode === "schedule" ? "On schedule" : s.mode === "boost" ? "Boosting" : s.mode === "off" ? "Off" : channel === "water" ? "Always on" : "Manual",
+    !s ? "Waiting for the receiver" : s.mode === "schedule" ? "On schedule" : s.mode === "boost" ? (info?.preheat?.active_for ? `Pre-heating for ${info.preheat.active_for}` : "Boosting") : s.mode === "off" ? "Off" : channel === "water" ? "Always on" : "Manual",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -74,6 +75,7 @@ export function DevicePage({
       {tab === "control" && (
         <ChannelCard getHass={getHass} device={device} channel={channel} info={info} showDevice={false} limits={limits} page />
       )}
+      {tab === "control" && channel === "heat" && info?.preheat && <PreheatCard getHass={getHass} device={device} info={info.preheat} />}
       {scheduleOpened && (
         <div hidden={tab !== "schedule"}>
           <ScheduleEditor getHass={getHass} device={device} channel={channel} limits={limits} mode={s?.mode ?? null} />

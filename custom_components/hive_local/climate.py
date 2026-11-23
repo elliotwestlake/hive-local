@@ -133,6 +133,11 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
         elif self.preset_mode == PRESET_BOOST:
             await self._run(self._data.transport.async_cancel_boost(self._channel))
 
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        # Stats counts a pre-heat as following the schedule, not as a boost.
+        return {"preheat": self._data.preheat.is_active}
+
     def _boost_minutes_left(self) -> int | None:
         """Changing the temperature mid-boost keeps the time left (None: use the default)."""
         if self._status and self._status["mode"] == MODE_BOOST and self._status["boost_remaining"]:

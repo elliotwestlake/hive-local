@@ -51,6 +51,19 @@ export interface ChannelInfo {
   boost_minutes: number;
   boost_temperature: number;
   frost_temperature: number; // HA-side setting, shown during schedule "off" periods
+  preheat?: PreheatInfo; // heating only
+}
+
+/** Pre-heat (heating): start early so it's warm at the scheduled time. */
+export interface PreheatInfo {
+  enabled: boolean;
+  max_lead: number; // minutes
+  rate: number | null; // learned °C per hour, null until enough warm-ups
+  warmups: number;
+  warmups_needed: number;
+  schedule_known: boolean;
+  active_for: string | null; // "07:00" while pre-heating
+  next: { at: string; setpoint: number; start: string } | null;
 }
 
 /** entry_id -> channel -> info, pushed by hive_local/subscribe. */

@@ -280,7 +280,9 @@ export function ChannelCard({
     else if (frostPeriod) status = <>Frost protection <b>{target}°</b></>;
     else status = target != null ? <>Target <b>{target}°</b> <Icon name="check-circle-outline" className="status-icon done" /></> : "Idle";
   }
-  const modeName = !s ? "" : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
+  const preheating = boosting && !!info?.preheat?.active_for;
+  if (s && preheating) status = <>Pre-heating to <b>{s.setpoint}°</b> <Icon name="sun-clock" className="status-icon" /></>;
+  const modeName = !s ? "" : preheating ? `Pre-heating for ${info?.preheat?.active_for}` : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
   const open = page;
 
   return (

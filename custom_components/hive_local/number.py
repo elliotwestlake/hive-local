@@ -12,7 +12,15 @@ from homeassistant.const import EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, FROST_MAX, FROST_MIN, HEAT_MAX
+from .const import (
+    BOOST_MIN_TEMP,
+    CHANNEL_HEAT,
+    FROST_MAX,
+    FROST_MIN,
+    HEAT_MAX,
+    PREHEAT_MAX_LEAD_MAX,
+    PREHEAT_MAX_LEAD_MIN,
+)
 from .data import HiveConfigEntry
 from .entity import HiveEntity, channels
 from .z2m import BOOST_MAX_MINUTES
@@ -27,6 +35,7 @@ async def async_setup_entry(
     if CHANNEL_HEAT in channels(entry):
         entities.append(BoostTemperature(entry, CHANNEL_HEAT))
         entities.append(FrostTemperature(entry, CHANNEL_HEAT))
+        entities.append(PreheatMaxLead(entry, CHANNEL_HEAT))
     async_add_entities(entities)
 
 
@@ -89,3 +98,30 @@ class FrostTemperature(_BoostNumber):
 
     def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
         super().__init__(entry, channel, "frost_temperature")
+
+
+class PreheatMaxLead(HiveEntity, RestoreNumber):
+    """How far ahead of a scheduled rise pre-heat may start, at most."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+    _attr_native_min_value = PREHEAT_MAX_LEAD_MIN
+    _attr_native_max_value = PREHEAT_MAX_LEAD_MAX
+    _attr_native_step = 5
+    _attr_native_unit_of_measurement = UnitOfTime.MINUTES
+
+    def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
+        super().__init__(entry, channel, "preheat_max_lead")
+
+    @property
+    def native_value(self) -> float:
+        return self._data.preheat.max_lead
+
+    async def async_set_native_value(self, value: float) -> None:
+        self._data.preheat.set_max_lead(int(value))
+        self.async_write_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (last := await self.async_get_last_number_data()) and last.native_value is not None:
+            self._data.preheat.set_max_lead(int(last.native_value))

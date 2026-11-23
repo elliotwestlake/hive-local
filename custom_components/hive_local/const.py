@@ -80,3 +80,10 @@ BOOST_POLL_INTERVAL = timedelta(seconds=60)
 # If a boost is still running this long after it should have ended, end it ourselves
 # (the receiver can lose the hold duration and boost indefinitely).
 BOOST_DEADLINE_GRACE = timedelta(minutes=2)
+
+# Pre-heat: how far ahead it may start at most (minutes), and how much history it learns from.
+DEFAULT_PREHEAT_MAX_LEAD = 120
+PREHEAT_MAX_LEAD_MIN = 15
+PREHEAT_MAX_LEAD_MAX = 240
+PREHEAT_LEARN_DAYS = 14
+PREHEAT_LEARN_INTERVAL = timedelta(hours=6)
