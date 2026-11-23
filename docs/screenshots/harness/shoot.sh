@@ -35,7 +35,8 @@ shot schedule 900,860 "tab=Overview&open=1&click=Schedule"
 shot controls 900,760 "tab=Overview&click=Boost"
 shot rooms 900,500 "tab=Rooms"
 shot stats 900,780 "tab=Stats"
-shot phone 400,820 "tab=Overview&narrow=1"
+# A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
+shot phone 390,770 "tab=Overview&narrow=1"
 shot overview-dark 900,760 "tab=Overview&theme=dark"
 
 # Framed versions, the hero and the social preview.
