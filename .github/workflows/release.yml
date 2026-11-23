@@ -2,6 +2,7 @@ name: Release
 # Publishes a GitHub release (and its tag) for the version in manifest.json once it reaches
 # main, if that version hasn't been released yet. The Marketplace (formerly HACS) offers
 # GitHub releases as updates. Notes come from docs/releases/vX.Y.Z.md when it exists.
+# A version already published as a pre-release (prerelease.yml) is promoted instead.
 on:
   push:
     branches: [main]
@@ -24,8 +25,15 @@ jobs:
         run: |
           version=$(python3 -c 'import json; print(json.load(open("custom_components/hive_local/manifest.json"))["version"])')
           tag="v$version"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "$tag is already released"; exit 0
+          if prerelease=$(gh release view "$tag" --json isPrerelease --jq .isPrerelease 2>/dev/null); then
+            if [ "$prerelease" = "true" ]; then
+              # Tested as a pre-release (prerelease.yml) and now merged: make it the release.
+              gh release edit "$tag" --prerelease=false --latest
+              echo "$tag promoted from pre-release"
+            else
+              echo "$tag is already released"
+            fi
+            exit 0
           fi
           notes="docs/releases/$tag.md"
           if [ -f "$notes" ]; then

@@ -41,6 +41,9 @@ def test_payloads_one_per_day():
     assert [p["weekly_schedule_heat"]["dayofweek"] for p in payloads] == [[d] for d in s.DAYS]
     first = payloads[0]["weekly_schedule_heat"]
     assert first["transitions"][0] == {"heatSetpoint": 16.0, "transitionTime": "00:00"}
+    # Every day is padded to 6 transitions by repeating the last one.
+    sunday = payloads[-1]["weekly_schedule_heat"]["transitions"]
+    assert sunday == [{"heatSetpoint": 19.0, "transitionTime": "08:00"}] * 6
     assert "weekly_schedule" in s.to_z2m_payloads(sched, None)[0]
 
 def test_parse_drops_padding_repeats():
@@ -53,6 +56,19 @@ def test_parse_drops_padding_repeats():
     assert [t["time"] for t in day] == ["06:30", "08:30", "22:00"]
     # ...and it can be written straight back (validate rejects duplicate times).
     s.validate({"monday": day}, max_transitions=6, min_setpoint=1, max_setpoint=32)
+
+def test_parse_drops_impossible_times():
+    reply = {"days": ["monday"], "transitions": [
+        {"time": 420, "heating_setpoint": 20}, {"time": 4095, "heating_setpoint": 15},
+        {"time": 1440, "heating_setpoint": 15}]}
+    assert s.parse_z2m_reply(reply)["monday"] == [{"time": "07:00", "setpoint": 20.0}]
+
+def test_pad_transitions():
+    day = [{"time": "07:00", "setpoint": 20.0}, {"time": "22:00", "setpoint": 1.0}]
+    padded = s.pad_transitions(day)
+    assert len(padded) == 6 and padded[:2] == day and padded[2:] == [day[-1]] * 4
+    assert s.tidy_transitions([dict(t) for t in padded]) == day
+    assert s.pad_transitions([]) == []
 
 def test_tidy_keeps_first_entry_per_time():
     t = s.tidy_transitions([{"time": "22:00", "setpoint": 18.0}, {"time": "06:30", "setpoint": 20.0},

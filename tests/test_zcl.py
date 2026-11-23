@@ -61,10 +61,11 @@ def test_schedule_commands():
     commands = z.schedule_commands(schedule)
     # One command per day (Mon=0x02 ... Sat=0x40, Sun=0x01), never a multi-day bitmap.
     assert [c["day_of_week_for_sequence"] for c in commands] == [0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x01]
-    assert commands[0] == {"num_transitions_for_sequence": 2, "day_of_week_for_sequence": 0x02,
-                           "mode_for_sequence": 1, "values": [390, 2000, 1320, 100]}
-    assert commands[-1] == {"num_transitions_for_sequence": 1, "day_of_week_for_sequence": 0x01,
-                            "mode_for_sequence": 1, "values": [480, 2150]}
+    # Always 6 transitions, padded by repeating the last one (unwritten slots hold junk).
+    assert commands[0] == {"num_transitions_for_sequence": 6, "day_of_week_for_sequence": 0x02,
+                           "mode_for_sequence": 1, "values": [390, 2000] + [1320, 100] * 5}
+    assert commands[-1] == {"num_transitions_for_sequence": 6, "day_of_week_for_sequence": 0x01,
+                            "mode_for_sequence": 1, "values": [480, 2150] * 6}
 
 def test_parse_schedule_response():
     # One day per reply, padded to 6 transitions with 1 °C, like the Z2M replies.
@@ -76,6 +77,19 @@ def test_parse_schedule_response():
     # The padding repeats 22:00 1 °C: one event, not three.
     assert parsed["monday"] == [{"time": "06:30", "setpoint": 20.0}, {"time": "08:30", "setpoint": 16.0},
                                 {"time": "17:00", "setpoint": 21.0}, {"time": "22:00", "setpoint": 1.0}]
+
+def test_written_day_reads_back_the_same():
+    day = [{"time": "07:00", "setpoint": 20.0}, {"time": "08:30", "setpoint": 1.0},
+           {"time": "16:30", "setpoint": 20.0}, {"time": "19:00", "setpoint": 1.0}]
+    values = z.schedule_commands({"monday": day})[0]["values"]
+    assert z.parse_schedule_response(0x02, 0x01, values) == {"monday": day}
+
+def test_parse_schedule_response_drops_unwritten_slots():
+    # A day written with 4 transitions left slots 5 and 6 as junk: the thermostat showed
+    # "68:15" (4095 min) at 15 °C. Modulo a day it would read as a real 20:15 event.
+    values = [420, 2000, 510, 100, 990, 2000, 1140, 100, 4095, 1500, 0xFFFF, 1500]
+    assert [t["time"] for t in z.parse_schedule_response(0x02, 0x01, values)["monday"]] == [
+        "07:00", "08:30", "16:30", "19:00"]
 
 def test_parse_schedule_response_days_and_modes():
     assert list(z.parse_schedule_response(0x41 | 0x80, 0x01, [480, 2150])) == ["saturday", "sunday"]
