@@ -40,6 +40,10 @@ _LOGGER = logging.getLogger(__name__)
 HEAT_MIN = 1.0
 HEAT_MAX = 32.0
 
+# A Hive receiver keeps exactly 6 transitions per day. Writes are padded to this.
+TRANSITIONS_PER_DAY = 6
+MINUTES_PER_DAY = 1440
+
 
 class ScheduleError(ValueError):
     """Raised when a schedule fails validation."""
@@ -55,6 +59,29 @@ def hhmm_to_minutes(value: str) -> int:
     if not match:
         raise ScheduleError(f"Invalid time '{value}', expected HH:MM")
     return int(match.group(1)) * 60 + int(match.group(2))
+
+
+def valid_minutes(value: Any) -> bool:
+    """A transition time the receiver could really mean (0-1439 minutes).
+
+    Slots the receiver never had written hold junk such as 4095 (0x0FFF), which
+    the thermostat shows as "68:15". Taken modulo a day it would look real.
+    """
+    return isinstance(value, int) and 0 <= value < MINUTES_PER_DAY
+
+
+def pad_transitions(transitions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Fill a day up to TRANSITIONS_PER_DAY by repeating its last transition.
+
+    The receiver holds 6 slots per day. Writing fewer leaves the remaining slots
+    as they were, often uninitialised (shown on the thermostat as "68:15" at
+    15 °C), so the day gains junk events. Repeating the last entry is what the
+    receiver does itself when it reports a short day, and reads back as the same
+    day once `tidy_transitions` drops the repeats.
+    """
+    if not transitions:
+        return []
+    return list(transitions) + [transitions[-1]] * (TRANSITIONS_PER_DAY - len(transitions))
 
 
 def schedule_key(channel: str | None) -> str:
@@ -97,7 +124,7 @@ def parse_z2m_reply(value: Any) -> dict[str, list[dict[str, Any]]]:
     days = value.get("days") or []
     transitions = []
     for item in value.get("transitions") or []:
-        if not isinstance(item, dict) or "time" not in item:
+        if not isinstance(item, dict) or not valid_minutes(item.get("time")):
             continue
         setpoint = item.get("heating_setpoint")
         if setpoint is None:
@@ -155,13 +182,13 @@ def validate(
 def per_day(
     schedule: dict[str, list[dict[str, Any]]],
 ) -> list[tuple[list[str], list[dict[str, Any]]]]:
-    """One command per day, Monday first.
+    """One command per day, Monday first, each padded to 6 transitions.
 
     Identical days used to share one command (a multi-day bitmap). Until we know
     Hive receivers handle those, every day is sent on its own; it's a few more
     commands but can't spill onto days that weren't meant to change.
     """
-    return [([day], schedule[day]) for day in DAYS if day in schedule]
+    return [([day], pad_transitions(schedule[day])) for day in DAYS if day in schedule]
 
 
 def to_z2m_payloads(

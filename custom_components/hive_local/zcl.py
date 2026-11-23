@@ -18,7 +18,7 @@ from __future__ import annotations
 from typing import Any
 
 from .const import CHANNEL_HEAT, CHANNEL_WATER, ZHA_EP_HEAT, ZHA_EP_WATER
-from .schedule import DAYS, hhmm_to_minutes, minutes_to_hhmm, per_day, tidy_transitions
+from .schedule import DAYS, hhmm_to_minutes, minutes_to_hhmm, per_day, tidy_transitions, valid_minutes
 from .z2m import BOOST_MAX_MINUTES, MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
 SYSTEM_MODE_OFF = 0x00
@@ -230,7 +230,7 @@ def parse_schedule_response(
         [
             {"time": minutes_to_hhmm(values[i]), "setpoint": float(_celsius(values[i + 1]))}
             for i in range(0, len(values) - step + 1, step)
-            if values[i + 1] != TEMP_INVALID
+            if values[i + 1] != TEMP_INVALID and valid_minutes(values[i])
         ]
     )
     return {day: list(transitions) for day in DAYS if int(days) & DAY_BITS[day]}
