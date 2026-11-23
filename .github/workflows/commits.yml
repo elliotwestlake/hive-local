@@ -1,0 +1,46 @@
+name: Commits
+# Every commit subject (and a pull request's title, used when squash-merging) must be a
+# lower-case conventional commit: type(optional-scope): summary, e.g.
+#   feat(preheat): start heating early so it's warm at the scheduled time
+#   fix(zha): handle zigpy 2.x's configure_reporting result (#1)
+# Merge commits are skipped.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+jobs:
+  conventional:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Check commit subjects
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          pattern='^(feat|fix|docs|chore|refactor|perf|test|build|ci|style|revert)(\([a-z0-9-]+\))?!?: [^A-Z]+$'
+          if [ -n "$BASE" ]; then range="$BASE..HEAD"; else range="HEAD"; fi
+          bad=0
+          while IFS= read -r line; do
+            sha="${line%% *}"; subject="${line#* }"
+            if printf '%s\n' "$subject" | grep -Eq "$pattern"; then
+              echo "ok   $sha $subject"
+            else
+              echo "::error title=Not a lower-case conventional commit::$sha $subject"
+              bad=1
+            fi
+          done < <(git log --no-merges --format='%h %s' $range)
+          if [ -n "$PR_TITLE" ]; then
+            if printf '%s\n' "$PR_TITLE" | grep -Eq "$pattern"; then
+              echo "ok   PR title: $PR_TITLE"
+            else
+              echo "::error title=PR title isn't a lower-case conventional commit::$PR_TITLE"
+              bad=1
+            fi
+          fi
+          if [ "$bad" = 1 ]; then
+            echo "Use type(scope): summary, all lower case. Types: feat fix docs chore refactor perf test build ci style revert."
+            exit 1
+          fi
