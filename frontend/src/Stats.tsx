@@ -12,7 +12,9 @@ import {
 /**
  * Heating history, laid out after the Hive app's: receiver tabs, D / W / M and time or
  * temperature, a date you can step back through, a summary box, then a row per day
- * (per hour on D) with a bar, its value and that day's lowest and highest temperature.
+ * (per hour on D) with a bar, its value, the outside temperature (where Hive shows the
+ * weather, if the receiver has an outdoor source in its options) and that day's lowest and
+ * highest room temperature.
  */
 
 const PERIODS: { id: StatsPeriod; label: string; name: string }[] = [
@@ -51,7 +53,11 @@ interface Row {
   avg: number | null;
   min: number | null;
   max: number | null;
+  outMin: number | null;
+  outMax: number | null;
 }
+
+const nums = (xs: (number | null | undefined)[]) => xs.filter((v): v is number => v != null);
 
 /** Rows newest first: days for W / M, hours for D. */
 function rows(data: StatsData): Row[] {
@@ -60,7 +66,8 @@ function rows(data: StatsData): Row[] {
     for (let i = 0; i < data.series.length; i += 4) {
       const hourBuckets = data.series.slice(i, i + 4).filter((b) => b.heating != null);
       if (!hourBuckets.length) continue;
-      const temps = hourBuckets.map((b) => b.current).filter((v): v is number => v != null);
+      const temps = nums(hourBuckets.map((b) => b.current));
+      const outside = nums(data.series.slice(i, i + 4).map((b) => b.outdoor));
       out.push({
         key: data.series[i].t,
         label: [hour(data.series[i].t), ""],
@@ -68,6 +75,8 @@ function rows(data: StatsData): Row[] {
         avg: temps.length ? temps.reduce((a, b) => a + b, 0) / temps.length : null,
         min: temps.length ? Math.min(...temps) : null,
         max: temps.length ? Math.max(...temps) : null,
+        outMin: outside.length ? Math.min(...outside) : null,
+        outMax: outside.length ? Math.max(...outside) : null,
       });
     }
     return out.reverse();
@@ -81,6 +90,8 @@ function rows(data: StatsData): Row[] {
       avg: d.temp_avg,
       min: d.temp_min,
       max: d.temp_max,
+      outMin: d.outdoor_min,
+      outMax: d.outdoor_max,
     }))
     .reverse();
 }
@@ -126,6 +137,7 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
   const shown = data && data.period === period && data.offset === offset ? data : null;
   const list = shown ? rows(shown) : [];
   const units = period === 1 ? "hour" : "day";
+  const outdoor = !water && !!shown?.outdoor;
 
   return (
     <div className="history">
@@ -187,14 +199,26 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
           <Summary data={shown} metric={shownMetric} water={water} units={units} rows={list} />
           <div className="history-rows">
             {list.length > 0 && !water && (
-              <div className="history-key muted small" title="Lowest and highest room temperature">
-                <Icon name="thermometer" /> Low · high
+              <div className={`history-key muted small ${outdoor ? "with-outdoor" : ""}`}>
+                {outdoor && (
+                  <span title="Outside temperature">
+                    <Icon name="weather-partly-cloudy" /> Outside
+                  </span>
+                )}
+                <span title="Lowest and highest room temperature">
+                  <Icon name="thermometer" /> Low · high
+                </span>
               </div>
             )}
             {list.map((r) => (
-              <HistoryRow key={r.key} row={r} metric={shownMetric} water={water} scale={scaleOf(list, shownMetric, period)} />
+              <HistoryRow key={r.key} row={r} metric={shownMetric} water={water} outdoor={outdoor} scale={scaleOf(list, shownMetric, period)} />
             ))}
           </div>
+          {!water && shown.outdoor_entity == null && (
+            <p className="history-hint muted small">
+              To see the temperature outside here, pick a weather entity or outdoor sensor in Hive Local's settings (Settings › Devices &amp; services › Hive Local › Configure).
+            </p>
+          )}
         </>
       )}
     </div>
@@ -237,16 +261,35 @@ function Summary({ data, metric, water, units, rows: list }: { data: StatsData; 
         Fired up {data.cycles} time{data.cycles === 1 ? "" : "s"}
         {data.boosts ? ` · ${data.boosts} boost${data.boosts === 1 ? "" : "s"}` : ""}
         {metric === "temp" && data.target_avg != null ? ` · average target ${data.target_avg.toFixed(1)}°` : ""}
+        {!water && outdoorNote(data)}
       </p>
     </>
   );
 }
 
-function HistoryRow({ row, metric, water, scale }: { row: Row; metric: Metric; water: boolean; scale: { lo: number; hi: number } }) {
+/** " · 6° outside, 3° colder than the period before". */
+function outdoorNote(data: StatsData) {
+  const avg = data.outdoor?.avg;
+  if (avg == null) return "";
+  const before = data.previous?.outdoor_avg;
+  const diff = before != null ? avg - before : null;
+  const vs =
+    diff == null ? "" : Math.abs(diff) < 0.5 ? ", about the same as the period before" : `, ${Math.abs(diff).toFixed(0)}° ${diff < 0 ? "colder" : "milder"} than the period before`;
+  return ` · ${avg.toFixed(0)}° outside${vs}`;
+}
+
+/** "4–9°", or "6°" when the low and high round the same. */
+function outdoorRange(min: number | null, max: number | null) {
+  if (min == null || max == null) return "–";
+  const [a, b] = [min.toFixed(0), max.toFixed(0)];
+  return a === b ? `${a}°` : `${a}–${b}°`;
+}
+
+function HistoryRow({ row, metric, water, outdoor, scale }: { row: Row; metric: Metric; water: boolean; outdoor: boolean; scale: { lo: number; hi: number } }) {
   const v = metric === "time" ? row.minutes : row.avg;
   const f = v == null ? 0 : Math.max(0.02, Math.min(1, (v - scale.lo) / (scale.hi - scale.lo || 1)));
   return (
-    <div className="history-row">
+    <div className={`history-row ${outdoor ? "with-outdoor" : ""}`}>
       <span className="history-day">
         {row.label[0]} <span>{row.label[1]}</span>
       </span>
@@ -254,6 +297,11 @@ function HistoryRow({ row, metric, water, scale }: { row: Row; metric: Metric; w
         {v != null && v > 0 && <i style={{ width: `${f * 100}%` }} />}
         <span className="history-value">{v == null ? "–" : metric === "time" ? duration(v) : `${v.toFixed(1)}°`}</span>
       </span>
+      {outdoor && (
+        <span className="history-outdoor" title="Lowest and highest outside temperature">
+          {outdoorRange(row.outMin, row.outMax)}
+        </span>
+      )}
       {!water && (
         <span className="history-temps" title="Lowest and highest room temperature">
           {row.min != null ? `${row.min.toFixed(0)}°` : "–"}

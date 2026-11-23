@@ -9,12 +9,14 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.components import mqtt
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.selector import (
     DeviceSelector,
     DeviceSelectorConfig,
+    EntitySelector,
+    EntitySelectorConfig,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
@@ -27,6 +29,7 @@ from .const import (
     CONF_DEVICE,
     CONF_DEVICE_ID,
     CONF_MODEL,
+    CONF_OUTDOOR,
     CONF_TRANSPORT,
     CONF_Z2M_MODEL,
     DEFAULT_BASE_TOPIC,
@@ -70,6 +73,11 @@ class HiveLocalConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._base = DEFAULT_BASE_TOPIC
         self._receivers: dict[str, dict[str, Any]] = {}
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return HiveLocalOptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -169,3 +177,29 @@ class HiveLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             }
         )
         return self.async_show_form(step_id="zha", data_schema=schema, errors=errors)
+
+
+class HiveLocalOptionsFlow(OptionsFlow):
+    """Settings kept in the entry's options: the outdoor temperature for Stats."""
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            # Left empty: no outdoor temperature.
+            return self.async_create_entry(data={CONF_OUTDOOR: user_input.get(CONF_OUTDOOR) or ""})
+        schema = vol.Schema(
+            {
+                vol.Optional(CONF_OUTDOOR): EntitySelector(
+                    EntitySelectorConfig(
+                        filter=[
+                            {"domain": "weather"},
+                            {"domain": "sensor", "device_class": "temperature"},
+                        ]
+                    )
+                )
+            }
+        )
+        current = self.config_entry.options.get(CONF_OUTDOOR)
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(schema, {CONF_OUTDOOR: current} if current else {}),
+        )

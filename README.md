@@ -74,12 +74,13 @@ The **Stats** tab shows how long the boiler ran, laid out as a history:
 
 - Pick **D**, **W** or **M** (a day, a week or a month) and **time on** or **temperature**, and step back to earlier periods with the arrows either side of the date.
 - A summary at the top (for example **Boiler on 22h 58m** and **Average per day 3h 17m**), with the change from the period before, how often it fired up and the boosts.
-- Then a row per day (per hour for a day): a bar, the time on or average temperature, and that day's lowest and highest room temperature.
+- Then a row per day (per hour for a day): a bar, the time on or average temperature, the temperature outside (if set, below) and that day's lowest and highest room temperature.
+- **Outside temperature (optional):** in **Settings › Devices & services › Hive Local**, open the receiver's **Configure** and pick a weather entity or an outdoor temperature sensor. Each row then shows the day's low and high outside, and the note under the summary says the average and whether it was colder or milder than the period before. It comes from the same recorder history, so it covers whatever that entity has recorded.
 - The Stats tab is the heating history, with a tab for each receiver if you have several. Each heating or hot water page has the same history for just that one, under **History**.
 
 It's worked out from Home Assistant's own history of the Hive Local heating and hot water entities, so it needs the recorder (on by default) and starts from when you installed Hive Local. The recorder keeps 10 days unless you raise `purge_keep_days`, so months and earlier weeks need that too.
 
-![Stats: a week of heating, with the boiler's time on each day and the room's low and high.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/stats.png)
+![Stats: a week of heating, with the boiler's time on each day, the temperature outside and the room's low and high.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/stats.png)
 
 ## Pre-heat
 

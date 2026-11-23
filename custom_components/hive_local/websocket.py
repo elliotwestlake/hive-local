@@ -9,7 +9,7 @@ hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
 hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
 hive_local/preheat {entry_id, channel?, enabled?, max_lead?}  pre-heat settings (heating only)
-hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures (from the recorder)
+hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures, outdoor temperature if set (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
 hive_local/rooms/candidates                        -> {"valves", "sensors", "receivers"} for the room editor
@@ -41,6 +41,7 @@ from .const import (
     BOOST_MIN_TEMP,
     CHANNEL_HEAT,
     CHANNEL_WATER,
+    CONF_OUTDOOR,
     CONF_TRANSPORT,
     CONF_Z2M_MODEL,
     DOMAIN,
@@ -55,7 +56,7 @@ from .const import (
 from .data import HiveConfigEntry
 from .room_manager import DATA_ROOMS, SIGNAL_ROOMS, RoomManager
 from .schedule import ScheduleError, validate
-from .history import async_samples, channel_entity_id
+from .history import async_outdoor, async_samples, channel_entity_id
 from .stats import summarise
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -433,6 +434,9 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     prev_start, prev_end = start - timedelta(days=days), end - timedelta(days=days)
 
     samples = await async_samples(hass, channel, entity_id, prev_start, end)
+    # The receiver's optional outdoor temperature (a weather entity or a sensor).
+    outdoor_id = entry.options.get(CONF_OUTDOOR) or None
+    outdoor = await async_outdoor(hass, outdoor_id, prev_start, end) if outdoor_id else None
 
     def ts(d: datetime) -> float:
         return dt_util.as_utc(d).timestamp()
@@ -445,5 +449,6 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
         bucket_starts=[ts(d) for d in buckets],
         period_end=ts(period_end),
         previous=(ts(prev_start), ts(prev_end)),
+        outdoor=outdoor,
     )
-    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "period": days, "offset": offset, "period_end": ts(period_end)})
+    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "outdoor_entity": outdoor_id, "period": days, "offset": offset, "period_end": ts(period_end)})

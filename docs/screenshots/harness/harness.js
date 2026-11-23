@@ -132,7 +132,7 @@ function fakeStats(entry, channel, days, offset = 0) {
   const series = [];
   let temp = 16.5;
   for (let t = start; t < today + 86400; t += step) {
-    if (t >= end) { series.push({ t, current: null, target: null, heating: null }); continue; }
+    if (t >= end) { series.push({ t, current: null, target: null, heating: null, outdoor: null }); continue; }
     // Average the 15-minute shape over the bucket.
     let heat = 0, tg = 0, tgN = 0, n = 0, tempSum = 0;
     for (let u = t; u < t + step; u += 900, n++) {
@@ -146,7 +146,10 @@ function fakeStats(entry, channel, days, offset = 0) {
       temp = Math.max(15, temp);
       tempSum += temp;
     }
-    series.push({ t, current: water ? null : +(tempSum / n).toFixed(1), target: water || !tgN ? null : +(tg / tgN).toFixed(1), heating: +(heat / n).toFixed(3) });
+    // Outside: colder overnight, a few degrees' drift from day to day.
+    const h = ((t - today) / 3600 + 240) % 24;
+    const outdoor = +(6 + 3 * Math.sin(((h - 9) / 24) * 2 * Math.PI) + 2 * Math.sin((t - today) / 86400 * 1.3)).toFixed(1);
+    series.push({ t, current: water ? null : +(tempSum / n).toFixed(1), target: water || !tgN ? null : +(tg / tgN).toFixed(1), heating: +(heat / n).toFixed(3), outdoor });
   }
   const known = series.filter((b) => b.heating != null);
   const heatingMin = known.reduce((a, b) => a + (b.heating * step) / 60, 0);
@@ -162,6 +165,9 @@ function fakeStats(entry, channel, days, offset = 0) {
       temp_avg: temps.length ? +(temps.reduce((x, b) => x + b.current, 0) / temps.length).toFixed(1) : null,
       temp_min: temps.length ? Math.min(...temps.map((b) => b.current)) : null,
       temp_max: temps.length ? Math.max(...temps.map((b) => b.current)) : null,
+      outdoor_avg: bs.length ? +(bs.reduce((x, b) => x + b.outdoor, 0) / bs.length).toFixed(1) : null,
+      outdoor_min: bs.length ? Math.min(...bs.map((b) => b.outdoor)) : null,
+      outdoor_max: bs.length ? Math.max(...bs.map((b) => b.outdoor)) : null,
     });
   }
   const knownMin = (end - start) / 60;
@@ -174,7 +180,9 @@ function fakeStats(entry, channel, days, offset = 0) {
     temperature: water ? { avg: null, min: null, max: null } : {
       avg: +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1), min: Math.min(...temps), max: Math.max(...temps) },
     target_avg: water ? null : 20.7,
-    previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30 },
+    outdoor: { avg: +(known.reduce((a, b) => a + b.outdoor, 0) / known.length).toFixed(1), min: Math.min(...known.map((b) => b.outdoor)), max: Math.max(...known.map((b) => b.outdoor)) },
+    outdoor_entity: "weather.home",
+    previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30, outdoor_avg: 3.1 },
     days: dayList, series, offset, period_end: today + 86400,
   };
 }

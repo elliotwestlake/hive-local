@@ -331,6 +331,11 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
 .history-temps span { color: var(--primary-text-color); }
+.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }
+.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }
+.history-key span { display: inline-flex; align-items: center; gap: 4px; }
+.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.history-hint { text-align: center; margin: 0; }
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
 
 @media (max-width: 600px) {
