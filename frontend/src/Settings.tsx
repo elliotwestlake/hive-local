@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
-import { RoomEditor } from "./Rooms";
+import { RoomEditorDialog } from "./Rooms";
 import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
 
 /**
@@ -13,7 +13,7 @@ interface SettingsData {
   outdoor_candidates: Candidate[];
 }
 
-export function Settings({ getHass, devices, status, editRoom }: { getHass: () => Hass; devices: Device[]; status: StatusMap; editRoom?: string | null }) {
+export function Settings({ getHass, devices, status }: { getHass: () => Hass; devices: Device[]; status: StatusMap }) {
   const [data, setData] = useState<SettingsData | null>(null);
   const [error, setError] = useState("");
 
@@ -57,7 +57,7 @@ export function Settings({ getHass, devices, status, editRoom }: { getHass: () =
         </div>
       </section>
 
-      <RoomSettings getHass={getHass} initial={editRoom ?? null} />
+      <RoomSettings getHass={getHass} />
 
       {devices.map((d) => (
         <section key={d.entry_id} className="settings-section">
@@ -73,11 +73,11 @@ export function Settings({ getHass, devices, status, editRoom }: { getHass: () =
   );
 }
 
-function RoomSettings({ getHass, initial }: { getHass: () => Hass; initial: string | null }) {
+function RoomSettings({ getHass }: { getHass: () => Hass }) {
   const [rooms, setRooms] = useState<Room[] | null>(null);
   const [receivers, setReceivers] = useState<Receiver[]>([]);
-  // Opened from a room's sheet: start with that room's editor open.
-  const [editing, setEditing] = useState<string | "new" | null>(initial);
+  // The room being edited (or "new"), in a dialog.
+  const [editing, setEditing] = useState<string | "new" | null>(null);
 
   useEffect(() => {
     const unsub = getHass().connection.subscribeMessage<{ rooms: Room[]; receivers: Receiver[] }>(
@@ -98,12 +98,7 @@ function RoomSettings({ getHass, initial }: { getHass: () => Hass; initial: stri
       <h3>Rooms</h3>
       <p className="muted small settings-help">Group your Hive radiator valves into rooms. Each room then has a card on the Overview.</p>
       <div className="settings-group">
-        {(rooms ?? []).map((r) =>
-          editing === r.id ? (
-            <div key={r.id} className="settings-edit">
-              <RoomEditor getHass={getHass} room={r} onDone={() => setEditing(null)} />
-            </div>
-          ) : (
+        {(rooms ?? []).map((r) => (
             <button key={r.id} className="settings-row link" onClick={() => setEditing(r.id)}>
               <span className="device-icon"><Icon name="home-thermometer-outline" /></span>
               <div className="settings-text">
@@ -120,21 +115,21 @@ function RoomSettings({ getHass, initial }: { getHass: () => Hass; initial: stri
               </div>
               <Icon name="chevron-right" className="settings-chevron" />
             </button>
-          ),
-        )}
-        {editing === "new" ? (
-          <div className="settings-edit">
-            <RoomEditor getHass={getHass} onDone={() => setEditing(null)} />
+        ))}
+        <button className="settings-row link add" onClick={() => setEditing("new")}>
+          <span className="device-icon"><Icon name="plus" /></span>
+          <div className="settings-text">
+            <span>Add a room</span>
           </div>
-        ) : (
-          <button className="settings-row link add" onClick={() => setEditing("new")}>
-            <span className="device-icon"><Icon name="plus" /></span>
-            <div className="settings-text">
-              <span>Add a room</span>
-            </div>
-          </button>
-        )}
+        </button>
       </div>
+      {editing && (
+        <RoomEditorDialog
+          getHass={getHass}
+          room={editing === "new" ? undefined : rooms?.find((r) => r.id === editing)}
+          onDone={() => setEditing(null)}
+        />
+      )}
     </section>
   );
 }

@@ -234,6 +234,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .room-sheet .sheet-live .heating { color: var(--hl-heat); }
 .room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
 .room-sheet-actions .sheet-cancel { align-self: auto; }
+.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }
 .danger-text { color: var(--error-color, #db4437); }
 
 /* Rooms */
@@ -357,8 +358,6 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
 .adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .adjust .stepper-value { min-width: 72px; text-align: center; }
-.settings-edit { padding: 0; }
-.settings-edit > .card { border: 0; border-radius: 0; }
 @media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } }
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }
 

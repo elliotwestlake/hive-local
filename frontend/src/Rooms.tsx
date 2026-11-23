@@ -199,9 +199,36 @@ interface EditorProps {
   getHass: () => Hass;
   room?: Room;
   onDone: () => void;
+  /** In a dialog (a sheet from the bottom on phones) rather than a card. */
+  dialog?: boolean;
 }
 
-export function RoomEditor({ getHass, room, onDone }: EditorProps) {
+/** A card, or a dialog (a sheet from the bottom on phones). Top level, so typing doesn't remount the form. */
+function EditorFrame({ dialog, label, onClose, children }: { dialog: boolean; label: string; onClose: () => void; children: React.ReactNode }) {
+  if (!dialog) return <section className="card room-editor">{children}</section>;
+  return (
+    <div className="sheet-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }}>
+      <div className="sheet room-sheet room-editor" role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}>
+        <span className="sheet-handle" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** The room editor as a dialog: a sheet from the bottom on phones, centred on wide screens. */
+export function RoomEditorDialog(props: Omit<EditorProps, "dialog">) {
+  return <RoomEditor {...props} dialog />;
+}
+
+export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
+  useEffect(() => {
+    if (!dialog) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onDone();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dialog, onDone]);
+
   const [candidates, setCandidates] = useState<{ valves: Candidate[]; sensors: Candidate[]; receivers: Receiver[] } | null>(null);
   const [receiver, setReceiver] = useState(room?.receiver ?? "");
   const [name, setName] = useState(room?.name ?? "");
@@ -243,7 +270,7 @@ export function RoomEditor({ getHass, room, onDone }: EditorProps) {
   for (const c of candidates?.valves ?? []) byArea.set(c.area ?? "No area", [...(byArea.get(c.area ?? "No area") ?? []), c]);
 
   return (
-    <section className="card room-editor">
+    <EditorFrame dialog={!!dialog} label={room ? `Edit ${room.name}` : "New room"} onClose={onDone}>
       <h2>{room ? `Edit ${room.name}` : "New room"}</h2>
       <form
         className="stack"
@@ -339,7 +366,7 @@ export function RoomEditor({ getHass, room, onDone }: EditorProps) {
             ))}
         </div>
       </form>
-    </section>
+    </EditorFrame>
   );
 }
 
@@ -347,8 +374,9 @@ export function RoomEditor({ getHass, room, onDone }: EditorProps) {
  * A room in a sheet over the Overview (from the bottom on phones, a dialog on wide screens),
  * like the boost sheet: its temperature, target and valves.
  */
-export function RoomSheet({ getHass, roomId, several, onEdit, onClose }: { getHass: () => Hass; roomId: string; several: boolean; onEdit: () => void; onClose: () => void }) {
+export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () => Hass; roomId: string; several: boolean; onClose: () => void }) {
   const [room, setRoom] = useState<Room | null>(null);
+  const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const timer = useRef<number>();
@@ -362,11 +390,14 @@ export function RoomSheet({ getHass, roomId, several, onEdit, onClose }: { getHa
     };
   }, [getHass, roomId]);
   useEffect(() => {
+    if (editing) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, editing]);
   if (!room) return null;
+  // Editing replaces this sheet with the editor's; done returns here.
+  if (editing) return <RoomEditor getHass={getHass} room={room} onDone={() => setEditing(false)} dialog />;
 
   const shown = pending ?? room.target ?? room.target_range?.[1] ?? 20;
   const change = (value: number) => {
@@ -425,7 +456,7 @@ export function RoomSheet({ getHass, roomId, several, onEdit, onClose }: { getHa
         </div>
         {message && <div className="status error">{message}</div>}
         <div className="room-sheet-actions">
-          <button className="ghost" onClick={onEdit}><Icon name="pencil-outline" /> Edit room</button>
+          <button className="ghost" onClick={() => setEditing(true)}><Icon name="pencil-outline" /> Edit room</button>
           <button className="ghost sheet-cancel" onClick={onClose}>Close</button>
         </div>
       </div>

@@ -32,9 +32,8 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   // Heating or hot water opened from its Overview card, and which of its tabs is showing.
   const [opened, setOpened] = useState<{ entry: string; channel: Channel } | null>(null);
   const [deviceTab, setDeviceTab] = useState<DeviceTab>("control");
-  // A room opened (as a sheet) from its Overview card, and a room to edit in Settings.
+  // A room opened (as a sheet) from its Overview card.
   const [openedRoom, setOpenedRoom] = useState<string | null>(null);
-  const [editRoom, setEditRoom] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -63,7 +62,6 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
     setTab(t);
     setOpened(null);
     setOpenedRoom(null);
-    setEditRoom(null);
   };
   const openedDevice = opened && devices.find((d) => d.entry_id === opened.entry);
   const tabs = TABS;
@@ -122,7 +120,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
             )}
             {tab === "devices" && devices.length > 0 && <Devices getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} />}
             {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
-            {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} editRoom={editRoom} />}
+            {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} />}
           </>
         )}
         {openedRoom && (
@@ -131,11 +129,6 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
             roomId={openedRoom}
             several={devices.length > 1}
             onClose={() => setOpenedRoom(null)}
-            onEdit={() => {
-              const id = openedRoom;
-              goTo("settings");
-              setEditRoom(id);
-            }}
           />
         )}
       </main>
