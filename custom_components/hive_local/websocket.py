@@ -8,7 +8,7 @@ hive_local/mode  {entry_id, channel, mode, setpoint?}   mode = schedule | manual
 hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
 hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
-hive_local/preheat {entry_id, enabled?, max_lead?}  pre-heat settings (heating)
+hive_local/preheat {entry_id, channel?, enabled?, max_lead?}  pre-heat settings (heating only)
 hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
@@ -259,12 +259,13 @@ async def ws_cancel_boost(hass: HomeAssistant, connection, msg: dict[str, Any], 
         vol.Optional("max_lead"): vol.All(vol.Coerce(int), vol.Range(PREHEAT_MAX_LEAD_MIN, PREHEAT_MAX_LEAD_MAX)),
     }
     | ENTRY
+    | CHANNEL  # the panel sends a channel with every command; pre-heat is heating only
 )
 @websocket_api.async_response
 @_with_entry
 async def ws_preheat(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
     """Change pre-heat settings through its switch and number, so they're restored after a restart."""
-    if not entry.runtime_data.preheat.available:
+    if msg["channel"] != CHANNEL_HEAT or not entry.runtime_data.preheat.available:
         raise ScheduleError("This receiver has no heating")
     registry = er.async_get(hass)
     if "enabled" in msg:
