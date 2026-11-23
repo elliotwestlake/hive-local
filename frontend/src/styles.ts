@@ -230,6 +230,10 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }
 .sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }
 .sheet-note { margin: -6px 0 0; text-align: center; }
+.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }
+.room-sheet .sheet-live .heating { color: var(--hl-heat); }
+.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
+.room-sheet-actions .sheet-cancel { align-self: auto; }
 .danger-text { color: var(--error-color, #db4437); }
 
 /* Rooms */
@@ -354,7 +358,6 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .adjust .stepper-value { min-width: 72px; text-align: center; }
 .settings-edit { padding: 0; }
-.page-head .page-action { margin-left: auto; }
 .settings-edit > .card { border: 0; border-radius: 0; }
 @media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } }
 code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }

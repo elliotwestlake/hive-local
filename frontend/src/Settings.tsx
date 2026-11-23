@@ -13,7 +13,7 @@ interface SettingsData {
   outdoor_candidates: Candidate[];
 }
 
-export function Settings({ getHass, devices, status }: { getHass: () => Hass; devices: Device[]; status: StatusMap }) {
+export function Settings({ getHass, devices, status, editRoom }: { getHass: () => Hass; devices: Device[]; status: StatusMap; editRoom?: string | null }) {
   const [data, setData] = useState<SettingsData | null>(null);
   const [error, setError] = useState("");
 
@@ -57,7 +57,7 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
         </div>
       </section>
 
-      <RoomSettings getHass={getHass} />
+      <RoomSettings getHass={getHass} initial={editRoom ?? null} />
 
       {devices.map((d) => (
         <section key={d.entry_id} className="settings-section">
@@ -73,10 +73,11 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
   );
 }
 
-function RoomSettings({ getHass }: { getHass: () => Hass }) {
+function RoomSettings({ getHass, initial }: { getHass: () => Hass; initial: string | null }) {
   const [rooms, setRooms] = useState<Room[] | null>(null);
   const [receivers, setReceivers] = useState<Receiver[]>([]);
-  const [editing, setEditing] = useState<string | "new" | null>(null);
+  // Opened from a room's sheet: start with that room's editor open.
+  const [editing, setEditing] = useState<string | "new" | null>(initial);
 
   useEffect(() => {
     const unsub = getHass().connection.subscribeMessage<{ rooms: Room[]; receivers: Receiver[] }>(

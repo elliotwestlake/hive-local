@@ -82,7 +82,7 @@ function groups(rooms: Room[], receivers: Receiver[]): [string | null, Room[]][]
   return out;
 }
 
-export function RoomCard({ getHass, room, onEdit, page }: { getHass: () => Hass; room: Room; onEdit?: () => void; page?: boolean }) {
+export function RoomCard({ getHass, room, onEdit }: { getHass: () => Hass; room: Room; onEdit?: () => void }) {
   // The stepper moves straight away; the valves are told after a short pause.
   const [pending, setPending] = useState<number | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -124,7 +124,7 @@ export function RoomCard({ getHass, room, onEdit, page }: { getHass: () => Hass;
 
   return (
     <section className={`card room ${room.heating ? "heating" : ""}`}>
-      {!page && <div className="card-head">
+      <div className="card-head">
         <div className="title">
           <Icon name="home-thermometer-outline" className="title-icon" />
           <h2>{room.name}</h2>
@@ -143,7 +143,7 @@ export function RoomCard({ getHass, room, onEdit, page }: { getHass: () => Hass;
             </button>
           )}
         </div>
-      </div>}
+      </div>
 
       <div className="room-now">
         <div>
@@ -343,10 +343,15 @@ export function RoomEditor({ getHass, room, onDone }: EditorProps) {
   );
 }
 
-/** A room on its own page, opened from its Overview card: its temperature, target and valves. */
-export function RoomPage({ getHass, roomId, several, onBack }: { getHass: () => Hass; roomId: string; several: boolean; onBack: () => void }) {
+/**
+ * A room in a sheet over the Overview (from the bottom on phones, a dialog on wide screens),
+ * like the boost sheet: its temperature, target and valves.
+ */
+export function RoomSheet({ getHass, roomId, several, onEdit, onClose }: { getHass: () => Hass; roomId: string; several: boolean; onEdit: () => void; onClose: () => void }) {
   const [room, setRoom] = useState<Room | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [pending, setPending] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
+  const timer = useRef<number>();
   useEffect(() => {
     const unsub = getHass().connection.subscribeMessage<{ rooms: Room[] }>(
       (msg) => setRoom(msg.rooms.find((r) => r.id === roomId) ?? null),
@@ -356,29 +361,74 @@ export function RoomPage({ getHass, roomId, several, onBack }: { getHass: () => 
       unsub.then((u) => u()).catch(() => {});
     };
   }, [getHass, roomId]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   if (!room) return null;
+
+  const shown = pending ?? room.target ?? room.target_range?.[1] ?? 20;
+  const change = (value: number) => {
+    const next = Math.min(35, Math.max(5, value));
+    setPending(next);
+    setMessage("");
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(async () => {
+      try {
+        const r = await getHass().callWS<{ failed: string[] }>({ type: "hive_local/rooms/set_target", room_id: room.id, temperature: next });
+        if (r.failed.length) {
+          const names = room.valve_states.filter((v) => r.failed.includes(v.entity_id)).map((v) => v.name);
+          setMessage(`Didn't take on ${names.join(", ")}. It may be asleep; try again shortly.`);
+        }
+      } catch (e) {
+        setMessage(errorText(e));
+      } finally {
+        setPending(null);
+      }
+    }, 700);
+  };
   const valves = `${room.valves.length} valve${room.valves.length === 1 ? "" : "s"}`;
+  const source = room.temperature_source === "sensor" ? room.sensor_name : room.temperature_source === "valves" ? "Average of the valves" : "No reading";
+
   return (
-    <div className="device-page">
-      <div className="page-head">
-        <button className="round ghost" onClick={onBack} aria-label="Back to the overview">
-          <Icon name="chevron-left" />
-        </button>
-        <div className="page-title">
+    <div className="sheet-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }}>
+      <div className="sheet heat room-sheet" role="dialog" aria-modal="true" aria-label={room.name} onClick={(e) => e.stopPropagation()}>
+        <span className="sheet-handle" />
+        <div className="sheet-title">
           <h2>{room.name}</h2>
-          <span className="muted small">{[room.heating ? "Heating" : "Idle", several ? room.receiver_name : null, valves].filter(Boolean).join(" · ")}</span>
+          <span className="muted">{[room.heating ? "Heating" : "Idle", several ? room.receiver_name : null, valves].filter(Boolean).join(" · ")}</span>
         </div>
-        {!editing && (
-          <button className="round ghost page-action" onClick={() => setEditing(true)} aria-label={`Edit ${room.name}`}>
-            <Icon name="pencil-outline" />
-          </button>
-        )}
+        <div className="sheet-live">
+          <Icon name={room.heating ? "fire" : "thermometer"} className={room.heating ? "heating" : ""} />
+          <span>
+            <b>{room.current_temperature == null ? "–" : `${room.current_temperature.toFixed(1)}°`}</b> <span className="muted">{source}</span>
+          </span>
+        </div>
+        <div className="sheet-field">
+          <span className="sheet-label">
+            {room.target_range && pending == null ? `Target (valves set to ${fmt(room.target_range[0])}–${fmt(room.target_range[1])})` : "Target"}
+          </span>
+          <div className="sheet-temp">
+            <button className="round sheet-step" onClick={() => change(shown - 0.5)} aria-label="Lower"><Icon name="minus" /></button>
+            <span className="sheet-temp-value">{shown.toFixed(1)}°</span>
+            <button className="round sheet-step" onClick={() => change(shown + 0.5)} aria-label="Raise"><Icon name="plus" /></button>
+          </div>
+        </div>
+        <div className="sheet-field">
+          <span className="sheet-label">Valves</span>
+          <ul className="valves">
+            {room.valve_states.map((v) => (
+              <ValveRow key={v.entity_id} valve={v} heating={room.heating_valves.includes(v.entity_id)} />
+            ))}
+          </ul>
+        </div>
+        {message && <div className="status error">{message}</div>}
+        <div className="room-sheet-actions">
+          <button className="ghost" onClick={onEdit}><Icon name="pencil-outline" /> Edit room</button>
+          <button className="ghost sheet-cancel" onClick={onClose}>Close</button>
+        </div>
       </div>
-      {editing ? (
-        <RoomEditor getHass={getHass} room={room} onDone={() => setEditing(false)} />
-      ) : (
-        <RoomCard getHass={getHass} room={room} page />
-      )}
     </div>
   );
 }
