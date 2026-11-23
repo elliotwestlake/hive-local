@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import {
+  connectionLost,
   errorText,
   type Channel,
   type Device,
@@ -121,9 +122,19 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
         setData(r);
         setError("");
       })
-      .catch((e) => setError(errorText(e)))
+      // A dropped connection isn't worth a banner: the next refresh (or reopening the tab) retries.
+      .catch((e) => {
+        if (!connectionLost(e)) setError(errorText(e));
+      })
       .finally(() => setLoading(false));
   }, [getHass, device, ch, period, offset]);
+
+  // Reload once the websocket reconnects (e.g. the phone app comes back from the background).
+  useEffect(() => {
+    const conn = getHass().connection;
+    conn.addEventListener?.("ready", load);
+    return () => conn.removeEventListener?.("ready", load);
+  }, [getHass, load]);
 
   useEffect(() => {
     setLoading(true);

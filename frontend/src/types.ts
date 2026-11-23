@@ -74,13 +74,35 @@ export interface Hass {
   callWS<T>(msg: Record<string, unknown>): Promise<T>;
   connection: {
     subscribeMessage<T>(callback: (msg: T) => void, msg: Record<string, unknown>): Promise<() => Promise<void>>;
+    addEventListener?(event: "ready", listener: () => void): void;
+    removeEventListener?(event: "ready", listener: () => void): void;
   };
   themes?: { darkMode?: boolean };
 }
 
 export const CHANNEL_LABEL: Record<Channel, string> = { heat: "Heating", water: "Hot water" };
 
-export const errorText = (e: any) => String(e?.message ?? e);
+/** home-assistant-js-websocket's code for a command cut off by a dropped connection. */
+export const ERR_CONNECTION_LOST = 3;
+
+/** The {code, message} inside a websocket rejection: HA sends it bare, but a dropped
+ * connection rejects with the whole result message ({type, success, error}). */
+const wsError = (e: any) => (e && typeof e === "object" && e.error && typeof e.error === "object" ? e.error : e);
+
+/** True when a command failed only because the connection dropped (the app was backgrounded, HA restarted). */
+export const connectionLost = (e: any) => wsError(e)?.code === ERR_CONNECTION_LOST;
+
+export const errorText = (e: any) => {
+  const err = wsError(e);
+  if (typeof err === "string") return err;
+  if (typeof err?.message === "string" && err.message) return err.message;
+  if (err?.code !== undefined) return `Error: ${err.code}`;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+};
 
 /** A radiator valve's live state, as the backend reads it from its HA entity. */
 export interface ValveState {

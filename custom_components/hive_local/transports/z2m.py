@@ -46,6 +46,7 @@ class Z2MTransport(Transport):
         self._topic = f"{base_topic}/{device}"
         self._multi = multi_endpoint
         self._unsubs: list = []
+        self._last_payload: Any = None
 
     def _ep(self, channel: str) -> str | None:
         """SLR1 is single-endpoint (no suffix); SLR2 uses _heat/_water."""
@@ -80,6 +81,7 @@ class Z2MTransport(Transport):
             return
         for channel in self.channels:
             if (status := channel_status(payload, self._ep(channel))) is not None:
+                self._last_payload = payload
                 self._update_status(channel, status)
 
     async def _poll_boost(self, _now: datetime) -> None:
@@ -91,6 +93,7 @@ class Z2MTransport(Transport):
     async def async_read(self, channel: str) -> tuple[Schedule, bool]:
         key = schedule_key(self._ep(channel))
         collected: Schedule = {}
+        raw: list[Any] = []
         all_days = asyncio.Event()
         request_sent = False
 
@@ -107,6 +110,7 @@ class Z2MTransport(Transport):
                 return
             # Z2M republishes the *last* reply on every state update, so merging by
             # day is safe; each getWeeklySchedule response covers one day group.
+            raw.append(payload[key])
             collected.update(parse_z2m_reply(payload[key]))
             _LOGGER.debug("weekly_schedule reply: %s", payload[key])
             if all(day in collected for day in DAYS):
@@ -124,7 +128,15 @@ class Z2MTransport(Transport):
             unsub()
 
         schedule = {d: collected[d] for d in DAYS if d in collected}
-        return schedule, len(schedule) == len(DAYS)
+        complete = len(schedule) == len(DAYS)
+        self._record_read(channel, raw, schedule, complete)
+        return schedule, complete
+
+    def diagnostics(self) -> dict[str, Any]:
+        return super().diagnostics() | {
+            "multi_endpoint": self._multi,
+            "last_state_message": self._last_payload,
+        }
 
     async def async_write(self, channel: str, schedule: Schedule) -> int:
         payloads = to_z2m_payloads(schedule, self._ep(channel))
