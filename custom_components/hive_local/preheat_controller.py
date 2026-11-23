@@ -81,6 +81,9 @@ class Preheat:
             return
         if stored := await self._store.async_load():
             self.schedule = stored.get(CHANNEL_HEAT) or {}
+            # A pre-heat that was running when HA stopped (the receiver kept boosting).
+            if (at := dt_util.parse_datetime(stored.get("active_for") or "")) and at > dt_util.utcnow():
+                self.active_for = at
         self._unsubs += [
             async_track_time_interval(self.hass, self._tick, timedelta(minutes=1)),
             async_track_time_interval(self.hass, self._learn_later, PREHEAT_LEARN_INTERVAL),
@@ -118,6 +121,7 @@ class Preheat:
         self.enabled = enabled
         if not enabled and self.active_for is not None:
             self.active_for = None
+            self._save()
             if (self.transport.status(CHANNEL_HEAT) or {}).get("mode") == MODE_BOOST:
                 await self.transport.async_cancel_boost(CHANNEL_HEAT)
         self._notify()
@@ -142,7 +146,7 @@ class Preheat:
         if channel != CHANNEL_HEAT or not schedule:
             return
         self.schedule = {**self.schedule, **{d: list(t) for d, t in schedule.items() if t}}
-        self._store.async_delay_save(lambda: {CHANNEL_HEAT: self.schedule}, 5)
+        self._save()
         self._notify()
         self._evaluate()
 
@@ -175,6 +179,16 @@ class Preheat:
             self.rate = rate
             self._notify()
 
+    @callback
+    def _save(self) -> None:
+        self._store.async_delay_save(
+            lambda: {
+                CHANNEL_HEAT: self.schedule,
+                "active_for": self.active_for.isoformat() if self.active_for else None,
+            },
+            5,
+        )
+
     # -- deciding -----------------------------------------------------------------
 
     @callback
@@ -183,13 +197,16 @@ class Preheat:
 
     @callback
     def _on_status(self) -> None:
-        status = self.transport.status(CHANNEL_HEAT) or {}
+        status = self.transport.status(CHANNEL_HEAT)
+        if not status:
+            return  # not reported yet (e.g. just after a restart)
         if self.active_for is not None and status.get("mode") != MODE_BOOST and not self._starting:
             if dt_util.utcnow() < self.active_for - timedelta(minutes=2):
                 # Someone ended our boost early: leave this change alone.
                 _LOGGER.info("Pre-heat boost cancelled; skipping %s", self.active_for)
                 self._skipped.add(self.active_for)
             self.active_for = None
+            self._save()
             self._notify()
 
     @callback
@@ -197,6 +214,7 @@ class Preheat:
         now = dt_util.now()
         if self.active_for is not None and dt_util.utcnow() >= self.active_for:
             self.active_for = None
+            self._save()
         self._skipped = {t for t in self._skipped if t > dt_util.utcnow()}
         status = self.transport.status(CHANNEL_HEAT)
         new_plan = None
@@ -233,12 +251,14 @@ class Preheat:
         minutes = max(1, min(BOOST_MAX_MINUTES, math.ceil((at - dt_util.utcnow()).total_seconds() / 60)))
         _LOGGER.info("Pre-heating to %s °C for %s (%s min)", p.setpoint, dt_util.as_local(at).strftime("%H:%M"), minutes)
         self.active_for = at
+        self._save()
         self._starting = True
         try:
             await self.transport.async_boost(CHANNEL_HEAT, minutes, p.setpoint)
         except Exception:  # noqa: BLE001
             _LOGGER.warning("Pre-heat couldn't start the boost", exc_info=True)
             self.active_for = None
+            self._save()
             self._skipped.add(at)
         finally:
             # The receiver's boost state may take a moment to arrive.

@@ -270,6 +270,9 @@ export function ChannelCard({
   const targetLabel = !s ? "" : s.mode === "boost" ? "Boost to" : frostPeriod && pending == null ? "Frost" : s.mode === "manual" ? "Hold at" : "Target";
 
   const boosting = s?.mode === "boost";
+  // A pre-heat is a boost underneath (it ends at the scheduled time), but it's the schedule starting early.
+  const preheatFor = boosting ? info?.preheat?.active_for ?? null : null;
+  const preheating = preheatFor != null;
   let status: ReactNode = "Waiting for the receiver…";
   if (s) {
     if (s.mode === "off") status = "Off";
@@ -280,7 +283,6 @@ export function ChannelCard({
     else if (frostPeriod) status = <>Frost protection <b>{target}°</b></>;
     else status = target != null ? <>Target <b>{target}°</b> <Icon name="check-circle-outline" className="status-icon done" /></> : "Idle";
   }
-  const preheating = boosting && !!info?.preheat?.active_for;
   if (s && preheating) status = <>Pre-heating to <b>{s.setpoint}°</b> <Icon name="sun-clock" className="status-icon" /></>;
   const modeName = !s ? "" : preheating ? `Pre-heating for ${info?.preheat?.active_for}` : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
   const open = page;
@@ -310,7 +312,7 @@ export function ChannelCard({
             disabled={busy || !s}
             onClick={(e) => { e.stopPropagation(); setSheet(true); }}
           >
-            <Icon name="rocket-launch" /> {boosting ? "Boosting" : "Boost"}
+            <Icon name={preheating ? "sun-clock" : "rocket-launch"} /> {preheating ? "Pre-heating" : boosting ? "Boosting" : "Boost"}
           </button>
         </div>
       </div>
@@ -362,10 +364,11 @@ export function ChannelCard({
 
       {sheet && (
         <BoostSheet
-          title={boosting ? "Boosting" : "Boost"}
+          title={preheating ? "Pre-heating" : boosting ? "Boosting" : "Boost"}
           subtitle={showDevice ? `${device.name} · ${CHANNEL_LABEL[channel]}` : CHANNEL_LABEL[channel]}
           water={water}
           boosting={boosting}
+          preheatFor={preheatFor}
           remaining={s?.boost_remaining ?? null}
           boostTarget={boosting ? s?.setpoint ?? null : null}
           defaultMinutes={defaultMinutes}
@@ -388,6 +391,7 @@ function BoostSheet({
   subtitle,
   water,
   boosting,
+  preheatFor,
   remaining,
   boostTarget,
   defaultMinutes,
@@ -403,6 +407,8 @@ function BoostSheet({
   subtitle: string;
   water: boolean;
   boosting: boolean;
+  /** "06:30" while this boost is a pre-heat. */
+  preheatFor: string | null;
   remaining: number | null;
   boostTarget: number | null;
   defaultMinutes: number;
@@ -435,8 +441,12 @@ function BoostSheet({
           <div className="sheet-live">
             <Icon name="clock-outline" />
             <span>
-              {remaining != null ? `${formatMinutes(remaining)} left` : "Boosting"}
-              {!water && boostTarget != null ? ` · to ${boostTarget}°` : ""}
+              {preheatFor
+                ? `Warming up${boostTarget != null ? ` to ${boostTarget}°` : ""} for ${preheatFor}, when your schedule changes`
+                : <>
+                    {remaining != null ? `${formatMinutes(remaining)} left` : "Boosting"}
+                    {!water && boostTarget != null ? ` · to ${boostTarget}°` : ""}
+                  </>}
             </span>
           </div>
         ) : (
@@ -466,7 +476,7 @@ function BoostSheet({
 
         {boosting ? (
           <button className="sheet-go stop" disabled={busy} onClick={onStop}>
-            <span className="stop-square" /> Stop boost
+            <span className="stop-square" /> {preheatFor ? "Stop pre-heating" : "Stop boost"}
           </button>
         ) : (
           <button className="sheet-go" disabled={busy} onClick={() => onBoost(minutes, temp)}>

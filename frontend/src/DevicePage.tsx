@@ -78,7 +78,7 @@ export function DevicePage({
       {tab === "control" && channel === "heat" && info?.preheat && <PreheatCard getHass={getHass} device={device} info={info.preheat} />}
       {scheduleOpened && (
         <div hidden={tab !== "schedule"}>
-          <ScheduleEditor getHass={getHass} device={device} channel={channel} limits={limits} mode={s?.mode ?? null} />
+          <ScheduleEditor getHass={getHass} device={device} channel={channel} limits={limits} mode={s?.mode ?? null} preheatFor={s?.mode === "boost" ? info?.preheat?.active_for ?? null : null} />
         </div>
       )}
       {tab === "history" && <Stats getHass={getHass} devices={[device]} channel={channel} />}
