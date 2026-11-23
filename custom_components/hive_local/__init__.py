@@ -65,6 +65,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     transport = await _async_transport(hass, entry)
+    await transport.async_load_boosts()
     await transport.async_start()
     preheat = Preheat(hass, transport)
     await preheat.async_start()
@@ -119,6 +120,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> boo
     if not others:
         frontend.async_remove_panel(hass, PANEL_URL)
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> None:
+    """Delete what we saved for this receiver."""
+    from homeassistant.helpers.storage import Store  # noqa: PLC0415
+
+    from .transports.base import BOOST_STORE_VERSION  # noqa: PLC0415
+
+    await Store(hass, BOOST_STORE_VERSION, f"{DOMAIN}.boost.{entry.entry_id}").async_remove()
 
 
 def _bundle_mtime() -> int:

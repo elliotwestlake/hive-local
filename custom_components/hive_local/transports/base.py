@@ -12,12 +12,15 @@ from typing import Any
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_point_in_utc_time
+from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
+from .. import boosts
 from ..const import (
     BOOST_DEADLINE_GRACE,
     BOOST_MIN_TEMP,
     CHANNEL_HEAT,
+    DOMAIN,
     MANUAL_DEFAULT_TEMP,
     SIGNAL_STATUS,
 )
@@ -27,6 +30,8 @@ from ..z2m import MODE_BOOST, MODE_MANUAL, MODE_SCHEDULE
 Schedule = dict[str, list[dict[str, Any]]]
 
 _LOGGER = logging.getLogger(__name__)
+
+BOOST_STORE_VERSION = 1
 
 
 class Transport(ABC):
@@ -44,6 +49,28 @@ class Transport(ABC):
         # changes it, so we end it ourselves if it's still boosting after this.
         self._deadline: dict[str, datetime] = {}
         self._deadline_unsub: dict[str, Callable[[], None]] = {}
+        # Deadlines and pre-boost modes are saved, so a restart mid-boost can still end it.
+        self._boost_store: Store[dict[str, Any]] = Store(
+            hass, BOOST_STORE_VERSION, f"{DOMAIN}.boost.{entry_id}"
+        )
+
+    async def async_load_boosts(self) -> None:
+        """Load boosts saved before a restart. Call before async_start.
+
+        The deadline's timer starts once the receiver reports it's still boosting
+        (at once if the deadline has passed); any other report drops it.
+        """
+        deadlines, resume = boosts.decode(await self._boost_store.async_load(), self.channels)
+        self._deadline.update(deadlines)
+        self._resume.update(resume)
+        if deadlines:
+            _LOGGER.debug("Restored boost deadlines: %s", deadlines)
+
+    @callback
+    def _save_boosts(self) -> None:
+        self._boost_store.async_delay_save(
+            lambda: boosts.encode(self._deadline, self._resume), 1
+        )
 
     def check_channel(self, channel: str) -> None:
         if channel not in self.channels:
@@ -72,8 +99,12 @@ class Transport(ABC):
         remaining = status["boost_remaining"]
         if channel not in self._deadline and remaining:
             # A boost we didn't start (e.g. from the thermostat), or one running
-            # across an HA restart: trust the receiver's figure once.
+            # across an HA restart we have no saved deadline for: trust the
+            # receiver's figure once.
             self._set_deadline(channel, now + timedelta(minutes=remaining))
+        elif channel in self._deadline and channel not in self._deadline_unsub:
+            # A deadline saved before a restart, now we know it's still boosting.
+            self._set_deadline(channel, self._deadline[channel])
         if remaining is None and (deadline := self._deadline.get(channel)):
             left = max(0, math.ceil((deadline - now).total_seconds() / 60))
             status = {**status, "boost_remaining": left}
@@ -83,11 +114,13 @@ class Transport(ABC):
     def _set_deadline(self, channel: str, deadline: datetime) -> None:
         self._clear_deadline(channel)
         self._deadline[channel] = deadline
+        self._save_boosts()
 
         @callback
         def _expired(_now: datetime) -> None:
             self._deadline_unsub.pop(channel, None)
             self._deadline.pop(channel, None)
+            self._save_boosts()
             if (self.status(channel) or {}).get("mode") != MODE_BOOST:
                 return
             _LOGGER.info("%s boost outlived its time; ending it", channel)
@@ -99,14 +132,16 @@ class Transport(ABC):
 
     @callback
     def _clear_deadline(self, channel: str) -> None:
-        self._deadline.pop(channel, None)
         if unsub := self._deadline_unsub.pop(channel, None):
             unsub()
+        if self._deadline.pop(channel, None) is not None:
+            self._save_boosts()
 
     @callback
     def _clear_deadlines(self) -> None:
-        for channel in list(self._deadline_unsub):
-            self._clear_deadline(channel)
+        """Stop the timers on unload. The deadlines stay saved for the next start."""
+        while self._deadline_unsub:
+            self._deadline_unsub.popitem()[1]()
 
     def resume_mode(self, channel: str) -> str:
         """The non-boost mode this channel was in last (what cancelling a boost returns to)."""
