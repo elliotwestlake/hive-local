@@ -84,6 +84,24 @@ def receiver_endpoints(model: str | None, thermostat_eps: list[int]) -> dict[str
 # (zigpy/zha-device-handlers#2776). Reporting at least every 2 minutes fixes it.
 THERMOSTAT_MODELS = ("SLT",)  # SLT2, SLT3, SLT3b/c/d, SLT6 ...
 TEMPERATURE_REPORTING = (5, 120, 50)  # min s, max s, change (centi-°C)
+STATUS_SUCCESS = 0x00
+
+
+def reporting_statuses(result: Any) -> list[int]:
+    """The statuses from `Cluster.configure_reporting()`, whatever the zigpy version.
+
+    zigpy 0.x returns a list of ConfigureReportingResponseRecord (`.status`), possibly
+    wrapped in a response with `status_records`; zigpy 2.x returns {ZCLAttributeDef: Status}.
+    """
+    if isinstance(result, dict):
+        return list(result.values())
+    records = getattr(result, "status_records", result)
+    return [record.status for record in records]
+
+
+def reporting_accepted(result: Any) -> bool:
+    statuses = reporting_statuses(result)
+    return bool(statuses) and all(status == STATUS_SUCCESS for status in statuses)
 
 
 def is_hive_thermostat(manufacturer: str | None, model: str | None) -> bool:
