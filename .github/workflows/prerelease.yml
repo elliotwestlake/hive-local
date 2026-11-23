@@ -1,0 +1,43 @@
+name: Pre-release
+# Publishes a GitHub pre-release for the version in manifest.json from a pull request's
+# branch, so it can be tested through the Marketplace (with beta versions shown) before it
+# reaches main. Add the `pre-release` label to the PR to publish; pushes to a labelled PR
+# publish again once the version is bumped. It can also be run by hand on any branch.
+# Merging to main promotes it (release.yml).
+on:
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: release
+jobs:
+  prerelease:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(github.event.pull_request.labels.*.name, 'pre-release') &&
+       (github.event.action != 'labeled' || github.event.label.name == 'pre-release'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Create the pre-release if this version hasn't been released
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("custom_components/hive_local/manifest.json"))["version"])')
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::notice::$tag is already released. Bump the version in manifest.json to publish another."
+            exit 0
+          fi
+          notes="docs/releases/$tag.md"
+          if [ -f "$notes" ]; then
+            gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --notes-file "$notes"
+          else
+            gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --generate-notes
+          fi
+          echo "::notice::Published $tag as a pre-release from $SHA"
