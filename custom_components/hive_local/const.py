@@ -12,7 +12,6 @@ CONF_DEVICE_ID = "device_id"  # ZHA: the HA device registry id
 CONF_MODEL = "model"
 CONF_Z2M_MODEL = "z2m_model"  # the receiver's own model string (from Z2M or ZHA), e.g. SLR1c
 CONF_BASE_TOPIC = "base_topic"
-CONF_OUTDOOR = "outdoor_entity"  # option: a weather entity or outdoor temperature sensor, for Stats
 
 # Entries from before ZHA support have no CONF_TRANSPORT and are Z2M.
 TRANSPORT_Z2M = "z2m"

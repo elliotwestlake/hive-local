@@ -50,6 +50,7 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
               {(data?.outdoor_candidates ?? []).map((c) => (
                 <option key={c.entity_id} value={c.entity_id}>
                   {c.name}
+                  {c.area ? ` · ${c.area}` : ""}
                 </option>
               ))}
             </select>

@@ -216,7 +216,7 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
           </div>
           {!water && shown.outdoor_entity == null && (
             <p className="history-hint muted small">
-              To see the temperature outside here, pick a weather entity or outdoor sensor in Hive Local's settings (Settings › Devices &amp; services › Hive Local › Configure).
+              To see the temperature outside here, pick a weather entity or outdoor sensor in the Settings tab.
             </p>
           )}
         </>

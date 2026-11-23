@@ -6511,7 +6511,7 @@ function jc({ getHass: e, devices: t, channel: n }) {
         ] }),
         z.map((R) => /* @__PURE__ */ i.jsx(_p, { row: R, metric: x, water: f, outdoor: S, scale: kp(z, x, s) }, R.key))
       ] }),
-      !f && N.outdoor_entity == null && /* @__PURE__ */ i.jsx("p", { className: "history-hint muted small", children: "To see the temperature outside here, pick a weather entity or outdoor sensor in Hive Local's settings (Settings › Devices & services › Hive Local › Configure)." })
+      !f && N.outdoor_entity == null && /* @__PURE__ */ i.jsx("p", { className: "history-hint muted small", children: "To see the temperature outside here, pick a weather entity or outdoor sensor in the Settings tab." })
     ] })
   ] });
 }
@@ -7096,7 +7096,10 @@ function Bp({ getHass: e, devices: t, status: n }) {
         ] }),
         /* @__PURE__ */ i.jsxs("select", { "aria-label": "Outside temperature", value: (r == null ? void 0 : r.outdoor_entity) ?? "", onChange: (u) => s(u.target.value), disabled: !r, children: [
           /* @__PURE__ */ i.jsx("option", { value: "", children: "None" }),
-          ((r == null ? void 0 : r.outdoor_candidates) ?? []).map((u) => /* @__PURE__ */ i.jsx("option", { value: u.entity_id, children: u.name }, u.entity_id))
+          ((r == null ? void 0 : r.outdoor_candidates) ?? []).map((u) => /* @__PURE__ */ i.jsxs("option", { value: u.entity_id, children: [
+            u.name,
+            u.area ? ` · ${u.area}` : ""
+          ] }, u.entity_id))
         ] })
       ] }) })
     ] }),
