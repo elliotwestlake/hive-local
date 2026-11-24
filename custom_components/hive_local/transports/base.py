@@ -106,7 +106,12 @@ class Transport(ABC):
             self._set_deadline(channel, now + timedelta(minutes=remaining))
         elif channel in self._deadline and channel not in self._deadline_unsub:
             # A deadline saved before a restart, now we know it's still boosting.
-            self._set_deadline(channel, self._deadline[channel])
+            # If the receiver reports a valid time left that runs past it, someone
+            # started a new boost while HA was down: keep theirs, don't cancel it.
+            deadline = self._deadline[channel]
+            if remaining:
+                deadline = max(deadline, now + timedelta(minutes=remaining))
+            self._set_deadline(channel, deadline)
         if remaining is None and (deadline := self._deadline.get(channel)):
             left = max(0, math.ceil((deadline - now).total_seconds() / 60))
             status = {**status, "boost_remaining": left}
