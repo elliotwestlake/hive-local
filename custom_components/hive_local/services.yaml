@@ -71,3 +71,26 @@ cancel_holiday:
       selector:
         device:
           integration: hive_local
+
+test_timed_hold:
+  fields:
+    device_id:
+      selector:
+        device:
+          integration: hive_local
+    temperature:
+      default: 12
+      selector:
+        number:
+          min: 5
+          max: 32
+          step: 0.5
+          unit_of_measurement: "°C"
+    minutes:
+      default: 10
+      selector:
+        number:
+          min: 2
+          max: 60
+          step: 1
+          unit_of_measurement: min

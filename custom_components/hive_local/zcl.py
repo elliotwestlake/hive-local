@@ -190,6 +190,21 @@ def boost_attributes(minutes: int, setpoint: float | None = None) -> dict[str, i
     return attrs
 
 
+def timed_hold_attributes(minutes: int, setpoint: float) -> dict[str, int]:
+    """A manual hold with a hold duration, in one write (same order as a boost).
+
+    Testing whether the receiver ends a manual hold by itself (holiday fail-safe).
+    """
+    if not 1 <= minutes <= BOOST_MAX_MINUTES:
+        raise ValueError(f"The hold must be 1-{BOOST_MAX_MINUTES} minutes")
+    return {
+        "system_mode": SYSTEM_MODE_HEAT,
+        "temp_setpoint_hold_duration": int(minutes),
+        "temp_setpoint_hold": 1,
+        "occupied_heating_setpoint": _centi(setpoint),
+    }
+
+
 def day_bits(days: list[str]) -> int:
     bits = 0
     for day in days:

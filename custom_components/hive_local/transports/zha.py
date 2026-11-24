@@ -45,6 +45,7 @@ from ..zcl import (
     STATE_ATTRS,
     TEMPERATURE_REPORTING,
     boost_attributes,
+    timed_hold_attributes,
     channel_status,
     is_hive_thermostat,
     mode_attributes,
@@ -344,6 +345,22 @@ class ZHATransport(Transport):
 
     async def _async_boost(self, channel: str, minutes: int, setpoint: float | None) -> None:
         await self._write(channel, boost_attributes(minutes, setpoint))
+
+    async def _async_timed_hold(self, channel: str, setpoint: float, minutes: int) -> None:
+        await self._write(channel, timed_hold_attributes(minutes, setpoint))
+
+    async def async_read_hold(self, channel: str) -> dict[str, Any]:
+        cluster = self._cluster(channel)
+        try:
+            await cluster.read_attributes(list(HOLD_ATTRS), allow_cache=False)
+        except (TimeoutError, ZigbeeException) as err:
+            raise HomeAssistantError(f"Receiver didn't respond: {err}") from err
+        self._publish(channel)
+        return {
+            "system_mode": cluster.get("system_mode"),
+            "hold": cluster.get("temp_setpoint_hold"),
+            "duration": cluster.get("temp_setpoint_hold_duration"),
+        }
 
     async def async_read(self, channel: str) -> tuple[Schedule, bool]:
         cluster = self._cluster(channel)

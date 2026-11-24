@@ -104,6 +104,30 @@ def async_register(hass: HomeAssistant) -> None:
         for entry in _entries(hass, call):
             await entry.runtime_data.holiday.async_cancel()
 
+    async def test_timed_hold(call: ServiceCall) -> None:
+        """Temporary: does the receiver end a manual hold by itself? (holiday fail-safe)"""
+        from . import hold_test
+
+        entry = _entry(hass, call)
+        if CHANNEL_HEAT not in entry.runtime_data.transport.channels:
+            raise ServiceValidationError("This receiver has no heating")
+        hass.async_create_background_task(
+            hold_test.async_run(hass, entry, call.data[ATTR_TEMPERATURE], call.data[ATTR_MINUTES]),
+            "hive_local timed hold test",
+        )
+
+    hass.services.async_register(
+        DOMAIN,
+        "test_timed_hold",
+        test_timed_hold,
+        vol.Schema(
+            _DEVICE
+            | {
+                vol.Optional(ATTR_TEMPERATURE, default=12.0): vol.All(vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)),
+                vol.Optional(ATTR_MINUTES, default=10): vol.All(vol.Coerce(int), vol.Range(2, 60)),
+            }
+        ),
+    )
     hass.services.async_register(DOMAIN, "set_holiday", set_holiday, SET_HOLIDAY_SCHEMA)
     hass.services.async_register(DOMAIN, "cancel_holiday", cancel_holiday, CANCEL_SCHEMA)
     hass.services.async_register(DOMAIN, "boost_heating", boost(CHANNEL_HEAT), BOOST_HEATING_SCHEMA)

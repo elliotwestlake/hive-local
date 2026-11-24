@@ -17,6 +17,7 @@ from ..schedule import DAYS, parse_z2m_reply, schedule_key, to_z2m_payloads
 from ..z2m import (
     MODE_BOOST,
     boost_payload,
+    timed_hold_payload,
     channel_status,
     mode_payload,
     refresh_payload,
@@ -154,3 +155,14 @@ class Z2MTransport(Transport):
 
     async def _async_boost(self, channel: str, minutes: int, setpoint: float | None) -> None:
         await self._publish("set", boost_payload(self._ep(channel), minutes, setpoint))
+
+    async def _async_timed_hold(self, channel: str, setpoint: float, minutes: int) -> None:
+        await self._publish("set", timed_hold_payload(self._ep(channel), minutes, setpoint))
+
+    async def async_read_hold(self, channel: str) -> dict[str, Any]:
+        sfx = suffix(self._ep(channel))
+        keys = (f"system_mode{sfx}", f"temperature_setpoint_hold{sfx}", f"temperature_setpoint_hold_duration{sfx}")
+        await self._publish("get", {k: "" for k in keys})
+        await asyncio.sleep(3)  # the reply arrives as a state message
+        state = self._last_payload or {}
+        return {"system_mode": state.get(keys[0]), "hold": state.get(keys[1]), "duration": state.get(keys[2])}
