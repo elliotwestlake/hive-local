@@ -398,7 +398,7 @@ export function ChannelCard({
         {modes.map((m) => (
           <button
             key={m.id}
-            className={s?.mode === m.id ? "on" : ""}
+            className={s?.mode === m.id || (preheating && m.id === "schedule") ? "on" : ""}
             disabled={busy || !s}
             onClick={() =>
               send({ type: "hive_local/mode", mode: m.id }, m.id === "schedule" ? "Following the schedule" : m.label)

@@ -36,6 +36,6 @@ class ModeSelect(HiveStatusEntity, SelectEntity):
             if option == MODE_BOOST:
                 await self._data.async_boost(self._channel)
             else:
-                await self._data.transport.async_set_mode(self._channel, option)
+                await self._data.async_set_mode(self._channel, option)
         except ScheduleError as err:
             raise ServiceValidationError(str(err)) from err

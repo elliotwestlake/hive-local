@@ -70,9 +70,10 @@ export interface PreheatInfo {
   rate: number | null; // learned °C per hour, null until enough warm-ups
   warmups: number;
   warmups_needed: number;
+  rate_known?: boolean; // false until the first learn after a fresh install
   schedule_known: boolean;
   active_for: string | null; // "07:00" while pre-heating
-  next: { at: string; setpoint: number; start: string } | null;
+  next: { at: string; setpoint: number; start: string; skipped?: boolean } | null;
 }
 
 /** entry_id -> channel -> info, pushed by hive_local/subscribe. */
