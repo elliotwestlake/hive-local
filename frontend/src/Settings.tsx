@@ -1,16 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { RoomEditorDialog, RoomSetupDialog } from "./Rooms";
+import { unitPrice } from "./Stats";
 import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
 
 /**
- * Settings: the outside temperature (house-wide), rooms (setting them up; using them is on
+ * Settings: the outside temperature and heating cost (house-wide), rooms (setting them up; using them is on
  * the Overview), and each receiver's boost defaults and frost protection.
  */
 
 interface SettingsData {
   outdoor_entity: string | null;
   outdoor_candidates: Candidate[];
+  boiler_kw: number | null;
+  /** "energy", "fixed", a price entity's id, or null. */
+  price_source: string | null;
+  fixed_price: number | null;
+  price_candidates: (Candidate & { unit: string })[];
+  /** The gas price HA's energy settings give, per kWh, or null if there isn't one. */
+  energy_price: number | null;
+  /** The price in use, per kWh. */
+  price: number | null;
+  currency: string;
 }
 
 export function Settings({ getHass, devices, status }: { getHass: () => Hass; devices: Device[]; status: StatusMap }) {
@@ -24,12 +35,17 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
       .catch((e) => setError(errorText(e)));
   }, [getHass]);
 
-  const setOutdoor = (entity: string) => {
-    setData((d) => d && { ...d, outdoor_entity: entity || null });
+  const save = (change: Partial<SettingsData>) => {
+    setData((d) => d && { ...d, ...change });
     getHass()
-      .callWS({ type: "hive_local/settings/set", outdoor_entity: entity || null })
+      .callWS<SettingsData>({ type: "hive_local/settings/set", ...change })
+      .then((r) => {
+        setData(r);
+        setError("");
+      })
       .catch((e) => setError(errorText(e)));
   };
+  const setOutdoor = (entity: string) => save({ outdoor_entity: entity || null });
 
   return (
     <div className="settings">
@@ -58,6 +74,8 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
         </div>
       </section>
 
+      {data && <CostSettings data={data} save={save} />}
+
       <RoomSettings getHass={getHass} />
 
       {devices.map((d) => (
@@ -71,6 +89,85 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
         </section>
       ))}
     </div>
+  );
+}
+
+const KW_STEPS = [6, 9, 12, 15, 18, 20, 24, 25, 28, 30, 32, 35, 40, 45, 50];
+
+/** Boiler output and gas price, for the estimated cost in the heating history. */
+function CostSettings({ data, save }: { data: SettingsData; save: (change: Partial<SettingsData>) => void }) {
+  const [priceText, setPriceText] = useState(data.fixed_price != null ? String(data.fixed_price) : "");
+  const timer = useRef<number>();
+  const kw = data.boiler_kw;
+  const stepKw = (dir: 1 | -1) => {
+    if (kw == null) return save({ boiler_kw: 24 });
+    const next = dir > 0 ? KW_STEPS.find((k) => k > kw) : [...KW_STEPS].reverse().find((k) => k < kw);
+    save({ boiler_kw: next ?? kw });
+  };
+  const typePrice = (text: string) => {
+    setPriceText(text);
+    const value = Number(text);
+    window.clearTimeout(timer.current);
+    if (text.trim() === "" || !Number.isFinite(value) || value < 0) return;
+    timer.current = window.setTimeout(() => save({ price_source: "fixed", fixed_price: value }), 800);
+  };
+  const perKwh = (v: number | null) => (v != null ? `${unitPrice(v, data.currency)} per kWh` : null);
+  const priceNote =
+    data.price_source === "energy" && data.energy_price == null
+      ? "The Energy dashboard has no gas price (or it can't be read)."
+      : data.price_source && data.price_source !== "fixed" && data.price == null
+        ? "That entity has no price right now."
+        : perKwh(data.price) ?? "Pick where the price comes from.";
+  return (
+    <section className="settings-section">
+      <h3>Heating cost</h3>
+      <p className="muted small settings-help">
+        Set both to see an estimated cost in the heating history: the boiler's time on × its output × the gas price. It's on the high side, as a
+        modulating boiler rarely runs flat out.
+      </p>
+      <div className="settings-group">
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="fire" /></span>
+          <div className="settings-text">
+            <span>Boiler output</span>
+            <span className="muted small">Its heating output in kW, from the boiler's manual or label (often 24–35 kW for a combi).</span>
+          </div>
+          <div className="settings-controls">
+            <Adjust value={kw != null ? `${kw.toLocaleString()} kW` : "Not set"} onLower={() => stepKw(-1)} onRaise={() => stepKw(1)} />
+            {kw != null && (
+              <button className="ghost small" onClick={() => save({ boiler_kw: null })}>
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="cash" /></span>
+          <div className="settings-text">
+            <span>Gas price</span>
+            <span className="muted small">{priceNote}</span>
+          </div>
+          <div className="settings-controls">
+            <select aria-label="Gas price" value={data.price_source ?? ""} onChange={(e) => save({ price_source: e.target.value || null })}>
+              <option value="">None</option>
+              <option value="energy">Energy dashboard</option>
+              <option value="fixed">Fixed price</option>
+              {data.price_candidates.map((c) => (
+                <option key={c.entity_id} value={c.entity_id}>
+                  {c.name} ({c.unit})
+                </option>
+              ))}
+            </select>
+            {data.price_source === "fixed" && (
+              <label className="settings-price">
+                <input type="number" inputMode="decimal" min="0" step="0.001" value={priceText} placeholder="0.07" onChange={(e) => typePrice(e.target.value)} aria-label={`Gas price in ${data.currency} per kWh`} />
+                <span className="muted small">{data.currency}/kWh</span>
+              </label>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -194,6 +194,7 @@ function fakeStats(entry, channel, days, offset = 0) {
     target_avg: water ? null : 20.7,
     outdoor: { avg: +(known.reduce((a, b) => a + b.outdoor, 0) / known.length).toFixed(1), min: Math.min(...known.map((b) => b.outdoor)), max: Math.max(...known.map((b) => b.outdoor)) },
     outdoor_entity: "weather.home",
+    cost: water ? null : { boiler_kw: 24, price: 0.0634, per_hour: 24 * 0.0634, currency: "GBP", source: "energy" },
     previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30, outdoor_avg: 3.1 },
     days: dayList, series, offset, period_end: today + 86400,
   };
@@ -242,6 +243,13 @@ const hass = {
             { entity_id: "weather.home", name: "Forecast Home", area: null },
             { entity_id: "sensor.garden_temperature", name: "Garden temperature", area: "Garden" },
           ],
+          boiler_kw: 24,
+          price_source: "energy",
+          fixed_price: null,
+          price_candidates: [{ entity_id: "sensor.gas_tariff_unit_rate", name: "Gas tariff unit rate", area: null, unit: "GBP/kWh" }],
+          energy_price: 0.0634,
+          price: 0.0634,
+          currency: "GBP",
         };
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };

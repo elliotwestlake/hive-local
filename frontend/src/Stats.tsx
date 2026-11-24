@@ -15,7 +15,8 @@ import {
  * temperature, a date you can step back through, a summary box, then a row per day
  * (per hour on D) with a bar, its value, the outside temperature (where Hive shows the
  * weather, if the receiver has an outdoor source in its options) and that day's lowest and
- * highest room temperature.
+ * highest room temperature. A third toggle shows an estimated cost once a boiler output
+ * and gas price are set in Settings.
  */
 
 const PERIODS: { id: StatsPeriod; label: string; name: string }[] = [
@@ -23,7 +24,7 @@ const PERIODS: { id: StatsPeriod; label: string; name: string }[] = [
   { id: 7, label: "W", name: "Week" },
   { id: 30, label: "M", name: "Month" },
 ];
-type Metric = "time" | "temp";
+type Metric = "time" | "temp" | "cost";
 const REFRESH_MS = 5 * 60_000;
 
 /** "3h 20m", "45m", "0m". */
@@ -32,6 +33,18 @@ export const duration = (minutes: number) => {
   if (m < 60) return `${m}m`;
   return m % 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m / 60}h`;
 };
+
+/** "£2.52", in HA's currency. */
+export const money = (value: number, currency: string, digits = 2) => {
+  try {
+    return value.toLocaleString([], { style: "currency", currency, maximumFractionDigits: digits, minimumFractionDigits: 2 });
+  } catch {
+    return `${value.toFixed(digits)} ${currency}`;
+  }
+};
+
+/** A price per kWh, to a tenth of a penny or cent: "£0.0634". */
+export const unitPrice = (value: number, currency: string) => money(value, currency, 4);
 
 const fmt = (t: number, o: Intl.DateTimeFormatOptions) => new Date(t * 1000).toLocaleDateString([], o);
 const hour = (t: number) => new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -112,7 +125,6 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const water = ch === "water";
-  const shownMetric: Metric = water ? "time" : metric;
 
   const load = useCallback(() => {
     if (!device) return;
@@ -149,6 +161,9 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
   const list = shown ? rows(shown) : [];
   const units = period === 1 ? "hour" : "day";
   const outdoor = !water && !!shown?.outdoor;
+  const cost = water ? null : shown?.cost ?? null;
+  // Cost only once it's set up; fall back to time if it goes away.
+  const shownMetric: Metric = water ? "time" : metric === "cost" && !cost && shown ? "time" : metric;
 
   return (
     <div className="history">
@@ -173,12 +188,17 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
         </div>
         {!water && (
           <div className="history-toggle" role="radiogroup" aria-label="Show">
-            <button role="radio" aria-checked={metric === "time"} title="Time on" aria-label="Time on" className={`wide ${metric === "time" ? "on" : ""}`} onClick={() => setMetric("time")}>
+            <button role="radio" aria-checked={shownMetric === "time"} title="Time on" aria-label="Time on" className={`wide ${shownMetric === "time" ? "on" : ""}`} onClick={() => setMetric("time")}>
               <Icon name="clock-outline" />
             </button>
-            <button role="radio" aria-checked={metric === "temp"} title="Temperature" aria-label="Temperature" className={`wide ${metric === "temp" ? "on" : ""}`} onClick={() => setMetric("temp")}>
+            <button role="radio" aria-checked={shownMetric === "temp"} title="Temperature" aria-label="Temperature" className={`wide ${shownMetric === "temp" ? "on" : ""}`} onClick={() => setMetric("temp")}>
               <Icon name="thermometer" />
             </button>
+            {(cost || metric === "cost") && (
+              <button role="radio" aria-checked={shownMetric === "cost"} title="Estimated cost" aria-label="Estimated cost" className={`wide ${shownMetric === "cost" ? "on" : ""}`} onClick={() => setMetric("cost")}>
+                <Icon name="cash" />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -207,7 +227,7 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
 
       {shown?.has_data && (
         <>
-          <Summary data={shown} metric={shownMetric} water={water} units={units} rows={list} />
+          <Summary data={shown} metric={shownMetric} water={water} units={units} rows={list} cost={cost} />
           <div className="history-rows">
             {list.length > 0 && !water && (
               <div className={`history-key muted small ${outdoor ? "with-outdoor" : ""}`}>
@@ -222,9 +242,15 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
               </div>
             )}
             {list.map((r) => (
-              <HistoryRow key={r.key} row={r} metric={shownMetric} water={water} outdoor={outdoor} scale={scaleOf(list, shownMetric, period)} />
+              <HistoryRow key={r.key} row={r} metric={shownMetric} water={water} outdoor={outdoor} cost={cost} scale={scaleOf(list, shownMetric, period)} />
             ))}
           </div>
+          {shownMetric === "cost" && cost && (
+            <p className="history-hint muted small">
+              An estimate: the boiler's time on × {cost.boiler_kw.toLocaleString()} kW × {unitPrice(cost.price, cost.currency)} per kWh, at today's price. A
+              modulating boiler rarely runs flat out, so the real cost is usually lower.
+            </p>
+          )}
           {!water && shown.outdoor_entity == null && (
             <p className="history-hint muted small">
               To see the temperature outside here, pick a weather entity or outdoor sensor in the Settings tab.
@@ -237,21 +263,24 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
 }
 
 function scaleOf(list: Row[], metric: Metric, period: StatsPeriod) {
-  if (metric === "time") return { lo: 0, hi: Math.max(period === 1 ? 60 : 60, ...list.map((r) => r.minutes ?? 0)) };
+  if (metric === "time" || metric === "cost") return { lo: 0, hi: Math.max(period === 1 ? 60 : 60, ...list.map((r) => r.minutes ?? 0)) };
   const temps = list.map((r) => r.avg).filter((v): v is number => v != null);
   const lo = temps.length ? Math.floor(Math.min(...temps)) - 2 : 10;
   const hi = temps.length ? Math.ceil(Math.max(...temps)) : 25;
   return { lo, hi: Math.max(hi, lo + 4) };
 }
 
-function Summary({ data, metric, water, units, rows: list }: { data: StatsData; metric: Metric; water: boolean; units: string; rows: Row[] }) {
+function Summary({ data, metric, water, units, rows: list, cost }: { data: StatsData; metric: Metric; water: boolean; units: string; rows: Row[]; cost: StatsData["cost"] }) {
   const counted = Math.max(1, list.filter((r) => r.minutes != null).length);
   const prev = data.previous;
   const comparable = !!prev?.has_data && prev.known_minutes >= 0.5 * data.known_minutes;
   const diff = comparable ? data.heating_minutes - prev!.heating_minutes : 0;
   const t = data.temperature;
+  const spend = (minutes: number) => (cost ? money((minutes / 60) * cost.per_hour, cost.currency) : "–");
   const [aLabel, aValue, bLabel, bValue] =
-    metric === "time"
+    metric === "cost"
+      ? ["Estimated cost", spend(data.heating_minutes), `Average per ${units}`, spend(data.heating_minutes / counted)]
+      : metric === "time"
       ? [water ? "Hot water on" : "Boiler on", duration(data.heating_minutes), `Average per ${units}`, duration(data.heating_minutes / counted)]
       : ["Average", t.avg != null ? `${t.avg.toFixed(1)}°` : "–", "Lowest – highest", t.min != null && t.max != null ? `${t.min.toFixed(1)}–${t.max.toFixed(1)}°` : "–"];
   return (
@@ -269,6 +298,7 @@ function Summary({ data, metric, water, units, rows: list }: { data: StatsData; 
       </div>
       <p className="history-note muted small">
         {metric === "time" && comparable && (Math.abs(diff) < 1 ? "Same as the period before · " : `${duration(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than the period before · `)}
+        {metric === "cost" && cost && comparable && (Math.abs(diff) < 1 ? "Same as the period before · " : `${spend(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than the period before · `)}
         Fired up {data.cycles} time{data.cycles === 1 ? "" : "s"}
         {data.boosts ? ` · ${data.boosts} boost${data.boosts === 1 ? "" : "s"}` : ""}
         {metric === "temp" && data.target_avg != null ? ` · average target ${data.target_avg.toFixed(1)}°` : ""}
@@ -296,8 +326,10 @@ function outdoorRange(min: number | null, max: number | null) {
   return a === b ? `${a}°` : `${a}–${b}°`;
 }
 
-function HistoryRow({ row, metric, water, outdoor, scale }: { row: Row; metric: Metric; water: boolean; outdoor: boolean; scale: { lo: number; hi: number } }) {
-  const v = metric === "time" ? row.minutes : row.avg;
+function HistoryRow({ row, metric, water, outdoor, cost, scale }: { row: Row; metric: Metric; water: boolean; outdoor: boolean; cost: StatsData["cost"]; scale: { lo: number; hi: number } }) {
+  const v = metric === "temp" ? row.avg : row.minutes;
+  const text =
+    v == null ? "–" : metric === "time" ? duration(v) : metric === "cost" && cost ? money((v / 60) * cost.per_hour, cost.currency) : `${v.toFixed(1)}°`;
   const f = v == null ? 0 : Math.max(0.02, Math.min(1, (v - scale.lo) / (scale.hi - scale.lo || 1)));
   return (
     <div className={`history-row ${outdoor ? "with-outdoor" : ""}`}>
@@ -306,7 +338,7 @@ function HistoryRow({ row, metric, water, outdoor, scale }: { row: Row; metric: 
       </span>
       <span className="history-bar">
         {v != null && v > 0 && <i style={{ width: `${f * 100}%` }} />}
-        <span className="history-value">{v == null ? "–" : metric === "time" ? duration(v) : `${v.toFixed(1)}°`}</span>
+        <span className="history-value">{text}</span>
       </span>
       {outdoor && (
         <span className="history-outdoor" title="Lowest and highest outside temperature">
