@@ -3,12 +3,21 @@ name: Commits
 # lower-case conventional commit: type(optional-scope): summary, e.g.
 #   feat(preheat): start heating early so it's warm at the scheduled time
 #   fix(zha): handle zigpy 2.x's configure_reporting result (#1)
-# Merge commits are skipped.
+# Merge commits are skipped. release-please.yml starts it by hand (workflow_dispatch) on the
+# release PR's branch, with the PR's title and base, since that PR doesn't trigger it.
 on:
   push:
     branches: [main]
   pull_request:
     types: [opened, edited, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      title:
+        description: Pull request title to check
+        required: false
+      base:
+        description: Base commit; the commits after it are checked
+        required: false
 jobs:
   conventional:
     runs-on: ubuntu-latest
@@ -17,8 +26,8 @@ jobs:
         with: { fetch-depth: 0 }
       - name: Check commit subjects
         env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          BASE: ${{ github.event.pull_request.base.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title || inputs.title }}
+          BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
         run: |
           pattern='^(feat|fix|docs|chore|refactor|perf|test|build|ci|style|revert)(\([a-z0-9-]+\))?!?: [^A-Z]+$'
           if [ -n "$BASE" ]; then range="$BASE..HEAD"; else range="HEAD"; fi

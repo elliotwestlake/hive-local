@@ -9,9 +9,12 @@ name: Release
 # publishes it as a pre-release. When it merges, that pre-release is removed here so
 # release-please can publish the real release under the same tag.
 #
-# RELEASE_PLEASE_TOKEN (a fine-grained token: Contents and Pull requests, read/write) lets
-# the release PR trigger the other workflows (tests, commit check, pre-release). Without it
-# the built-in token is used, and the release PR gets no checks.
+# It uses the built-in token, so the release PR is opened by github-actions[bot]. GitHub
+# doesn't run pull_request workflows for changes made with that token, but it does let it
+# start workflows by hand: so after creating or updating the release PR this starts the
+# checks (validate.yml, commits.yml) on its branch, and the pre-release when it has the
+# `pre-release` label. Their results show on the release PR as usual.
+# Needs the repo setting "Allow GitHub Actions to create and approve pull requests".
 on:
   push:
     branches: [main]
@@ -19,6 +22,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 concurrency: release
 jobs:
   release-please:
@@ -36,7 +40,23 @@ jobs:
             echo "::notice::Removed the $tag pre-release so the release can be published"
           fi
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+      - name: Start the checks (and pre-release) on the release PR
+        if: steps.release.outputs.pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_JSON: ${{ steps.release.outputs.pr }}
+          BASE: ${{ github.sha }}
+        run: |
+          branch=$(jq -r .headBranchName <<<"$PR_JSON")
+          number=$(jq -r .number <<<"$PR_JSON")
+          title=$(jq -r .title <<<"$PR_JSON")
+          gh workflow run validate.yml --ref "$branch"
+          gh workflow run commits.yml --ref "$branch" -f title="$title" -f base="$BASE"
+          if gh pr view "$number" --json labels --jq '.labels[].name' | grep -qx pre-release; then
+            gh workflow run prerelease.yml --ref "$branch" -f pr="$number"
+          fi
+          echo "::notice::Started the checks on release PR #$number ($branch)"
