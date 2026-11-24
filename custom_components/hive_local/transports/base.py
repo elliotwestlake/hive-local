@@ -178,6 +178,10 @@ class Transport(ABC):
         """The non-boost mode this channel was in last (what cancelling a boost returns to)."""
         return self._resume.get(channel, (MODE_SCHEDULE, None))[0]
 
+    def resume_state(self, channel: str) -> tuple[str, float | None]:
+        """The non-boost mode and setpoint this channel was in last."""
+        return self._resume.get(channel, (MODE_SCHEDULE, None))
+
     async def async_set_mode(
         self, channel: str, mode: str, setpoint: float | None = None
     ) -> None:

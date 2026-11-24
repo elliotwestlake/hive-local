@@ -53,7 +53,12 @@ class HiveWaterHeater(HiveStatusEntity, WaterHeaterEntity):
     def extra_state_attributes(self) -> dict[str, Any] | None:
         if not self._status:
             return None
-        return {"heating": self._status["heating"], "boost_remaining": self._status["boost_remaining"]}
+        until = self._data.holiday.until(self._channel)
+        return {
+            "heating": self._status["heating"],
+            "boost_remaining": self._status["boost_remaining"],
+            "holiday_until": until.isoformat() if until else None,
+        }
 
     async def async_set_operation_mode(self, operation_mode: str) -> None:
         mode = FROM_OP[operation_mode]

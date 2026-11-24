@@ -81,6 +81,9 @@ BOOST_POLL_INTERVAL = timedelta(seconds=60)
 # (the receiver can lose the hold duration and boost indefinitely).
 BOOST_DEADLINE_GRACE = timedelta(minutes=2)
 
+# Holiday mode: the longest holiday we accept.
+HOLIDAY_MAX_DAYS = 365
+
 # Pre-heat: how far ahead it may start at most (minutes), and how much history it learns from.
 DEFAULT_PREHEAT_MAX_LEAD = 120
 PREHEAT_MAX_LEAD_MIN = 15

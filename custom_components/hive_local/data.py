@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import CHANNEL_HEAT, DEFAULT_BOOST_MINUTES, DEFAULT_BOOST_TEMP, DEFAULT_FROST_TEMP, SIGNAL_STATUS
 from .schedule import ScheduleError
+from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .transports import Transport
 from .z2m import MODE_BOOST, MODE_MANUAL, MODE_OFF
@@ -31,6 +33,7 @@ class BoostDefaults:
 class HiveData:
     transport: Transport
     preheat: Preheat
+    holiday: Holiday
     boost: dict[str, BoostDefaults] = field(default_factory=dict)
 
     def boost_defaults(self, channel: str) -> BoostDefaults:
@@ -51,6 +54,19 @@ class HiveData:
             temperature if temperature is not None else defaults.temperature,
         )
 
+    async def async_set_holiday(self, until: datetime, temperature: float | None = None) -> None:
+        """Away until `until`: heating holds `temperature` (default: frost protection), hot water off."""
+        if temperature is None:
+            temperature = self.boost_defaults(CHANNEL_HEAT).frost
+        await self.holiday.async_set(until, temperature)
+
+    async def async_set_hold(self, temperature: float) -> None:
+        """A manual heating hold; while away, that's the holiday temperature."""
+        if CHANNEL_HEAT in self.holiday.away:
+            await self.holiday.async_set_temperature(temperature)
+        else:
+            await self.transport.async_set_mode(CHANNEL_HEAT, MODE_MANUAL, temperature)
+
     async def async_set_target(self, channel: str, temperature: float) -> None:
         """Like turning the thermostat dial (heating only).
 
@@ -68,7 +84,7 @@ class HiveData:
         if mode == MODE_BOOST:
             await self.async_boost(channel, status.get("boost_remaining") or None, temperature)
         elif mode == MODE_MANUAL:
-            await self.transport.async_set_mode(channel, MODE_MANUAL, temperature)
+            await self.async_set_hold(temperature)
         else:
             await self.transport.async_set_setpoint(channel, temperature)
 

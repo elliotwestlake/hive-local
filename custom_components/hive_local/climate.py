@@ -11,6 +11,7 @@ from typing import Any
 
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
+    PRESET_AWAY,
     PRESET_BOOST,
     PRESET_NONE,
     ClimateEntity,
@@ -44,7 +45,6 @@ async def async_setup_entry(
 
 class HiveClimate(HiveStatusEntity, ClimateEntity):
     _attr_hvac_modes = list(TO_HVAC.values())
-    _attr_preset_modes = [PRESET_NONE, PRESET_BOOST]
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.PRESET_MODE
@@ -78,10 +78,20 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
         return HVACAction.HEATING if self._status["heating"] else HVACAction.IDLE
 
     @property
+    def preset_modes(self) -> list[str]:
+        # Away only shows while a holiday runs: it needs an end time, so it's set with
+        # the hive_local.set_holiday action (or the panel), and cleared from here.
+        if self._channel in self._data.holiday.away:
+            return [PRESET_NONE, PRESET_BOOST, PRESET_AWAY]
+        return [PRESET_NONE, PRESET_BOOST]
+
+    @property
     def preset_mode(self) -> str | None:
         if not self._status:
             return None
-        return PRESET_BOOST if self._status["mode"] == MODE_BOOST else PRESET_NONE
+        if self._status["mode"] == MODE_BOOST:
+            return PRESET_BOOST
+        return PRESET_AWAY if self._channel in self._data.holiday.away else PRESET_NONE
 
     @property
     def current_temperature(self) -> float | None:
@@ -120,7 +130,7 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
                     await self.async_set_hvac_mode(HVACMode.AUTO)
                 await self._run(self._data.transport.async_set_setpoint(self._channel, temperature))
             else:
-                await self._run(self._data.transport.async_set_mode(self._channel, MODE_MANUAL, temperature))
+                await self._run(self._data.async_set_hold(temperature))
         elif hvac_mode is not None:
             await self.async_set_hvac_mode(hvac_mode)
 
@@ -130,13 +140,19 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         if preset_mode == PRESET_BOOST:
             await self._run(self._data.async_boost(self._channel))
+        elif preset_mode == PRESET_AWAY:
+            if self.preset_mode != PRESET_AWAY:
+                raise ServiceValidationError("Use the hive_local.set_holiday action: it needs an end time")
         elif self.preset_mode == PRESET_BOOST:
             await self._run(self._data.transport.async_cancel_boost(self._channel))
+        elif self.preset_mode == PRESET_AWAY:
+            await self._run(self._data.holiday.async_cancel())
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         # Stats counts a pre-heat as following the schedule, not as a boost.
-        return {"preheat": self._data.preheat.is_active}
+        until = self._data.holiday.until(self._channel)
+        return {"preheat": self._data.preheat.is_active, "holiday_until": until.isoformat() if until else None}
 
     def _boost_minutes_left(self) -> int | None:
         """Changing the temperature mid-boost keeps the time left (None: use the default)."""

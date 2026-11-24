@@ -140,6 +140,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }
 .device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }
 .status-icon.done { color: var(--success-color, #43a047); }
+.status-icon.away { color: var(--secondary-text-color); }
 .stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }
 .device.heat { --hl-accent: var(--hl-heat); }
 .device.water { --hl-accent: var(--hl-water); }
@@ -178,6 +179,10 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 /* Device controls (opened from a card) */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .channel { gap: 16px; }
+.holiday-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--hl-soft); }
+.holiday-row > .icon-wrap { --mdc-icon-size: 20px; color: var(--secondary-text-color); }
+.holiday-text { flex: 1; }
+.holiday-row > button { padding: 6px 12px; }
 .target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }
 .target-text { display: flex; flex-direction: column; gap: 2px; }
 .target-label { font-size: 16px; font-weight: 500; }

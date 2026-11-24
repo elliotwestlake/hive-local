@@ -29,6 +29,7 @@ from .const import (
     TRANSPORT_ZHA,
 )
 from .data import HiveConfigEntry, HiveData
+from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .settings import DATA_SETTINGS, HouseSettings
 from .room_manager import DATA_ROOMS, RoomManager
@@ -74,7 +75,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
     await transport.async_start()
     preheat = Preheat(hass, transport)
     await preheat.async_start()
-    entry.runtime_data = HiveData(transport, preheat)
+    holiday = Holiday(hass, transport)
+    await holiday.async_start()
+    entry.runtime_data = HiveData(transport, preheat, holiday)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if PANEL_URL not in hass.data.get(frontend.DATA_PANELS, {}):
@@ -118,6 +121,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> boo
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False
     await entry.runtime_data.preheat.async_stop()
+    await entry.runtime_data.holiday.async_stop()
     await entry.runtime_data.transport.async_stop()
     others = [
         e for e in hass.config_entries.async_loaded_entries(DOMAIN) if e.entry_id != entry.entry_id
