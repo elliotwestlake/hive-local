@@ -200,6 +200,9 @@ function fakeStats(entry, channel, days, offset = 0) {
   };
 }
 
+// hive_local/settings/set changes, on top of the sample settings.
+const SETTINGS_CHANGES = {};
+
 const hass = {
   async callWS(msg) {
     switch (msg.type) {
@@ -236,7 +239,16 @@ const hass = {
             { name: "Study", valves: ["climate.study"], sensor: "sensor.study" },
           ],
         };
+      case "hive_local/settings/set": {
+        // Remember changes, so the settings can be tried out here.
+        const { type, ...change } = msg;
+        Object.assign(SETTINGS_CHANGES, change);
+        if (SETTINGS_CHANGES.price_source === "fixed") SETTINGS_CHANGES.price = SETTINGS_CHANGES.fixed_price;
+        return hass.callWS({ type: "hive_local/settings" });
+      }
       case "hive_local/settings":
+        return { ...(await hass.callWS({ type: "hive_local/settings/base" })), ...SETTINGS_CHANGES };
+      case "hive_local/settings/base":
         return {
           outdoor_entity: params.has("noout") ? null : "weather.home",
           outdoor_candidates: [

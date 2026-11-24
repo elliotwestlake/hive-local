@@ -37,7 +37,7 @@ shot rooms 900,760 "tab=Overview&room=Lounge"
 shot stats 900,780 "tab=Stats"
 shot stats-cost 900,780 "tab=Stats&click=Estimated%20cost"
 shot settings 900,640 "tab=Settings"
-shot settings-fixed-price 900,640 "tab=Settings&price=fixed"
+shot settings-fixed-price 900,760 "tab=Settings&price=fixed"
 # A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
 shot phone 390,770 "tab=Overview&narrow=1"
 shot overview-dark 900,760 "tab=Overview&theme=dark"

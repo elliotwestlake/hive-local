@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { Icon } from "./Icon";
 import { RoomEditorDialog, RoomSetupDialog } from "./Rooms";
 import { unitPrice } from "./Stats";
@@ -105,7 +105,9 @@ const KW_STEPS = [6, 9, 12, 15, 18, 20, 24, 25, 28, 30, 32, 35, 40, 45, 50];
 
 /** Boiler output and gas price, for the estimated cost in the heating history. */
 function CostSettings({ data, save }: { data: SettingsData; save: (change: Partial<SettingsData>) => void }) {
-  const [priceText, setPriceText] = useState(data.fixed_price != null ? String(data.fixed_price) : "");
+  // The fixed unit rate while it's being stepped (saved 0.8 s after the last step).
+  const [rate, setRate] = useState<number | null>(null);
+  const rateRef = useRef<number | null>(null);
   const timer = useRef<number>();
   const kw = data.boiler_kw;
   const stepKw = (dir: 1 | -1) => {
@@ -113,13 +115,25 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
     const next = dir > 0 ? KW_STEPS.find((k) => k > kw) : [...KW_STEPS].reverse().find((k) => k < kw);
     save({ boiler_kw: next ?? kw });
   };
-  const typePrice = (text: string) => {
-    setPriceText(text);
-    const value = Number(text);
+  const minor = MINOR_UNITS[data.currency];
+  const shownRate = rate ?? data.fixed_price;
+  const stepRate = (dir: 1 | -1, held = 0) => {
+    // 0.01p (or cent) a tap; held, the buttons repeat and speed up, then move 0.1p at a time.
+    const now = rateRef.current ?? data.fixed_price ?? 0.06;
+    const size = held > 15 ? 0.001 : 0.0001;
+    const next = Math.max(0, Math.round((dir > 0 ? Math.floor(now / size + 1e-6) + 1 : Math.ceil(now / size - 1e-6) - 1) * size * 10000) / 10000);
+    rateRef.current = next;
+    setRate(next);
     window.clearTimeout(timer.current);
-    if (text.trim() === "" || !Number.isFinite(value) || value < 0) return;
-    timer.current = window.setTimeout(() => save({ price_source: "fixed", fixed_price: value }), 800);
+    timer.current = window.setTimeout(() => {
+      save({ price_source: "fixed", fixed_price: next });
+      rateRef.current = null;
+      setRate(null);
+    }, 800);
   };
+  const choosePrice = (source: string) =>
+    // A fixed price starts from whatever price was in use, so it's a few taps from right.
+    save(source === "fixed" && data.fixed_price == null ? { price_source: source, fixed_price: data.price ?? 0.06 } : { price_source: source || null });
   const fit = data.fit;
   const meterNote = !data.gas_meter
     ? "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for."
@@ -130,7 +144,9 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
         : "Learning from the last 14 days…";
   const perKwh = (v: number | null) => (v != null ? `${unitPrice(v, data.currency)} per kWh` : null);
   const priceNote =
-    data.price_source === "energy" && data.energy_price == null
+    data.price_source === "fixed"
+      ? "Your unit rate, below."
+      : data.price_source === "energy" && data.energy_price == null
       ? "The Energy dashboard has no gas price (or it can't be read)."
       : data.price_source && data.price_source !== "fixed" && data.price == null
         ? "That entity has no price right now."
@@ -182,20 +198,13 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
           <span className="device-icon"><Icon name="cash" /></span>
           <div className="settings-text">
             <span>Gas price</span>
-            {data.price_source === "fixed" ? (
-              <label className="settings-price">
-                <input type="number" inputMode="decimal" min="0" step="0.001" value={priceText} placeholder="0.07" onChange={(e) => typePrice(e.target.value)} aria-label={`Gas price in ${data.currency} per kWh`} />
-                <span className="muted small">{data.currency} per kWh</span>
-              </label>
-            ) : (
-              <span className="muted small">{priceNote}</span>
-            )}
+            <span className="muted small">{priceNote}</span>
           </div>
           <div className="settings-controls">
-            <select aria-label="Gas price" value={data.price_source ?? ""} onChange={(e) => save({ price_source: e.target.value || null })}>
+            <select aria-label="Gas price" value={data.price_source ?? ""} onChange={(e) => choosePrice(e.target.value)}>
               <option value="">None</option>
               <option value="energy">Energy dashboard</option>
-              <option value="fixed">Fixed price</option>
+              <option value="fixed">Unit rate</option>
               {data.price_candidates.map((c) => (
                 <option key={c.entity_id} value={c.entity_id}>
                   {c.name} ({c.unit})
@@ -204,10 +213,30 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
             </select>
           </div>
         </div>
+        {data.price_source === "fixed" && (
+          <div className="settings-row">
+            <span className="device-icon"><Icon name="tag-outline" /></span>
+            <div className="settings-text">
+              <span>Unit rate</span>
+              <span className="muted small">From your bill or tariff: the gas price per kWh, without the standing charge.</span>
+            </div>
+            <div className="settings-controls">
+              <Adjust
+                value={shownRate == null ? "–" : minor ? `${(shownRate * 100).toFixed(2)}${minor}` : unitPrice(shownRate, data.currency)}
+                onLower={(held) => stepRate(-1, held)}
+                onRaise={(held) => stepRate(1, held)}
+                hold
+              />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
 }
+
+/** Currencies whose unit rates are quoted in hundredths: the symbol shown after the number. */
+const MINOR_UNITS: Record<string, string> = { GBP: "p", EUR: "c", USD: "¢", CAD: "¢", AUD: "c", NZD: "c", IEP: "p" };
 
 function RoomSettings({ getHass }: { getHass: () => Hass }) {
   const [rooms, setRooms] = useState<Room[] | null>(null);
@@ -348,19 +377,58 @@ function BoostRows({ getHass, device, channel, info }: { getHass: () => Hass; de
   );
 }
 
-function Adjust({ label, value, onLower, onRaise }: { label?: string; value: string; onLower: () => void; onRaise: () => void }) {
+function Adjust({ label, value, onLower, onRaise, hold }: { label?: string; value: string; onLower: (held: number) => void; onRaise: (held: number) => void; hold?: boolean }) {
+  const lower = useHold(onLower, hold);
+  const raise = useHold(onRaise, hold);
   return (
     <div className="adjust">
       {label && <span className="muted small">{label}</span>}
       <div className="stepper">
-        <button className="round" onClick={onLower} aria-label={`Lower ${label ?? ""}`.trim()}>
+        <button className="round" {...lower} aria-label={`Lower ${label ?? ""}`.trim()}>
           <Icon name="minus" />
         </button>
         <span className="stepper-value">{value}</span>
-        <button className="round" onClick={onRaise} aria-label={`Raise ${label ?? ""}`.trim()}>
+        <button className="round" {...raise} aria-label={`Raise ${label ?? ""}`.trim()}>
           <Icon name="plus" />
         </button>
       </div>
     </div>
   );
+}
+
+/**
+ * A button's handlers: a click steps once; with `hold`, pressing and holding repeats,
+ * faster the longer it's held (`step` gets how many repeats so far, to take bigger steps).
+ * Keyboard clicks (detail 0) still step once.
+ */
+function useHold(step: (held: number) => void, hold?: boolean) {
+  const stepRef = useRef(step);
+  stepRef.current = step;
+  const timer = useRef<number>();
+  const stop = () => window.clearTimeout(timer.current);
+  useEffect(() => stop, []);
+  if (!hold) return { onClick: () => step(0) };
+  const start = (e: PointerEvent) => {
+    if (e.button !== 0) return;
+    stepRef.current(0);
+    let delay = 400;
+    let n = 0;
+    const again = () => {
+      n += 1;
+      stepRef.current(n);
+      delay = n < 5 ? 150 : n < 20 ? 70 : 30;
+      timer.current = window.setTimeout(again, delay);
+    };
+    timer.current = window.setTimeout(again, delay);
+  };
+  return {
+    onPointerDown: start,
+    onPointerUp: stop,
+    onPointerLeave: stop,
+    onPointerCancel: stop,
+    onContextMenu: (e: MouseEvent) => e.preventDefault(),
+    onClick: (e: MouseEvent) => {
+      if (e.detail === 0) step(0);
+    },
+  };
 }

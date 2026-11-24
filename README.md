@@ -82,7 +82,7 @@ The **Stats** tab shows how long the boiler ran, laid out as a history:
 - **Estimated cost (optional):** a third toggle (the banknote icon) shows the heating's cost: the boiler's time on × its average output while on × the gas price per kWh. Set it up in **Settings → Heating cost**:
   - **Gas meter (best):** pick your gas meter (the Energy dashboard's gas source, or any gas sensor, e.g. from your energy supplier's integration). Hive Local learns the boiler's real average output from the last 14 days: each day's gas use against the hours the boiler was on, allowing for hot water and cooking on the same meter. It needs at least 4 days of readings with the heating on, and re-learns every 6 hours.
   - **Boiler rating:** without a gas meter, enter the boiler's rated output (kW). It's counted at 40%, since a modern boiler turns its flame down and rarely runs flat out; the real figure varies, so a gas meter is much closer.
-  - **Gas price:** from the Energy dashboard (your gas source's price), a sensor or number with a price per kWh or per m³ (for example a tariff sensor), or a number you type in. Prices per m³ are converted at 11.2 kWh/m³.
+  - **Gas price:** from the Energy dashboard (your gas source's price), a sensor or number with a price per kWh or per m³ (for example a tariff sensor), or **Unit rate**: your gas unit rate from your bill, set with − / + in pence (0.01p a tap; hold to go faster). Prices per m³ are converted at 11.2 kWh/m³.
   
   It's an estimate, at today's price for the whole period. Heating only: hot water shares the boiler.
 - The Stats tab is the heating history, with a tab for each receiver if you have several. Each heating or hot water page has the same history for just that one, under **History**.
