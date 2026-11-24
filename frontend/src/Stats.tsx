@@ -247,8 +247,10 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
           </div>
           {shownMetric === "cost" && cost && (
             <p className="history-hint muted small">
-              An estimate: the boiler's time on × {cost.boiler_kw.toLocaleString()} kW × {unitPrice(cost.price, cost.currency)} per kWh, at today's price. A
-              modulating boiler rarely runs flat out, so the real cost is usually lower.
+              An estimate: the boiler's time on × {cost.kw.toFixed(1)} kW × {unitPrice(cost.price, cost.currency)} per kWh, at today's price.{" "}
+              {cost.basis === "meter"
+                ? "The kW is the boiler's average while on, learned from your gas meter."
+                : `The kW is 40% of the boiler's ${cost.boiler_kw ?? "?"} kW rating, as a modulating boiler rarely runs flat out. Pick a gas meter in Settings for a closer figure.`}
             </p>
           )}
           {!water && shown.outdoor_entity == null && (

@@ -12,6 +12,15 @@ import { errorText, type Candidate, type Channel, type Device, type Hass, type R
 interface SettingsData {
   outdoor_entity: string | null;
   outdoor_candidates: Candidate[];
+  gas_meter: string | null;
+  gas_meter_candidates: (Candidate & { energy: boolean })[];
+  /** What was learned from the gas meter: average kW while on, kWh a day without heating. */
+  fit: { kw: number; baseline: number; days: number; hours: number } | null;
+  learned_at: string | null;
+  modulation: number;
+  /** The output the cost uses, and where it came from. */
+  output_kw: number | null;
+  output_basis: "meter" | "rated" | null;
   boiler_kw: number | null;
   /** "energy", "fixed", a price entity's id, or null. */
   price_source: string | null;
@@ -111,6 +120,14 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
     if (text.trim() === "" || !Number.isFinite(value) || value < 0) return;
     timer.current = window.setTimeout(() => save({ price_source: "fixed", fixed_price: value }), 800);
   };
+  const fit = data.fit;
+  const meterNote = !data.gas_meter
+    ? "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for."
+    : fit
+      ? `Learned ${fit.kw.toFixed(1)} kW while heating from ${fit.days} days${fit.baseline >= 0.5 ? ` (plus ${fit.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.`
+      : data.learned_at
+        ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours."
+        : "Learning from the last 14 days…";
   const perKwh = (v: number | null) => (v != null ? `${unitPrice(v, data.currency)} per kWh` : null);
   const priceNote =
     data.price_source === "energy" && data.energy_price == null
@@ -122,15 +139,35 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
     <section className="settings-section">
       <h3>Heating cost</h3>
       <p className="muted small settings-help">
-        Set both to see an estimated cost in the heating history: the boiler's time on × its output × the gas price. It's on the high side, as a
-        modulating boiler rarely runs flat out.
+        An estimated cost in the heating history: the boiler's time on × its average output while on × the gas price. A modern boiler turns its
+        flame down, so it averages well below its rating: a gas meter gives the real figure.
       </p>
       <div className="settings-group">
         <div className="settings-row">
+          <span className="device-icon"><Icon name="meter-gas-outline" /></span>
+          <div className="settings-text">
+            <span>Gas meter</span>
+            <span className="muted small">{meterNote}</span>
+          </div>
+          <select aria-label="Gas meter" value={data.gas_meter ?? ""} onChange={(e) => save({ gas_meter: e.target.value || null })}>
+            <option value="">None</option>
+            {data.gas_meter_candidates.map((c) => (
+              <option key={c.entity_id} value={c.entity_id}>
+                {c.name}
+                {c.area ? ` · ${c.area}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="settings-row">
           <span className="device-icon"><Icon name="fire" /></span>
           <div className="settings-text">
-            <span>Boiler output</span>
-            <span className="muted small">Its heating output in kW, from the boiler's manual or label (often 24–35 kW for a combi).</span>
+            <span>Boiler rating</span>
+            <span className="muted small">
+              {data.output_basis === "meter"
+                ? "Not needed while the gas meter gives the output."
+                : `Its heating output in kW, from the manual or label (often 24–35 kW for a combi). Counted at ${Math.round(data.modulation * 100)}% without a gas meter.`}
+            </span>
           </div>
           <div className="settings-controls">
             <Adjust value={kw != null ? `${kw.toLocaleString()} kW` : "Not set"} onLower={() => stepKw(-1)} onRaise={() => stepKw(1)} />

@@ -1,14 +1,17 @@
-"""Reading recorded history: our own entities (for Stats and pre-heat), and the outdoor temperature."""
+"""Reading recorded history: our own entities (for Stats, pre-heat and the cost), the
+outdoor temperature, and a gas meter's daily use (long-term statistics)."""
 
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util.unit_conversion import TemperatureConverter
 
 from .const import CHANNEL_HEAT, CHANNEL_WATER, DOMAIN
+from .cost import kwh_per_unit
 from .stats import Reading, Sample, outdoor_from_state, sample_from_state
 
 _ENTITY = {CHANNEL_HEAT: ("climate", "climate"), CHANNEL_WATER: ("water_heater", "water_heater")}
@@ -67,3 +70,36 @@ async def async_outdoor(hass: HomeAssistant, entity_id: str, start: datetime, en
                 value = TemperatureConverter.convert(value, unit, to_unit)
         out.append(Reading(s.last_updated.timestamp(), value))
     return out
+
+
+def _gas_statistics(hass: HomeAssistant, statistic_id: str, start: datetime, end: datetime) -> tuple[str | None, list[dict[str, Any]]]:
+    """A meter's unit and its daily changes. Executor."""
+    from homeassistant.components.recorder.statistics import get_metadata, statistics_during_period  # noqa: PLC0415
+
+    meta = get_metadata(hass, statistic_ids={statistic_id}).get(statistic_id)
+    unit = meta[1].get("unit_of_measurement") if meta else None
+    rows = statistics_during_period(hass, start, end, {statistic_id}, "day", None, {"change"})
+    return unit, rows.get(statistic_id, [])
+
+
+async def async_gas_per_day(hass: HomeAssistant, statistic_id: str, day_starts: list[datetime], end: datetime) -> list[float | None]:
+    """kWh used each day (local days starting at `day_starts`), None where there's no data.
+
+    From the recorder's daily statistics, so it works for an entity's own statistics and
+    for ones imported by an energy supplier's integration (e.g. a smart meter's readings,
+    a day or two late). Volumes are converted to kWh.
+    """
+    from homeassistant.components.recorder import get_instance  # noqa: PLC0415
+
+    unit, rows = await get_instance(hass).async_add_executor_job(_gas_statistics, hass, statistic_id, day_starts[0], end)
+    per = kwh_per_unit(unit) or (1.0 if unit is None else None)
+    if per is None:
+        return [None] * len(day_starts)
+    by_day: dict[int, float] = {}
+    for row in rows:
+        start, change = row.get("start"), row.get("change")
+        if change is None or start is None:
+            continue
+        t = start.timestamp() if isinstance(start, datetime) else float(start)
+        by_day[round(t)] = change * per
+    return [by_day.get(round(d.timestamp())) for d in day_starts]

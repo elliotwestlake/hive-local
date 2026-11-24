@@ -64,6 +64,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     settings = HouseSettings(hass)
     await settings.async_load()
     hass.data[DATA_SETTINGS] = settings
+    settings.async_start()
     return True
 
 

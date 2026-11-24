@@ -182,7 +182,16 @@ export interface Stats {
   outdoor: { avg: number | null; min: number | null; max: number | null } | null;
   outdoor_entity: string | null;
   /** Estimated cost, heating only; null until a boiler output and gas price are set (Settings). */
-  cost: { boiler_kw: number; price: number; per_hour: number; currency: string; source: string } | null;
+  cost: {
+    /** The boiler's average output while on: learned from a gas meter, else 40% of its rated output. */
+    kw: number;
+    basis: "meter" | "rated";
+    boiler_kw: number | null;
+    price: number;
+    per_hour: number;
+    currency: string;
+    source: string;
+  } | null;
   previous: {
     has_data: boolean;
     heating_minutes: number;
