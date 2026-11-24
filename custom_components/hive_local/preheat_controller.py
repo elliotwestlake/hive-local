@@ -47,7 +47,13 @@ from .z2m import BOOST_MAX_MINUTES, MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHE
 _LOGGER = logging.getLogger(__name__)
 
 STORE_VERSION = 1
+# How long after starting a boost to wait for the receiver to report it.
+SETTLE = timedelta(seconds=30)
 Schedule = dict[str, list[dict[str, Any]]]
+
+
+def _details(p: Plan | None) -> tuple[float, int] | None:
+    return None if p is None else (p.setpoint, p.lead)
 
 
 class Preheat:
@@ -65,12 +71,13 @@ class Preheat:
         # The scheduled change (UTC) we're pre-heating for, and ones someone cancelled.
         self.active_for: datetime | None = None
         self._skipped: set[datetime] = set()
+        # The next scheduled rise worth pre-heating for, and when it is (UTC, on the minute).
         self._plan: Plan | None = None
         self._plan_at: datetime | None = None
         self._last_mode: str | None = None
-        self._plan_key: tuple[datetime, float, int] | None = None
+        # Until then, non-boost reports don't end our pre-heat: the boost takes a moment to show.
+        self._settle_until: datetime | None = None
         self._unsubs: list[Callable[[], None]] = []
-        self._starting = False
 
     @property
     def available(self) -> bool:
@@ -122,8 +129,7 @@ class Preheat:
             return
         self.enabled = enabled
         if not enabled and self.active_for is not None:
-            self.active_for = None
-            self._save()
+            self._set_active(None)
             if (self.transport.status(CHANNEL_HEAT) or {}).get("mode") == MODE_BOOST:
                 await self.transport.async_cancel_boost(CHANNEL_HEAT)
         if enabled:
@@ -184,6 +190,11 @@ class Preheat:
             self._notify()
 
     @callback
+    def _set_active(self, at: datetime | None) -> None:
+        self.active_for = at
+        self._save()
+
+    @callback
     def _save(self) -> None:
         self._store.async_delay_save(
             lambda: {
@@ -206,13 +217,14 @@ class Preheat:
             return  # not reported yet (e.g. just after a restart)
         mode = status.get("mode")
         prev, self._last_mode = self._last_mode, mode
-        if self.active_for is not None and mode != MODE_BOOST and not self._starting:
-            if dt_util.utcnow() < self.active_for - timedelta(minutes=2):
+        now = dt_util.utcnow()
+        settling = self._settle_until is not None and now < self._settle_until
+        if self.active_for is not None and mode != MODE_BOOST and not settling:
+            if now < self.active_for - timedelta(minutes=2):
                 # Someone ended our boost early: leave this change alone.
                 _LOGGER.info("Pre-heat boost cancelled; skipping %s", self.active_for)
                 self._skipped.add(self.active_for)
-            self.active_for = None
-            self._save()
+            self._set_active(None)
             self._notify()
         if prev in (MODE_MANUAL, MODE_OFF) and mode == MODE_SCHEDULE and self._skipped:
             # Put back on the schedule by hand: pre-heat for its changes again.
@@ -224,13 +236,13 @@ class Preheat:
     @callback
     def _evaluate(self) -> None:
         now = dt_util.now()
-        if self.active_for is not None and dt_util.utcnow() >= self.active_for:
-            self.active_for = None
-            self._save()
-        self._skipped = {t for t in self._skipped if t > dt_util.utcnow()}
-        status = self.transport.status(CHANNEL_HEAT)
+        if self.active_for is not None and now >= self.active_for:
+            self._set_active(None)
+        self._skipped = {t for t in self._skipped if t > now}
+        status = self.transport.status(CHANNEL_HEAT) or {}
+        mode = status.get("mode")
         new_plan = None
-        if self.enabled and status and status.get("mode") in (MODE_SCHEDULE, MODE_BOOST):
+        if self.enabled and mode in (MODE_SCHEDULE, MODE_BOOST):
             new_plan = plan(
                 self.schedule,
                 weekday=now.weekday(),
@@ -239,25 +251,25 @@ class Preheat:
                 rate=self.rate.per_hour,
                 max_lead=self.max_lead,
             )
-        self._plan = new_plan
-        self._plan_at = None if new_plan is None else self._at(now, new_plan.minutes_until)
+        new_at = None if new_plan is None else self._at(now, new_plan.minutes_until)
         # minutes_until counts down every minute; only tell the panel when the times change.
-        key = None if new_plan is None else (self._plan_at, new_plan.setpoint, new_plan.lead)
-        if key != self._plan_key:
-            self._plan_key = key
+        changed = (new_at, _details(new_plan)) != (self._plan_at, _details(self._plan))
+        self._plan, self._plan_at = new_plan, new_at
+        if changed:
             self._notify()
-        if new_plan is None or new_plan.start_in > 0 or self.active_for is not None:
-            return
-        if not status or status.get("mode") != MODE_SCHEDULE:
-            return  # only from the schedule (not over someone's boost)
-        at = self._plan_at
-        if at in self._skipped:
+        if (
+            new_plan is None
+            or new_at is None
+            or new_plan.start_in > 0
+            or self.active_for is not None
+            or mode != MODE_SCHEDULE  # only from the schedule, not over someone's boost
+            or new_at in self._skipped
+        ):
             return
         # Claim it now, so a second evaluation before the task runs doesn't boost twice.
-        self.active_for = at
-        self._starting = True
-        self._save()
-        self.hass.async_create_task(self._async_begin(at, new_plan))
+        self._set_active(new_at)
+        self._settle_until = dt_util.utcnow() + SETTLE
+        self.hass.async_create_task(self._async_begin(new_at, new_plan))
 
     @staticmethod
     def _at(now: datetime, minutes_until: int) -> datetime:
@@ -271,17 +283,9 @@ class Preheat:
             await self.transport.async_boost(CHANNEL_HEAT, minutes, p.setpoint)
         except Exception:  # noqa: BLE001
             _LOGGER.warning("Pre-heat couldn't start the boost", exc_info=True)
-            self.active_for = None
-            self._save()
+            self._set_active(None)
             self._skipped.add(at)
-        finally:
-            # The receiver's boost state may take a moment to arrive.
-            self.hass.loop.call_later(30, self._started)
         self._notify()
-
-    @callback
-    def _started(self) -> None:
-        self._starting = False
 
     # -- reporting --------------------------------------------------------------
 
