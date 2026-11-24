@@ -182,7 +182,14 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
           <span className="device-icon"><Icon name="cash" /></span>
           <div className="settings-text">
             <span>Gas price</span>
-            <span className="muted small">{priceNote}</span>
+            {data.price_source === "fixed" ? (
+              <label className="settings-price">
+                <input type="number" inputMode="decimal" min="0" step="0.001" value={priceText} placeholder="0.07" onChange={(e) => typePrice(e.target.value)} aria-label={`Gas price in ${data.currency} per kWh`} />
+                <span className="muted small">{data.currency} per kWh</span>
+              </label>
+            ) : (
+              <span className="muted small">{priceNote}</span>
+            )}
           </div>
           <div className="settings-controls">
             <select aria-label="Gas price" value={data.price_source ?? ""} onChange={(e) => save({ price_source: e.target.value || null })}>
@@ -195,12 +202,6 @@ function CostSettings({ data, save }: { data: SettingsData; save: (change: Parti
                 </option>
               ))}
             </select>
-            {data.price_source === "fixed" && (
-              <label className="settings-price">
-                <input type="number" inputMode="decimal" min="0" step="0.001" value={priceText} placeholder="0.07" onChange={(e) => typePrice(e.target.value)} aria-label={`Gas price in ${data.currency} per kWh`} />
-                <span className="muted small">{data.currency}/kWh</span>
-              </label>
-            )}
           </div>
         </div>
       </div>

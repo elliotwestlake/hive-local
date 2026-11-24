@@ -7199,28 +7199,25 @@ function Gf({ data: e, save: t }) {
         /* @__PURE__ */ i.jsx("span", { className: "device-icon", children: /* @__PURE__ */ i.jsx($, { name: "cash" }) }),
         /* @__PURE__ */ i.jsxs("div", { className: "settings-text", children: [
           /* @__PURE__ */ i.jsx("span", { children: "Gas price" }),
-          /* @__PURE__ */ i.jsx("span", { className: "muted small", children: m })
-        ] }),
-        /* @__PURE__ */ i.jsxs("div", { className: "settings-controls", children: [
-          /* @__PURE__ */ i.jsxs("select", { "aria-label": "Gas price", value: e.price_source ?? "", onChange: (f) => t({ price_source: f.target.value || null }), children: [
-            /* @__PURE__ */ i.jsx("option", { value: "", children: "None" }),
-            /* @__PURE__ */ i.jsx("option", { value: "energy", children: "Energy dashboard" }),
-            /* @__PURE__ */ i.jsx("option", { value: "fixed", children: "Fixed price" }),
-            e.price_candidates.map((f) => /* @__PURE__ */ i.jsxs("option", { value: f.entity_id, children: [
-              f.name,
-              " (",
-              f.unit,
-              ")"
-            ] }, f.entity_id))
-          ] }),
-          e.price_source === "fixed" && /* @__PURE__ */ i.jsxs("label", { className: "settings-price", children: [
+          e.price_source === "fixed" ? /* @__PURE__ */ i.jsxs("label", { className: "settings-price", children: [
             /* @__PURE__ */ i.jsx("input", { type: "number", inputMode: "decimal", min: "0", step: "0.001", value: n, placeholder: "0.07", onChange: (f) => a(f.target.value), "aria-label": `Gas price in ${e.currency} per kWh` }),
             /* @__PURE__ */ i.jsxs("span", { className: "muted small", children: [
               e.currency,
-              "/kWh"
+              " per kWh"
             ] })
-          ] })
-        ] })
+          ] }) : /* @__PURE__ */ i.jsx("span", { className: "muted small", children: m })
+        ] }),
+        /* @__PURE__ */ i.jsx("div", { className: "settings-controls", children: /* @__PURE__ */ i.jsxs("select", { "aria-label": "Gas price", value: e.price_source ?? "", onChange: (f) => t({ price_source: f.target.value || null }), children: [
+          /* @__PURE__ */ i.jsx("option", { value: "", children: "None" }),
+          /* @__PURE__ */ i.jsx("option", { value: "energy", children: "Energy dashboard" }),
+          /* @__PURE__ */ i.jsx("option", { value: "fixed", children: "Fixed price" }),
+          e.price_candidates.map((f) => /* @__PURE__ */ i.jsxs("option", { value: f.entity_id, children: [
+            f.name,
+            " (",
+            f.unit,
+            ")"
+          ] }, f.entity_id))
+        ] }) })
       ] })
     ] })
   ] });
@@ -7799,8 +7796,8 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }
 .settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
 .settings-row select { max-width: 220px; }
-.settings-price { display: inline-flex; align-items: center; gap: 6px; }
-.settings-price input { width: 90px; padding: 8px 10px; border: 1px solid var(--divider-color); border-radius: 10px; background: var(--card-background-color); color: var(--primary-text-color); font: inherit; }
+.settings-price { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; }
+.settings-price input { width: 90px; padding: 6px 10px; border: 1px solid var(--divider-color); border-radius: 10px; background: var(--card-background-color); color: var(--primary-text-color); font: inherit; }
 .settings-chevron { color: var(--secondary-text-color); }
 .settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
 .adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }

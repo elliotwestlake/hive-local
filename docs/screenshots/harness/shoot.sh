@@ -37,6 +37,7 @@ shot rooms 900,760 "tab=Overview&room=Lounge"
 shot stats 900,780 "tab=Stats"
 shot stats-cost 900,780 "tab=Stats&click=Estimated%20cost"
 shot settings 900,640 "tab=Settings"
+shot settings-fixed-price 900,640 "tab=Settings&price=fixed"
 # A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
 shot phone 390,770 "tab=Overview&narrow=1"
 shot overview-dark 900,760 "tab=Overview&theme=dark"
@@ -62,7 +63,7 @@ def dithered(src, dst):
     img = Image.open(f"{work}/{src}.png").convert("RGB")
     pal = img.quantize(colors=256, method=Image.Quantize.FASTOCTREE)
     img.quantize(palette=pal, dither=Image.Dither.FLOYDSTEINBERG).save(dst, optimize=True)
-for raw in ("overview", "schedule", "controls", "rooms", "stats", "stats-cost", "settings", "phone", "overview-dark"):
+for raw in ("overview", "schedule", "controls", "rooms", "stats", "stats-cost", "settings", "settings-fixed-price", "phone", "overview-dark"):
     Image.open(f"{work}/{raw}.png").convert("RGB").quantize(colors=256, method=Image.Quantize.FASTOCTREE).save(
         f"{docs}/screenshots/raw/{raw}.png", optimize=True)
 for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-controls", "controls"),
