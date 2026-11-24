@@ -38,7 +38,7 @@ from .const import (
     SIGNAL_STATUS,
 )
 from .history import async_samples, channel_entity_id
-from .preheat import MIN_WARMUPS, Plan, Rate, plan
+from .preheat import MIN_WARMUPS, Plan, Rate, plan, still_wanted
 from .preheat import learn_rate as _learn_rate
 from .schedule import DAYS
 from .transports import Transport
@@ -170,7 +170,47 @@ class Preheat:
         self.schedule = {**self.schedule, **{d: list(t) for d, t in schedule.items() if t}}
         self._save()
         self._notify()
+        if not self._check_active():
+            self._evaluate()
+
+    @callback
+    def _check_active(self) -> bool:
+        """After a schedule change: is the running pre-heat still wanted? True if we're
+        stopping it (it re-plans once the boost is cancelled)."""
+        status = self.transport.status(CHANNEL_HEAT) or {}
+        if self.active_for is None or status.get("mode") != MODE_BOOST:
+            return False
+        at = dt_util.as_local(self.active_for)
+        setpoint = still_wanted(self.schedule, weekday=at.weekday(), minute=at.hour * 60 + at.minute)
+        if setpoint is None:
+            _LOGGER.info("The schedule no longer changes at %s; stopping the pre-heat", at.strftime("%H:%M"))
+            self.hass.async_create_task(self._async_stop())
+            return True
+        current = status.get("setpoint")
+        if not isinstance(current, (int, float)) or abs(current - setpoint) > 0.25:
+            # Same time, new temperature: boost to that instead, to the same end.
+            _LOGGER.info("Pre-heating to %s °C instead, for %s", setpoint, at.strftime("%H:%M"))
+            self._settle_until = dt_util.utcnow() + SETTLE
+            self.hass.async_create_task(self._async_retarget(self.active_for, setpoint))
+        return False
+
+    async def _async_stop(self) -> None:
+        # Keep active_for until the boost is cancelled, so nothing starts another meanwhile,
+        # and settle, so the cancel isn't taken as someone stopping it (and skipped).
+        self._settle_until = dt_util.utcnow() + SETTLE
+        try:
+            await self.transport.async_cancel_boost(CHANNEL_HEAT)
+        except Exception:  # noqa: BLE001
+            _LOGGER.warning("Pre-heat couldn't cancel its boost", exc_info=True)
+        self._set_active(None)
+        self._notify()
         self._evaluate()
+
+    async def _async_retarget(self, at: datetime, setpoint: float) -> None:
+        try:
+            await self.transport.async_boost(CHANNEL_HEAT, self._minutes_until(at), setpoint)
+        except Exception:  # noqa: BLE001
+            _LOGGER.warning("Pre-heat couldn't change its boost", exc_info=True)
 
     async def async_refresh_schedule(self) -> None:
         try:
@@ -301,12 +341,16 @@ class Preheat:
         self.hass.async_create_task(self._async_begin(new_at, new_plan))
 
     @staticmethod
+    def _minutes_until(at: datetime) -> int:
+        return max(1, min(BOOST_MAX_MINUTES, math.ceil((at - dt_util.utcnow()).total_seconds() / 60)))
+
+    @staticmethod
     def _at(now: datetime, minutes_until: int) -> datetime:
         """The scheduled change's time (UTC), on the minute."""
         return dt_util.as_utc(now.replace(second=0, microsecond=0) + timedelta(minutes=minutes_until))
 
     async def _async_begin(self, at: datetime, p: Plan) -> None:
-        minutes = max(1, min(BOOST_MAX_MINUTES, math.ceil((at - dt_util.utcnow()).total_seconds() / 60)))
+        minutes = self._minutes_until(at)
         _LOGGER.info("Pre-heating to %s °C for %s (%s min)", p.setpoint, dt_util.as_local(at).strftime("%H:%M"), minutes)
         try:
             await self.transport.async_boost(CHANNEL_HEAT, minutes, p.setpoint)
