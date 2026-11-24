@@ -153,3 +153,18 @@ def plan(
         return None  # too far off to start, whatever the rate
     lead = min(max_lead, math.ceil((setpoint - current) / rate * 60) + MARGIN_MINUTES)
     return Plan(minutes_until, setpoint, minutes_until - lead, lead)
+
+
+def still_wanted(schedule: Schedule, *, weekday: int, minute: int) -> float | None:
+    """The temperature a running pre-heat is for, if the schedule still has it.
+
+    The change at that day and minute, if there is one and it isn't "off". None means
+    the schedule no longer changes then (moved, removed or turned off): stop pre-heating.
+    """
+    day = _transitions(schedule, weekday)
+    if day is None:
+        return None
+    for m, sp in day:
+        if m == minute and sp > HEAT_MIN:
+            return sp
+    return None

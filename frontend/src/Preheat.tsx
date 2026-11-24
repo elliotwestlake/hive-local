@@ -15,9 +15,12 @@ export function PreheatCard({ getHass, device, info }: { getHass: () => Hass; de
   let line: string;
   if (!info.enabled) line = "Start heating early, so it's warm by the time the schedule says.";
   else if (info.active_for) line = `Pre-heating now, for ${info.active_for}.`;
+  else if (info.rate == null && info.rate_known === false) line = "Working out how fast your home warms up…";
   else if (info.rate == null)
     line = `Still learning how fast your home warms up (${info.warmups} of ${info.warmups_needed} warm-ups seen).`;
   else if (!info.schedule_known) line = "Reading the heating schedule…";
+  else if (info.next?.skipped)
+    line = `Not pre-heating for ${info.next.at}: it was stopped early. Turn pre-heat off and on to start it again.`;
   else if (info.next) line = `Next: starts ${info.next.start} to reach ${info.next.setpoint}° by ${info.next.at}.`;
   else line = "Nothing to pre-heat for yet.";
 

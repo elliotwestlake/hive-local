@@ -78,3 +78,10 @@ def test_lead_is_capped_and_wraps_to_tomorrow():
 def test_missing_days_mean_no_plan():
     assert p.plan({"monday": DAY}, weekday=0, minute=5 * 60, current=17.0, rate=2.0, max_lead=120) is None
     assert p.plan({"tuesday": DAY}, weekday=0, minute=5 * 60, current=17.0, rate=2.0, max_lead=120) is None
+
+
+def test_still_wanted_while_the_change_is_there():
+    assert p.still_wanted(WEEK, weekday=0, minute=17 * 60) == 21.0
+    assert p.still_wanted(WEEK, weekday=0, minute=17 * 60 + 15) is None  # moved or removed
+    assert p.still_wanted(WEEK, weekday=0, minute=22 * 60 + 30) is None  # off
+    assert p.still_wanted({}, weekday=0, minute=17 * 60) is None

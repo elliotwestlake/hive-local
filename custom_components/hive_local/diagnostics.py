@@ -48,7 +48,7 @@ async def async_get_config_entry_diagnostics(
         "zha_device": device,
         "transport": async_redact_data(data.transport.diagnostics(), TO_REDACT),
         "boost_defaults": {c: asdict(d) for c, d in data.boost.items()},
-        "preheat": data.preheat.as_dict(),
+        "preheat": data.preheat.diagnostics(),
         "entities": entities,
         "rooms": [r for r in rooms.rooms if r.get("receiver") in (None, entry.entry_id)] if rooms else None,
     }
