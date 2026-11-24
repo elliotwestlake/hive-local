@@ -48,7 +48,7 @@
 </head>
 <body>
 <script>
-  // ?kind=frame&img=overview.png&w=900&title=… | hero | social ; &theme=night for a dark backdrop
+  // ?kind=frame&img=overview.png&w=900&title=… | hero | phones&imgs=a,b,c | social ; &theme=night for a dark backdrop
   const q = new URLSearchParams(location.search);
   const kind = q.get("kind");
   const theme = q.get("theme") === "night" ? "night" : "warm";
@@ -72,6 +72,13 @@
       <div class="stage warm" style="width:1400px;height:860px">
         <div style="position:absolute;left:64px;top:58px">${win("overview.png", 980)}</div>
         ${phone("phone.png", 1012, 52, 0.86)}
+      </div>`;
+  } else if (kind === "phones") {
+    // Three phones side by side: ?imgs=a.png,b.png,c.png
+    const imgs = (q.get("imgs") || "").split(",");
+    document.body.innerHTML = `
+      <div class="stage warm" style="width:1400px;height:900px">
+        ${imgs.map((src, i) => phone(src, 92 + i * 424, 56, 0.92)).join("")}
       </div>`;
   } else if (kind === "social") {
     document.body.innerHTML = `
