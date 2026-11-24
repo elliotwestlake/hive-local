@@ -178,6 +178,8 @@ Run the `getWeeklySchedule` command on the `hvacThermostat` cluster (endpoint 5 
 cd frontend && npm install && npm run build   # writes custom_components/hive_local/frontend/hive-local-panel.js
 npm run watch                                  # rebuild on change
 pytest -q tests                                # pure logic tests (no HA needed)
+pip install -r requirements_test.txt           # Python 3.14: adds Home Assistant for tests/e2e
+pytest -q tests                                # now the end-to-end tests too
 ```
 
 The built bundle is committed so Marketplace users don't need a build step.

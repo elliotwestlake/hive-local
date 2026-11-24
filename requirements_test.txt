@@ -1,0 +1,15 @@
+# End-to-end tests (tests/e2e). pytest-homeassistant-custom-component pins Home Assistant
+# (0.13.375 = HA 2026.10.4, Python 3.14); the rest are the requirements of the integrations
+# we load (zha, mqtt, recorder, frontend and theirs), from that HA version's manifests.
+# Bump them together.
+pytest-homeassistant-custom-component==0.13.375
+aiousbwatcher==1.1.2
+fnv-hash-fast==2.0.3
+ha-silabs-firmware-client==0.3.0
+home-assistant-frontend==20260930.5
+paho-mqtt==2.1.0
+psutil-home-assistant==0.0.1
+serialx==1.11.0
+universal-silabs-flasher==1.1.0
+zha==2.3.1
+zha-quirks==2.3.0
