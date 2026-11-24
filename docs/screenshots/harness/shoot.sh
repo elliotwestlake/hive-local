@@ -38,6 +38,9 @@ shot stats 900,780 "tab=Stats"
 shot stats-cost 900,780 "tab=Stats&click=Estimated%20cost"
 shot settings 900,640 "tab=Settings"
 shot settings-fixed-price 900,760 "tab=Settings&price=fixed"
+shot holiday 900,640 "tab=Overview&holiday=1"
+shot holiday-sheet 900,700 "tab=Overview&click=Away%20until%E2%80%A6"
+shot holiday-page 900,560 "tab=Overview&holiday=1&open=1"
 # A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
 shot phone 390,770 "tab=Overview&narrow=1"
 shot overview-dark 900,760 "tab=Overview&theme=dark"
@@ -71,7 +74,8 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
                  ("frame-settings", "settings"), ("frame-overview-dark", "overview-dark")):
     dithered(src, f"{docs}/screenshots/{dst}.png")
 # Only for a PR, unquantized: 256 colours lose the light grey boxes.
-Image.open(f"{work}/settings-fixed-price.png").convert("RGB").save(f"{docs}/screenshots/raw/settings-fixed-price.png", optimize=True)
+for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page"):
+    Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)
 print("screenshots updated")

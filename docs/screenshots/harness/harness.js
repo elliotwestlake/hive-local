@@ -71,6 +71,15 @@ const STATUS = {
   },
 };
 
+// ?holiday=1: away until four days from now at 14:00 (heating held at 12°, hot water off).
+if (params.get("holiday") === "1") {
+  const until = new Date(Date.now() + 4 * 86400000);
+  until.setHours(14, 0, 0, 0);
+  const holiday = { until: until.toISOString(), restore_mode: "schedule" };
+  STATUS.e1.heat = { ...STATUS.e1.heat, status: { ...STATUS.e1.heat.status, mode: "manual", setpoint: 12, heating: false }, holiday: { ...holiday, temperature: 12 } };
+  STATUS.e1.water = { ...STATUS.e1.water, status: { ...STATUS.e1.water.status, mode: "off", boost_remaining: null, heating: false }, holiday: { ...holiday, temperature: null } };
+}
+
 const valve = (id, name, temp, target, action, battery, available = true) =>
   ({ entity_id: id, name, available, current_temperature: temp, target, hvac_action: action, battery: String(battery) });
 // ?receivers=2 shows a house with two heating zones.
