@@ -63,13 +63,15 @@ def dithered(src, dst):
     img = Image.open(f"{work}/{src}.png").convert("RGB")
     pal = img.quantize(colors=256, method=Image.Quantize.FASTOCTREE)
     img.quantize(palette=pal, dither=Image.Dither.FLOYDSTEINBERG).save(dst, optimize=True)
-for raw in ("overview", "schedule", "controls", "rooms", "stats", "stats-cost", "settings", "settings-fixed-price", "phone", "overview-dark"):
+for raw in ("overview", "schedule", "controls", "rooms", "stats", "stats-cost", "settings", "phone", "overview-dark"):
     Image.open(f"{work}/{raw}.png").convert("RGB").quantize(colors=256, method=Image.Quantize.FASTOCTREE).save(
         f"{docs}/screenshots/raw/{raw}.png", optimize=True)
 for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-controls", "controls"),
                  ("frame-rooms", "rooms"), ("frame-stats", "stats"), ("frame-stats-cost", "stats-cost"),
                  ("frame-settings", "settings"), ("frame-overview-dark", "overview-dark")):
     dithered(src, f"{docs}/screenshots/{dst}.png")
+# Only for a PR, unquantized: 256 colours lose the light grey boxes.
+Image.open(f"{work}/settings-fixed-price.png").convert("RGB").save(f"{docs}/screenshots/raw/settings-fixed-price.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)
 print("screenshots updated")
