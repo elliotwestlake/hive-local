@@ -1,17 +1,25 @@
 name: Pre-release
-# Publishes a GitHub pre-release for the version in manifest.json from a pull request's
-# branch (normally release-please's release PR), so it can be tested through the Marketplace
-# (with beta versions shown) before it's released. Add the `pre-release` label to the PR to
-# publish. Each later change publishes it again from the new head: a pre-release of the same
-# version is deleted (with its tag) and recreated, so it always matches the PR. A full release
-# of that version is never touched. The notes are the PR's description (release-please's
-# notes on a release PR).
-# release-please.yml starts it by hand (workflow_dispatch, with the PR number) when it
-# updates a labelled release PR, since its updates don't trigger pull_request workflows.
-# Merging the release PR replaces it with the real release (release-please.yml).
+# Publishes a pull request's branch as a GitHub pre-release, so it can be tested through the
+# Marketplace (with beta versions shown) before it's released. Add the `pre-release` label
+# to the PR to publish. Each later push publishes it again from the new head (the old
+# pre-release and its tag are deleted and recreated), so it always matches the PR. A full
+# release is never touched. The notes are the PR's description.
+#
+# Which version:
+# - release-please's release PR bumps manifest.json, so it's published as that version
+#   (v0.10.0), and merging it replaces the pre-release with the real release
+#   (release-please.yml). release-please.yml starts this by hand (workflow_dispatch, with
+#   the PR number) when it updates a labelled release PR, since its updates don't trigger
+#   pull_request workflows.
+# - Any other PR still has the last release's version, since release-please does the bumps.
+#   It's published as the version it would lead to, from its title (feat: the next minor
+#   below 1.0, anything else the next patch; `!` the next minor) plus `-beta.<PR number>`,
+#   e.g. v0.10.0-beta.28. The tag points at a commit made here, off any branch, with that
+#   version in manifest.json, so Home Assistant shows it too. Closing the PR or removing the
+#   label deletes it.
 on:
   pull_request:
-    types: [labeled, synchronize]
+    types: [labeled, unlabeled, synchronize, closed]
   workflow_dispatch:
     inputs:
       pr:
@@ -19,47 +27,113 @@ on:
         required: false
 permissions:
   contents: write
+  pull-requests: read
 concurrency: release
 jobs:
   prerelease:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
-       contains(github.event.pull_request.labels.*.name, 'pre-release') &&
-       (github.event.action != 'labeled' || github.event.label.name == 'pre-release'))
+       (github.event.action == 'unlabeled' && github.event.label.name == 'pre-release' ||
+        github.event.action != 'unlabeled' &&
+        contains(github.event.pull_request.labels.*.name, 'pre-release') &&
+        (github.event.action != 'labeled' || github.event.label.name == 'pre-release')))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Publish (or republish) the pre-release for this version
+      - name: Publish (or republish, or remove) the pre-release
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           PR: ${{ github.event.pull_request.number || inputs.pr }}
+          ACTION: ${{ github.event.action }}
+          TITLE: ${{ github.event.pull_request.title }}
         run: |
-          version=$(python3 -c 'import json; print(json.load(open("custom_components/hive_local/manifest.json"))["version"])')
-          tag="v$version"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            if [ "$(gh release view "$tag" --json isPrerelease --jq .isPrerelease)" != "true" ]; then
-              echo "::notice::$tag is already a full release. Bump the version in manifest.json to publish another."
-              exit 0
-            fi
-            if [ "$(gh release view "$tag" --json targetCommitish --jq .targetCommitish)" = "$SHA" ]; then
-              echo "::notice::$tag is already published from $SHA."
-              exit 0
-            fi
-            # Replace the pre-release (and its tag) so it's built from this commit.
-            gh release delete "$tag" --cleanup-tag --yes
+          set -euo pipefail
+          manifest=custom_components/hive_local/manifest.json
+          version=$(python3 -c "import json; print(json.load(open('$manifest'))['version'])")
+
+          # This PR's beta pre-releases (any version: the title can change feat <-> fix).
+          drop_betas() {
+            [ -n "$PR" ] || return 0
+            gh release list --limit 100 --json tagName,isPrerelease \
+              --jq ".[] | select(.isPrerelease and (.tagName | endswith(\"-beta.$PR\"))) | .tagName" |
+            while read -r old; do
+              gh release delete "$old" --cleanup-tag --yes
+              echo "::notice::Removed the $old pre-release"
+            done
+          }
+
+          if [ "$ACTION" = closed ] || [ "$ACTION" = unlabeled ]; then
+            drop_betas
+            exit 0
           fi
-          notes="docs/releases/$tag.md"
-          if [ -f "$notes" ]; then
-            gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --notes-file "$notes"
-          elif [ -n "$PR" ]; then
-            # The PR's description: on a release PR, release-please's notes for this version.
-            gh pr view "$PR" --json body --jq .body > "$RUNNER_TEMP/notes.md"
-            gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --notes-file "$RUNNER_TEMP/notes.md"
+
+          notes="$RUNNER_TEMP/notes.md"
+          if [ -n "$PR" ]; then
+            gh pr view "$PR" --json body --jq .body > "$notes"
+            [ -n "$TITLE" ] || TITLE=$(gh pr view "$PR" --json title --jq .title)
           else
-            gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --generate-notes
+            echo "Pre-release of $SHA." > "$notes"
           fi
-          echo "::notice::Published $tag as a pre-release from $SHA"
+
+          full_release() {
+            gh release view "$1" >/dev/null 2>&1 &&
+              [ "$(gh release view "$1" --json isPrerelease --jq .isPrerelease)" != "true" ]
+          }
+
+          if ! full_release "v$version"; then
+            # A release PR: publish the version it bumps to, from the PR's head.
+            tag="v$version"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              if [ "$(gh release view "$tag" --json targetCommitish --jq .targetCommitish)" = "$SHA" ]; then
+                echo "::notice::$tag is already published from $SHA."
+                exit 0
+              fi
+              gh release delete "$tag" --cleanup-tag --yes
+            fi
+            if [ -f "docs/releases/$tag.md" ]; then notes="docs/releases/$tag.md"; fi
+            gh release create "$tag" --target "$SHA" --title "$tag" --prerelease --notes-file "$notes"
+            echo "::notice::Published $tag as a pre-release from $SHA"
+            exit 0
+          fi
+
+          # Any other PR: the version it would lead to, as a beta.
+          if [ -z "$PR" ]; then
+            echo "::error::v$version is already released. Pass the PR number to publish a beta of it."
+            exit 1
+          fi
+          next=$(TITLE="$TITLE" VERSION="$version" python3 - <<'EOF'
+          import os, re
+          major, minor, patch = (int(x) for x in os.environ["VERSION"].split("-")[0].split(".")[:3])
+          m = re.match(r"(\w+)(\([^)]*\))?(!)?:", os.environ["TITLE"])
+          kind, breaking = (m.group(1), bool(m.group(3))) if m else ("", False)
+          if breaking:
+              major, minor, patch = (major, minor + 1, 0) if major == 0 else (major + 1, 0, 0)
+          elif kind == "feat":
+              minor, patch = minor + 1, 0
+          else:
+              patch += 1
+          print(f"{major}.{minor}.{patch}")
+          EOF
+          )
+          beta="$next-beta.$PR"
+          tag="v$beta"
+          drop_betas
+          # A commit off any branch with the beta's version, so Home Assistant shows it.
+          python3 - "$manifest" "$beta" <<'EOF'
+          import json, sys
+          path, version = sys.argv[1], sys.argv[2]
+          data = json.load(open(path))
+          data["version"] = version
+          open(path, "w").write(json.dumps(data, indent=2) + "\n")
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -qam "chore(release): $beta (pre-release of #$PR at ${SHA:0:7})"
+          git tag "$tag"
+          git push -q origin "refs/tags/$tag"
+          gh release create "$tag" --verify-tag --title "$tag" --prerelease --notes-file "$notes"
+          echo "::notice::Published $tag as a pre-release of #$PR from $SHA"
