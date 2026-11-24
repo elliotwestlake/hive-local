@@ -13,7 +13,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -80,8 +81,18 @@ class HouseSettings:
     @callback
     def async_start(self) -> None:
         """Learn the boiler's output from the gas meter soon after startup, then every few hours."""
-        async_call_later(self.hass, 120, self._learn_later)
-        async_track_time_interval(self.hass, self._learn_later, LEARN_INTERVAL)
+        unsubs = [
+            async_call_later(self.hass, 120, self._learn_later),
+            async_track_time_interval(self.hass, self._learn_later, LEARN_INTERVAL),
+        ]
+
+        @callback
+        def _stop(_event: Event) -> None:
+            for unsub in unsubs:
+                unsub()
+
+        # House-wide, so nothing unloads it: stop the timers when HA stops.
+        self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _stop)
 
     @callback
     def _learn_later(self, _now: datetime | None = None) -> None:
