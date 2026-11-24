@@ -46,3 +46,28 @@ cancel_boost_water:
       selector:
         device:
           integration: hive_local
+
+set_holiday:
+  fields:
+    device_id:
+      selector:
+        device:
+          integration: hive_local
+    until:
+      required: true
+      selector:
+        datetime:
+    temperature:
+      selector:
+        number:
+          min: 5
+          max: 32
+          step: 0.5
+          unit_of_measurement: "°C"
+
+cancel_holiday:
+  fields:
+    device_id:
+      selector:
+        device:
+          integration: hive_local

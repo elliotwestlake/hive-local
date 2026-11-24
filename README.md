@@ -40,7 +40,8 @@ The receiver type (heating only, or heating + hot water) is detected automatical
 
 Four tabs: Overview, Devices, Stats and Settings. On a phone they move to a bar along the bottom of the screen. Heating and hot water each have their own page, opened from their card on the Overview, with **Control**, **Schedule** and **History** tabs.
 
-- **Overview:** **Quick actions** (boost heating or hot water with your defaults, or put everything back on its schedule), and **Your devices**, with filters, a card each for heating, hot water and your rooms. Each card shows the temperature (or On/Off), what it's doing (with a tick once a room is up to temperature), and **Boost**: it opens a sheet to pick the temperature (heating) and how long, then **Boost to 22.0° for 2 h**. While boosting the button reads **Boosting**, and opens the time left and **Stop boost**. Tap a heating or hot water card to open its page. **Control** has **−** / **+** for the heating target (like the thermostat: on Schedule it lasts until the next scheduled change, on Manual it changes the held temperature, during a boost it keeps the time left), and Schedule / Manual / Off. Tap a room to open it in a pop-up (from the bottom on a phone): its temperature, **−** / **+** for the room's target, each valve with its reading and battery, and **Edit room**.
+- **Overview:** **Quick actions** (boost heating or hot water with your defaults, **Away until…**, or put everything back on its schedule), and **Your devices**, with filters, a card each for heating, hot water and your rooms. Each card shows the temperature (or On/Off), what it's doing (with a tick once a room is up to temperature), and **Boost**: it opens a sheet to pick the temperature (heating) and how long, then **Boost to 22.0° for 2 h**. While boosting the button reads **Boosting**, and opens the time left and **Stop boost**. Tap a heating or hot water card to open its page. **Control** has **−** / **+** for the heating target (like the thermostat: on Schedule it lasts until the next scheduled change, on Manual it changes the held temperature, during a boost it keeps the time left), and Schedule / Manual / Off. Tap a room to open it in a pop-up (from the bottom on a phone): its temperature, **−** / **+** for the room's target, each valve with its reading and battery, and **Edit room**.
+- **Away until…** (a quick action): holiday mode. See [Holiday](#holiday).
 - **Pre-heat** (on the heating page's **Control** tab): starts heating early so the house is warm at the time your schedule says, rather than only starting to warm up then. See [Pre-heat](#pre-heat).
 - **Schedule** (on the heating or hot water page): says whether your schedule is in use, then a row of days (M–S). Pick a day to see its times, like "06:30 – 08:30" with the temperature in a circle (a snowflake means off). Tap a time to change when it starts or its temperature, or remove it; **Add a time** adds one. The **⋯** button reads the schedule from the receiver again or copies the day to weekdays, the weekend or every day. Changes are kept in the panel until you press **Save** on the **Unsaved changes** bar, which writes them to the receiver, and only the days you changed are sent, one command per day, so the rest of the week is never rewritten.
 - **Devices:** a card for each device: your receivers (model, Zigbee2MQTT or ZHA, online, and links to its Heating and Hot water pages) and every Hive radiator valve (its room, battery, whether it's responding, and its temperature). The **+** button adds a receiver (Home Assistant's setup for Hive Local) or explains how to pair a valve.
@@ -102,12 +103,23 @@ Off by default. Turn it on from the heating page's **Control** tab, or with `swi
 
 Needs the recorder (it's on by default in Home Assistant).
 
+## Holiday
+
+**Away until…** on the Overview (or `hive_local.set_holiday`) keeps the heating at a low temperature and turns the hot water off until the date and time you pick, then puts everything back to what it was doing before (the schedule, or your manual hold). It covers every receiver. The temperature defaults to your frost protection setting (`number.<receiver>_heating_frost_protection`, 12 °C unless you've changed it).
+
+- The cards say **Away until Sat 14:00**, and **End holiday** (a quick action, or **End** on the heating or hot water page) comes back early. **−** / **+** changes the holiday temperature.
+- A boost while you're away is fine: when it ends, the holiday carries on.
+- If anyone changes the mode while you're away (on the thermostat, or the mode select), the holiday ends there and their change stays.
+- **If Home Assistant goes down:** the heating is held with a boost of up to 6 hours that Home Assistant renews every hour (the thermostat shows a boost). If Home Assistant stops, the boost runs out and the heating goes back to normal within 6 hours, and in the last 6 hours it's set to end exactly when you're back. Hot water stays off until Home Assistant is back. When it is, the holiday carries on (or ends, if it's over).
+- Radiator valves in your rooms aren't changed.
+
 ## Entities and actions
 
 **`climate.<receiver>_heating`**: the main heating control.
 - **HVAC modes:** `auto` follows the onboard schedule, `heat` holds the target temperature, `off` is off.
 - **Target temperature:** works like turning the thermostat dial. On `auto`, it overrides the schedule until the next scheduled change (up or down). On `heat`, it changes the held temperature. During a boost, it changes the boost temperature and keeps the time left. During a schedule "off" period (Hive reports 1 °C) the target shows your frost protection temperature (below), so you can still adjust it.
 - **Boost preset:** uses the boost defaults below. Clearing it goes back to the previous mode.
+- **Away preset:** shown while on [holiday](#holiday); clearing it ends the holiday. It's started with `hive_local.set_holiday` (it needs an end time). The `holiday_until` attribute (also on the hot water entity) says when it ends.
 
 **`water_heater.<receiver>_hot_water`** (SLR2 only): Schedule / On / Off / Boost. Turn on goes back to Schedule.
 
@@ -121,9 +133,9 @@ Also, for each channel:
 | `button.<receiver>_boost_heating` / `cancel_heating_boost` | Start or cancel a boost. |
 | `number.<receiver>_heating_boost_duration` / `heating_boost_temperature` | Defaults used by the button, the select and the actions. These are stored in HA, not on the receiver. |
 | `switch.<receiver>_pre_heat` / `number.<receiver>_pre_heat_starts_at_most` | [Pre-heat](#pre-heat) on or off, and how early it may start (15–240 minutes). Stored in HA. |
-| `number.<receiver>_heating_frost_protection` | Set this to match the frost protection on your Hive thermostat (default 12 °C). During a schedule "off" period the receiver reports 1 °C, so this is shown as the target instead. Display only: it's never sent to the receiver. |
+| `number.<receiver>_heating_frost_protection` | Set this to match the frost protection on your Hive thermostat (default 12 °C). During a schedule "off" period the receiver reports 1 °C, so this is shown as the target instead. Also the default [holiday](#holiday) temperature. Otherwise display only. |
 
-Actions: `hive_local.boost_heating` (`minutes`, `temperature`), `hive_local.boost_water` (`minutes`), `hive_local.cancel_boost_heating`, `hive_local.cancel_boost_water`. Each takes an optional `device_id`, which is only needed if you have more than one receiver. Cancelling a boost returns the channel to whatever it was doing before. If the receiver is still boosting a couple of minutes after a boost should have ended (it can lose track of the time), Hive Local ends it for you the same way.
+Actions: `hive_local.boost_heating` (`minutes`, `temperature`), `hive_local.boost_water` (`minutes`), `hive_local.cancel_boost_heating`, `hive_local.cancel_boost_water`. Each takes an optional `device_id`, which is only needed if you have more than one receiver. `hive_local.set_holiday` (`until`, optional `temperature`) and `hive_local.cancel_holiday` cover every receiver unless you pass a `device_id`; see [Holiday](#holiday). Cancelling a boost returns the channel to whatever it was doing before. If the receiver is still boosting a couple of minutes after a boost should have ended (it can lose track of the time), Hive Local ends it for you the same way.
 
 ```yaml
 action: hive_local.boost_heating

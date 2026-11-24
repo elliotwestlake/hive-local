@@ -82,6 +82,8 @@ class Preheat:
         # Until then, non-boost reports don't end our pre-heat: the boost takes a moment to show.
         self._settle_until: datetime | None = None
         self._unsubs: list[Callable[[], None]] = []
+        # Set by the holiday: no pre-heating while away.
+        self.blocked: Callable[[], bool] = lambda: False
 
     @property
     def available(self) -> bool:
@@ -335,6 +337,8 @@ class Preheat:
             or new_at in self._skipped
         ):
             return
+        if self.blocked():
+            return  # on holiday
         # Claim it now, so a second evaluation before the task runs doesn't boost twice.
         self._set_active(new_at)
         self._settle_until = dt_util.utcnow() + SETTLE

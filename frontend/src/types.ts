@@ -52,6 +52,15 @@ export interface ChannelInfo {
   boost_temperature: number;
   frost_temperature: number; // HA-side setting, shown during schedule "off" periods
   preheat?: PreheatInfo; // heating only
+  holiday?: HolidayInfo | null; // while away
+}
+
+/** Holiday (away): heating holds `temperature`, hot water is off, until `until`. */
+export interface HolidayInfo {
+  until: string; // ISO, HA's local time
+  temperature: number | null; // heating only
+  restore_mode: Exclude<Mode, "boost">; // what it goes back to
+  holding: boolean; // heating is on the holiday's own boost (its fail-safe), not one started on top
 }
 
 /** Pre-heat (heating): start early so it's warm at the scheduled time. */

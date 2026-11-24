@@ -13,6 +13,8 @@ hive_local/defaults {entry_id, channel, boost_minutes?, boost_temperature?, fros
 hive_local/settings                                -> {"outdoor_entity", "outdoor_candidates", "gas_meter", "gas_meter_candidates", "fit", "output_kw", "output_basis", "boiler_kw", "price_source", "fixed_price", "price_candidates", "energy_price", "price", "currency"} (house-wide)
 hive_local/settings/set {outdoor_entity?, gas_meter?, boiler_kw?, price_source?: "energy"|"fixed"|entity_id|null, fixed_price?}
 hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures, outdoor temperature and the cost per hour of heating if set (from the recorder)
+hive_local/holiday/set {until, temperature?, entry_id?}  away until `until` (every receiver without entry_id)
+hive_local/holiday/cancel {entry_id?}               back to the previous modes now
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
 hive_local/rooms/candidates                        -> {"valves", "sensors", "receivers"} for the room editor
@@ -86,6 +88,8 @@ def async_register(hass: HomeAssistant) -> None:
         ws_defaults,
         ws_settings,
         ws_settings_set,
+        ws_holiday_set,
+        ws_holiday_cancel,
         ws_stats,
         ws_rooms_subscribe,
         ws_rooms_candidates,
@@ -133,6 +137,7 @@ def _status(hass: HomeAssistant) -> dict[str, Any]:
                 "boost_temperature": data.boost_defaults(channel).temperature,
                 "frost_temperature": data.boost_defaults(channel).frost,
                 **({"preheat": data.preheat.as_dict()} if channel == CHANNEL_HEAT else {}),
+                "holiday": data.holiday.as_dict(channel),
             }
             for channel in data.transport.channels
         }
@@ -362,6 +367,59 @@ async def ws_settings_set(hass: HomeAssistant, connection, msg: dict[str, Any]) 
         connection.send_error(msg["id"], "invalid", str(err))
         return
     connection.send_result(msg["id"], await settings.async_as_dict())
+
+
+def _holiday_entries(hass: HomeAssistant, msg: dict[str, Any]) -> list[HiveConfigEntry]:
+    entries = _entries(hass)
+    if entry_id := msg.get("entry_id"):
+        entries = [e for e in entries if e.entry_id == entry_id]
+    if not entries:
+        raise ScheduleError("Unknown receiver")
+    return entries
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/holiday/set",
+        vol.Required("until"): str,
+        vol.Optional("temperature"): vol.All(vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)),
+        vol.Optional("entry_id"): str,
+        vol.Optional("channel"): str,  # ignored: a holiday covers the whole receiver
+    }
+)
+@websocket_api.async_response
+async def ws_holiday_set(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    until = dt_util.parse_datetime(msg["until"])
+    if until is None:
+        connection.send_error(msg["id"], "invalid", "Not a date and time")
+        return
+    if until.tzinfo is None:
+        until = until.replace(tzinfo=dt_util.get_default_time_zone())
+    try:
+        for entry in _holiday_entries(hass, msg):
+            await entry.runtime_data.async_set_holiday(until, msg.get("temperature"))
+    except ScheduleError as err:
+        connection.send_error(msg["id"], "invalid", str(err))
+        return
+    connection.send_result(msg["id"], {"ok": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/holiday/cancel",
+        vol.Optional("entry_id"): str,
+        vol.Optional("channel"): str,
+    }
+)
+@websocket_api.async_response
+async def ws_holiday_cancel(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    try:
+        for entry in _holiday_entries(hass, msg):
+            await entry.runtime_data.holiday.async_cancel()
+    except ScheduleError as err:
+        connection.send_error(msg["id"], "invalid", str(err))
+        return
+    connection.send_result(msg["id"], {"ok": True})
 
 
 ROOM = {vol.Required("room_id"): str}

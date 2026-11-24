@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { formatMinutes, useSender } from "./api";
+import { formatMinutes, formatUntil, useSender } from "./api";
+import { HolidaySheet } from "./Holiday";
 import { Icon } from "./Icon";
 import { errorText, type Room } from "./types";
 import {
@@ -60,7 +61,7 @@ export function Overview({
       {devices.length > 0 && (
         <>
           <h3 className="home-section">Quick actions</h3>
-          <QuickActions getHass={getHass} devices={devices} status={status} />
+          <QuickActions getHass={getHass} devices={devices} status={status} limits={limits} />
 
           <h3 className="home-section">Your devices</h3>
           {filters.length > 2 && (
@@ -96,27 +97,47 @@ export function Overview({
   );
 }
 
-/** One-tap actions: boost with the defaults, or put everything back on its schedule. */
-function QuickActions({ getHass, devices, status }: { getHass: () => Hass; devices: Device[]; status: StatusMap }) {
+/** One-tap actions: boost with the defaults, away until…, or put everything back on its schedule. */
+function QuickActions({ getHass, devices, status, limits }: { getHass: () => Hass; devices: Device[]; status: StatusMap; limits: Limits | null }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [holidaySheet, setHolidaySheet] = useState(false);
   const several = devices.length > 1;
   const run = async (id: string, msgs: Record<string, unknown>[], done: string) => {
     setBusy(id);
     try {
       for (const m of msgs) await getHass().callWS(m);
       setNote({ ok: true, text: done });
+      return true;
     } catch (e) {
       setNote({ ok: false, text: errorText(e) });
+      return false;
     } finally {
       setBusy(null);
     }
   };
-  const actions: { id: string; label: string; icon: string; kind: string; msgs: Record<string, unknown>[]; done: string }[] = [];
+  const actions: { id: string; label: string; icon: string; kind: string; msgs: Record<string, unknown>[]; done: string; open?: () => void }[] = [];
+
+  // Holiday: every receiver at once, like the Hive app.
+  const all = devices.flatMap((d) => d.channels.map((c) => ({ d, c, info: status[d.entry_id]?.[c] })));
+  const away = all.map(({ info }) => info?.holiday).find((h) => h);
+  const heatInfo = all.find(({ c }) => c === "heat")?.info;
+  if (away)
+    actions.push({
+      id: "holiday-end",
+      label: `End holiday · away until ${formatUntil(away.until)}`,
+      icon: "home-import-outline",
+      kind: "neutral",
+      msgs: [{ type: "hive_local/holiday/cancel" }],
+      done: "Welcome back: everything's back to what it was doing",
+    });
+  else
+    actions.push({ id: "holiday", label: "Away until…", icon: "bag-suitcase", kind: "neutral", msgs: [], done: "", open: () => setHolidaySheet(true) });
+
   for (const d of devices)
     for (const c of d.channels) {
       const info = status[d.entry_id]?.[c];
-      if (info?.status?.mode === "boost") continue;
+      if (info?.status?.mode === "boost" && !info?.holiday?.holding) continue;
       const mins = formatMinutes(info?.boost_minutes ?? 30);
       const what = c === "water" ? "hot water" : "heating";
       actions.push({
@@ -129,7 +150,8 @@ function QuickActions({ getHass, devices, status }: { getHass: () => Hass; devic
       });
     }
   const offSchedule = devices.flatMap((d) =>
-    d.channels.filter((c) => { const m = status[d.entry_id]?.[c]?.status?.mode; return m && m !== "schedule"; }).map((c) => ({ d, c })),
+    // Channels on holiday are left to "End holiday".
+    d.channels.filter((c) => { const m = status[d.entry_id]?.[c]?.status?.mode; return m && m !== "schedule" && !status[d.entry_id]?.[c]?.holiday; }).map((c) => ({ d, c })),
   );
   if (offSchedule.length)
     actions.push({
@@ -149,13 +171,28 @@ function QuickActions({ getHass, devices, status }: { getHass: () => Hass; devic
     <>
       <div className="quick">
         {actions.map((a) => (
-          <button key={a.id} className={`quick-action ${a.kind}`} disabled={busy != null} onClick={() => run(a.id, a.msgs, a.done)}>
+          <button key={a.id} className={`quick-action ${a.kind}`} disabled={busy != null} onClick={() => (a.open ? a.open() : run(a.id, a.msgs, a.done))}>
             <span className="quick-icon"><Icon name={busy === a.id ? "timer-sand" : a.icon} /></span>
             <span className="quick-label">{a.label}</span>
           </button>
         ))}
       </div>
       {note && <div className={`status ${note.ok ? "ok" : "error"}`}>{note.text}</div>}
+      {holidaySheet && (
+        <HolidaySheet
+          hasHeat={all.some(({ c }) => c === "heat")}
+          hasWater={all.some(({ c }) => c === "water")}
+          frost={heatInfo?.frost_temperature ?? 12}
+          limits={limits}
+          busy={busy != null}
+          onGo={(until, temperature) =>
+            run("holiday", [{ type: "hive_local/holiday/set", until: until.toISOString(), temperature }], `Away until ${formatUntil(until)}`).then(
+              (ok) => ok && setHolidaySheet(false),
+            )
+          }
+          onClose={() => setHolidaySheet(false)}
+        />
+      )}
     </>
   );
 }
@@ -267,9 +304,11 @@ export function ChannelCard({
       () => setSheet(false),
     );
 
-  const targetLabel = !s ? "" : s.mode === "boost" ? "Boost to" : frostPeriod && pending == null ? "Frost" : s.mode === "manual" ? "Hold at" : "Target";
+  // While away the heating is a boost underneath (the holiday's fail-safe); it's shown as Away.
+  const holidayHold = !!info?.holiday?.holding;
+  const targetLabel = !s ? "" : holidayHold ? "Away at" : s.mode === "boost" ? "Boost to" : frostPeriod && pending == null ? "Frost" : s.mode === "manual" ? "Hold at" : "Target";
 
-  const boosting = s?.mode === "boost";
+  const boosting = s?.mode === "boost" && !holidayHold;
   // A pre-heat is a boost underneath (it ends at the scheduled time), but it's the schedule starting early.
   const preheatFor = boosting ? info?.preheat?.active_for ?? null : null;
   const preheating = preheatFor != null;
@@ -284,7 +323,12 @@ export function ChannelCard({
     else status = target != null ? <>Target <b>{target}°</b> <Icon name="check-circle-outline" className="status-icon done" /></> : "Idle";
   }
   if (s && preheating) status = <>Pre-heating to <b>{s.setpoint}°</b> <Icon name="sun-clock" className="status-icon" /></>;
-  const modeName = !s ? "" : preheating ? `Pre-heating for ${info?.preheat?.active_for}` : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
+  // Away: heating holds a low temperature, hot water is off (a boost on top shows as a boost).
+  const holiday = info?.holiday ?? null;
+  const awayUntil = holiday ? `Away until ${formatUntil(holiday.until)}` : null;
+  if (s && holiday && !boosting && !active)
+    status = water ? <>Off while away <Icon name="bag-suitcase" className="status-icon away" /></> : <>Away <b>{s.setpoint}°</b> <Icon name="bag-suitcase" className="status-icon away" /></>;
+  const modeName = !s ? "" : awayUntil && !boosting ? awayUntil : preheating ? `Pre-heating for ${info?.preheat?.active_for}` : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
   const open = page;
 
   return (
@@ -325,7 +369,7 @@ export function ChannelCard({
           <div className="target-text">
             <span className="target-label">{targetLabel || "Target"}</span>
             <span className="muted small">
-              {!s ? "" : s.mode === "off" ? "Turn the heating on to set a target" : s.mode === "schedule" ? "Until the next scheduled change" : s.mode === "boost" ? "Keeps the boost time left" : "Held until you change it"}
+              {!s ? "" : holidayHold && holiday ? `While you're away, until ${formatUntil(holiday.until)}` : s.mode === "off" ? "Turn the heating on to set a target" : s.mode === "schedule" ? "Until the next scheduled change" : s.mode === "boost" ? "Keeps the boost time left" : "Held until you change it"}
             </span>
           </div>
           <div className="target-control">
@@ -339,6 +383,14 @@ export function ChannelCard({
               <Icon name="plus" />
             </button>
           </div>
+        </div>
+      )}
+
+      {holiday && (
+        <div className="holiday-row">
+          <Icon name="bag-suitcase" />
+          <span className="holiday-text">{awayUntil}, then back to {holiday.restore_mode === "schedule" ? "the schedule" : modes.find((m) => m.id === holiday.restore_mode)?.label.toLowerCase()}</span>
+          <button className="ghost" disabled={busy} onClick={() => send({ type: "hive_local/holiday/cancel" }, "Holiday ended")}>End</button>
         </div>
       )}
 

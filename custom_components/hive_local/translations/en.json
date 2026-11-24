@@ -178,6 +178,34 @@
           "description": "Which receiver. Can be left out if you only have one."
         }
       }
+    },
+    "set_holiday": {
+      "name": "Set holiday",
+      "description": "Hold frost protection until a date and time (hot water off), then go back to the previous mode.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Leave out for every receiver."
+        },
+        "until": {
+          "name": "Until",
+          "description": "When the holiday ends. Without a time zone it's Home Assistant's local time."
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Heating temperature while away (5-32 °C). Defaults to the heating frost protection setting."
+        }
+      }
+    },
+    "cancel_holiday": {
+      "name": "Cancel holiday",
+      "description": "End a holiday now and go back to the previous mode.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Leave out for every receiver."
+        }
+      }
     }
   }
 }

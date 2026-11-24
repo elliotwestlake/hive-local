@@ -29,6 +29,8 @@
     "boost_heating": { "service": "mdi:fire" },
     "boost_water": { "service": "mdi:water-boiler" },
     "cancel_boost_heating": { "service": "mdi:fire-off" },
-    "cancel_boost_water": { "service": "mdi:water-boiler-off" }
+    "cancel_boost_water": { "service": "mdi:water-boiler-off" },
+    "set_holiday": { "service": "mdi:bag-suitcase" },
+    "cancel_holiday": { "service": "mdi:home-import-outline" }
   }
 }

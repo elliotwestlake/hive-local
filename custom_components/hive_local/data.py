@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import CHANNEL_HEAT, DEFAULT_BOOST_MINUTES, DEFAULT_BOOST_TEMP, DEFAULT_FROST_TEMP, SIGNAL_STATUS
 from .schedule import ScheduleError
+from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .transports import Transport
 from .z2m import MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
@@ -31,6 +33,7 @@ class BoostDefaults:
 class HiveData:
     transport: Transport
     preheat: Preheat
+    holiday: Holiday
     boost: dict[str, BoostDefaults] = field(default_factory=dict)
 
     def boost_defaults(self, channel: str) -> BoostDefaults:
@@ -51,6 +54,12 @@ class HiveData:
             temperature if temperature is not None else defaults.temperature,
         )
 
+    async def async_set_holiday(self, until: datetime, temperature: float | None = None) -> None:
+        """Away until `until`: heating holds `temperature` (default: frost protection), hot water off."""
+        if temperature is None:
+            temperature = self.boost_defaults(CHANNEL_HEAT).frost
+        await self.holiday.async_set(until, temperature)
+
     async def async_set_mode(self, channel: str, mode: str, setpoint: float | None = None) -> None:
         """Schedule | manual | off, from the panel, the climate entity or the mode select."""
         if channel == CHANNEL_HEAT and mode == MODE_SCHEDULE and self.preheat.is_active:
@@ -69,6 +78,10 @@ class HiveData:
         if not status:
             raise ScheduleError("The receiver hasn't reported yet")
         mode = status["mode"]
+        if self.holiday.is_holding(channel):
+            # Away: change the holiday temperature (the boost underneath is ours).
+            await self.holiday.async_set_temperature(temperature)
+            return
         if mode == MODE_OFF:
             raise ScheduleError("Heating is off")
         if mode == MODE_BOOST:
