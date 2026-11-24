@@ -125,7 +125,7 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
             await self.async_set_hvac_mode(hvac_mode)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        await self._run(self._data.transport.async_set_mode(self._channel, FROM_HVAC[hvac_mode]))
+        await self._run(self._data.async_set_mode(self._channel, FROM_HVAC[hvac_mode]))
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         if preset_mode == PRESET_BOOST:

@@ -220,9 +220,7 @@ async def ws_set(hass: HomeAssistant, connection, msg: dict[str, Any], entry: Hi
 @websocket_api.async_response
 @_with_entry
 async def ws_mode(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
-    await entry.runtime_data.transport.async_set_mode(
-        msg["channel"], msg["mode"], msg.get("setpoint")
-    )
+    await entry.runtime_data.async_set_mode(msg["channel"], msg["mode"], msg.get("setpoint"))
     connection.send_result(msg["id"], {"ok": True})
 
 
