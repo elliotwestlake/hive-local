@@ -66,6 +66,10 @@ class Preheat:
         self.enabled = False
         self.max_lead = DEFAULT_PREHEAT_MAX_LEAD
         self.rate = Rate(None, 0)
+        # Whether we have a rate to show yet (learned, or saved from before a restart),
+        # and what the last attempt at learning found (for diagnostics).
+        self.rate_known = False
+        self._last_learn: dict[str, Any] | None = None
         self.schedule: Schedule = {}
         self._store: Store[dict[str, Any]] = Store(hass, STORE_VERSION, f"{DOMAIN}.schedule.{self.entry_id}")
         # The scheduled change (UTC) we're pre-heating for, and ones someone cancelled.
@@ -90,6 +94,14 @@ class Preheat:
             return
         if stored := await self._store.async_load():
             self.schedule = stored.get(CHANNEL_HEAT) or {}
+            # The warm-up rate learned before the restart, until we've learned it again.
+            if isinstance(saved := stored.get("rate"), dict):
+                try:
+                    per_hour = saved.get("per_hour")
+                    self.rate = Rate(None if per_hour is None else float(per_hour), int(saved.get("warmups") or 0))
+                    self.rate_known = True
+                except (TypeError, ValueError):
+                    pass
             # A pre-heat that was running when HA stopped (the receiver kept boosting).
             if (at := dt_util.parse_datetime(stored.get("active_for") or "")) and at > dt_util.utcnow():
                 self.active_for = at
@@ -170,24 +182,40 @@ class Preheat:
             self.schedule_seen(CHANNEL_HEAT, schedule)
 
     async def async_learn(self) -> None:
+        end = dt_util.utcnow()
+        self._last_learn = {"at": end.isoformat()}
         if "recorder" not in self.hass.config.components:
+            self._last_learn["error"] = "recorder not loaded"
             return
         entity_id = channel_entity_id(self.hass, self.entry_id, CHANNEL_HEAT)
+        self._last_learn["entity_id"] = entity_id
         if entity_id is None:
+            self._last_learn["error"] = "heating entity not found"
+            _LOGGER.warning("Pre-heat couldn't find the heating entity to learn from")
             return
-        end = dt_util.utcnow()
         try:
             samples = await async_samples(
                 self.hass, CHANNEL_HEAT, entity_id, end - timedelta(days=PREHEAT_LEARN_DAYS), end
             )
-        except Exception:  # noqa: BLE001 - try again later
+        except Exception as err:  # noqa: BLE001 - try again later
+            self._last_learn["error"] = repr(err)
             _LOGGER.warning("Pre-heat couldn't read the heating history", exc_info=True)
             return
         rate = _learn_rate(samples)
-        if rate != self.rate:
+        self._last_learn.update(
+            samples=len(samples), heating_samples=sum(1 for x in samples if x.heating), rate=rate.per_hour, warmups=rate.warmups
+        )
+        if rate.per_hour is None and self.rate.per_hour is not None:
+            # Too few warm-ups in the window now (e.g. after a holiday): keep the last rate.
+            _LOGGER.debug("Pre-heat found %s warm-ups; keeping %s °C/h", rate.warmups, self.rate.per_hour)
+            rate = self.rate
+        changed = rate != self.rate or not self.rate_known
+        self.rate, self.rate_known = rate, True
+        if changed:
             _LOGGER.debug("Pre-heat warm-up rate: %s", rate)
-            self.rate = rate
+            self._save()
             self._notify()
+            self._evaluate()
 
     @callback
     def _set_active(self, at: datetime | None) -> None:
@@ -199,6 +227,7 @@ class Preheat:
         self._store.async_delay_save(
             lambda: {
                 CHANNEL_HEAT: self.schedule,
+                "rate": {"per_hour": self.rate.per_hour, "warmups": self.rate.warmups},
                 "active_for": self.active_for.isoformat() if self.active_for else None,
             },
             5,
@@ -312,9 +341,18 @@ class Preheat:
             "rate": self.rate.per_hour,
             "warmups": self.rate.warmups,
             "warmups_needed": MIN_WARMUPS,
+            "rate_known": self.rate_known,
             "schedule_known": self._complete(),
             "active_for": dt_util.as_local(self.active_for).strftime("%H:%M") if self.active_for else None,
             "next": nxt,
+        }
+
+    def diagnostics(self) -> dict[str, Any]:
+        return {
+            **self.as_dict(),
+            "last_learn": self._last_learn,
+            "skipped": sorted(t.isoformat() for t in self._skipped),
+            "schedule_days": sorted(d for d, t in self.schedule.items() if t),
         }
 
     @property
