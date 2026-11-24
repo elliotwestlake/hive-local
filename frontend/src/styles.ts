@@ -387,6 +387,7 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }
 .settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
 .settings-row select { max-width: 220px; }
+.stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .settings-chevron { color: var(--secondary-text-color); }
 .settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
 .adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }

@@ -10,9 +10,9 @@ hive_local/cancel_boost {entry_id, channel}
 hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
 hive_local/preheat {entry_id, channel?, enabled?, max_lead?}  pre-heat settings (heating only)
 hive_local/defaults {entry_id, channel, boost_minutes?, boost_temperature?, frost_temperature?} (through the number entities)
-hive_local/settings                                -> {"outdoor_entity", "outdoor_candidates"} (house-wide)
-hive_local/settings/set {outdoor_entity?}
-hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures, outdoor temperature if set (from the recorder)
+hive_local/settings                                -> {"outdoor_entity", "outdoor_candidates", "gas_meter", "gas_meter_candidates", "fit", "output_kw", "output_basis", "boiler_kw", "price_source", "fixed_price", "price_candidates", "energy_price", "price", "currency"} (house-wide)
+hive_local/settings/set {outdoor_entity?, gas_meter?, boiler_kw?, price_source?: "energy"|"fixed"|entity_id|null, fixed_price?}
+hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures, outdoor temperature and the cost per hour of heating if set (from the recorder)
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
 hive_local/rooms/candidates                        -> {"valves", "sensors", "receivers"} for the room editor
@@ -333,13 +333,20 @@ async def ws_defaults(hass: HomeAssistant, connection, msg: dict[str, Any], entr
 
 
 @websocket_api.websocket_command({vol.Required("type"): "hive_local/settings"})
-@callback
-def ws_settings(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
-    connection.send_result(msg["id"], hass.data[DATA_SETTINGS].as_dict())
+@websocket_api.async_response
+async def ws_settings(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    connection.send_result(msg["id"], await hass.data[DATA_SETTINGS].async_as_dict())
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "hive_local/settings/set", vol.Optional("outdoor_entity"): vol.Any(str, None)}
+    {
+        vol.Required("type"): "hive_local/settings/set",
+        vol.Optional("outdoor_entity"): vol.Any(str, None),
+        vol.Optional("boiler_kw"): vol.Any(vol.Coerce(float), None),
+        vol.Optional("price_source"): vol.Any(str, None),
+        vol.Optional("fixed_price"): vol.Any(vol.Coerce(float), None),
+        vol.Optional("gas_meter"): vol.Any(str, None),
+    }
 )
 @websocket_api.async_response
 async def ws_settings_set(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
@@ -347,10 +354,16 @@ async def ws_settings_set(hass: HomeAssistant, connection, msg: dict[str, Any]) 
     try:
         if "outdoor_entity" in msg:
             await settings.async_set_outdoor(msg["outdoor_entity"])
+        if "gas_meter" in msg:
+            await settings.async_set_gas_meter(msg["gas_meter"])
+        if "boiler_kw" in msg:
+            await settings.async_set_boiler_kw(msg["boiler_kw"])
+        if "price_source" in msg or "fixed_price" in msg:
+            await settings.async_set_price(msg.get("price_source", settings.price_source), msg.get("fixed_price"))
     except SettingsError as err:
         connection.send_error(msg["id"], "invalid", str(err))
         return
-    connection.send_result(msg["id"], settings.as_dict())
+    connection.send_result(msg["id"], await settings.async_as_dict())
 
 
 ROOM = {vol.Required("room_id"): str}
@@ -517,7 +530,8 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
 
     samples = await async_samples(hass, channel, entity_id, prev_start, end)
     # The house's optional outdoor temperature (a weather entity or a sensor), from Settings.
-    outdoor_id = hass.data[DATA_SETTINGS].outdoor_entity
+    settings: HouseSettings = hass.data[DATA_SETTINGS]
+    outdoor_id = settings.outdoor_entity
     outdoor = await async_outdoor(hass, outdoor_id, prev_start, end) if outdoor_id else None
 
     def ts(d: datetime) -> float:
@@ -533,4 +547,7 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
         previous=(ts(prev_start), ts(prev_end)),
         outdoor=outdoor,
     )
-    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "outdoor_entity": outdoor_id, "period": days, "offset": offset, "period_end": ts(period_end)})
+    # The estimated cost (heating only: hot water shares the boiler, and would count it twice).
+    # The panel multiplies the boiler's time on by `per_hour`.
+    estimate = await settings.async_cost() if channel == CHANNEL_HEAT else None
+    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "outdoor_entity": outdoor_id, "cost": estimate, "period": days, "offset": offset, "period_end": ts(period_end)})

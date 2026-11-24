@@ -194,10 +194,14 @@ function fakeStats(entry, channel, days, offset = 0) {
     target_avg: water ? null : 20.7,
     outdoor: { avg: +(known.reduce((a, b) => a + b.outdoor, 0) / known.length).toFixed(1), min: Math.min(...known.map((b) => b.outdoor)), max: Math.max(...known.map((b) => b.outdoor)) },
     outdoor_entity: "weather.home",
+    cost: water ? null : { kw: 9.1, basis: "meter", boiler_kw: 24, price: 0.0634, per_hour: 9.1 * 0.0634, currency: "GBP", source: "energy" },
     previous: { has_data: true, heating_minutes: Math.round(heatingMin * 1.14), known_minutes: knownMin, cycles: 30, outdoor_avg: 3.1 },
     days: dayList, series, offset, period_end: today + 86400,
   };
 }
+
+// hive_local/settings/set changes, on top of the sample settings.
+const SETTINGS_CHANGES = {};
 
 const hass = {
   async callWS(msg) {
@@ -235,13 +239,36 @@ const hass = {
             { name: "Study", valves: ["climate.study"], sensor: "sensor.study" },
           ],
         };
+      case "hive_local/settings/set": {
+        // Remember changes, so the settings can be tried out here.
+        const { type, ...change } = msg;
+        Object.assign(SETTINGS_CHANGES, change);
+        if (SETTINGS_CHANGES.price_source === "fixed") SETTINGS_CHANGES.price = SETTINGS_CHANGES.fixed_price;
+        return hass.callWS({ type: "hive_local/settings" });
+      }
       case "hive_local/settings":
+        return { ...(await hass.callWS({ type: "hive_local/settings/base" })), ...SETTINGS_CHANGES };
+      case "hive_local/settings/base":
         return {
           outdoor_entity: params.has("noout") ? null : "weather.home",
           outdoor_candidates: [
             { entity_id: "weather.home", name: "Forecast Home", area: null },
             { entity_id: "sensor.garden_temperature", name: "Garden temperature", area: "Garden" },
           ],
+          gas_meter: "sensor.gas_meter_consumption",
+          gas_meter_candidates: [{ entity_id: "sensor.gas_meter_consumption", name: "Gas meter consumption", area: null, energy: true }],
+          fit: { kw: 9.1, baseline: 6, days: 13, hours: 98.5 },
+          learned_at: "2026-11-24T09:00:00+00:00",
+          modulation: 0.4,
+          output_kw: 9.1,
+          output_basis: "meter",
+          boiler_kw: 24,
+          price_source: params.get("price") ?? "energy",
+          fixed_price: params.get("price") === "fixed" ? 0.0634 : null,
+          price_candidates: [{ entity_id: "sensor.gas_tariff_unit_rate", name: "Gas tariff unit rate", area: null, unit: "GBP/kWh" }],
+          energy_price: 0.0634,
+          price: 0.0634,
+          currency: "GBP",
         };
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };

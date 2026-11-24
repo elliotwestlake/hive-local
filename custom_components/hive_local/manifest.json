@@ -2,6 +2,7 @@
   "domain": "hive_local",
   "name": "Hive Local",
   "after_dependencies": [
+    "energy",
     "mqtt",
     "recorder",
     "zha"

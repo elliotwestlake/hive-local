@@ -35,6 +35,9 @@ shot schedule 900,860 "tab=Overview&open=1&click=Schedule"
 shot controls 900,760 "tab=Overview&click=Boost"
 shot rooms 900,760 "tab=Overview&room=Lounge"
 shot stats 900,780 "tab=Stats"
+shot stats-cost 900,780 "tab=Stats&click=Estimated%20cost"
+shot settings 900,640 "tab=Settings"
+shot settings-fixed-price 900,760 "tab=Settings&price=fixed"
 # A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
 shot phone 390,770 "tab=Overview&narrow=1"
 shot overview-dark 900,760 "tab=Overview&theme=dark"
@@ -45,6 +48,8 @@ compose frame-schedule "1028,$(frame_h 860)" "kind=frame&img=schedule.png&w=900"
 compose frame-controls "1028,$(frame_h 760)" "kind=frame&img=controls.png&w=900"
 compose frame-rooms "1028,$(frame_h 760)" "kind=frame&img=rooms.png&w=900"
 compose frame-stats "1028,$(frame_h 780)" "kind=frame&img=stats.png&w=900"
+compose frame-stats-cost "1028,$(frame_h 780)" "kind=frame&img=stats-cost.png&w=900"
+compose frame-settings "1028,$(frame_h 640)" "kind=frame&img=settings.png&w=900"
 compose frame-overview-dark "1028,$(frame_h 760)" "kind=frame&img=overview-dark.png&w=900&theme=night"
 compose hero 1400,860 "kind=hero"
 cp "$REPO/docs/logo/logo.svg" "$WORK/"
@@ -58,12 +63,15 @@ def dithered(src, dst):
     img = Image.open(f"{work}/{src}.png").convert("RGB")
     pal = img.quantize(colors=256, method=Image.Quantize.FASTOCTREE)
     img.quantize(palette=pal, dither=Image.Dither.FLOYDSTEINBERG).save(dst, optimize=True)
-for raw in ("overview", "schedule", "controls", "rooms", "stats", "phone", "overview-dark"):
+for raw in ("overview", "schedule", "controls", "rooms", "stats", "stats-cost", "settings", "phone", "overview-dark"):
     Image.open(f"{work}/{raw}.png").convert("RGB").quantize(colors=256, method=Image.Quantize.FASTOCTREE).save(
         f"{docs}/screenshots/raw/{raw}.png", optimize=True)
 for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-controls", "controls"),
-                 ("frame-rooms", "rooms"), ("frame-stats", "stats"), ("frame-overview-dark", "overview-dark")):
+                 ("frame-rooms", "rooms"), ("frame-stats", "stats"), ("frame-stats-cost", "stats-cost"),
+                 ("frame-settings", "settings"), ("frame-overview-dark", "overview-dark")):
     dithered(src, f"{docs}/screenshots/{dst}.png")
+# Only for a PR, unquantized: 256 colours lose the light grey boxes.
+Image.open(f"{work}/settings-fixed-price.png").convert("RGB").save(f"{docs}/screenshots/raw/settings-fixed-price.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)
 print("screenshots updated")

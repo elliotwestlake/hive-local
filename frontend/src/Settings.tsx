@@ -1,16 +1,36 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { Icon } from "./Icon";
 import { RoomEditorDialog, RoomSetupDialog } from "./Rooms";
+import { unitPrice } from "./Stats";
 import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
 
 /**
- * Settings: the outside temperature (house-wide), rooms (setting them up; using them is on
+ * Settings: the outside temperature and heating cost (house-wide), rooms (setting them up; using them is on
  * the Overview), and each receiver's boost defaults and frost protection.
  */
 
 interface SettingsData {
   outdoor_entity: string | null;
   outdoor_candidates: Candidate[];
+  gas_meter: string | null;
+  gas_meter_candidates: (Candidate & { energy: boolean })[];
+  /** What was learned from the gas meter: average kW while on, kWh a day without heating. */
+  fit: { kw: number; baseline: number; days: number; hours: number } | null;
+  learned_at: string | null;
+  modulation: number;
+  /** The output the cost uses, and where it came from. */
+  output_kw: number | null;
+  output_basis: "meter" | "rated" | null;
+  boiler_kw: number | null;
+  /** "energy", "fixed", a price entity's id, or null. */
+  price_source: string | null;
+  fixed_price: number | null;
+  price_candidates: (Candidate & { unit: string })[];
+  /** The gas price HA's energy settings give, per kWh, or null if there isn't one. */
+  energy_price: number | null;
+  /** The price in use, per kWh. */
+  price: number | null;
+  currency: string;
 }
 
 export function Settings({ getHass, devices, status }: { getHass: () => Hass; devices: Device[]; status: StatusMap }) {
@@ -24,12 +44,17 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
       .catch((e) => setError(errorText(e)));
   }, [getHass]);
 
-  const setOutdoor = (entity: string) => {
-    setData((d) => d && { ...d, outdoor_entity: entity || null });
+  const save = (change: Partial<SettingsData>) => {
+    setData((d) => d && { ...d, ...change });
     getHass()
-      .callWS({ type: "hive_local/settings/set", outdoor_entity: entity || null })
+      .callWS<SettingsData>({ type: "hive_local/settings/set", ...change })
+      .then((r) => {
+        setData(r);
+        setError("");
+      })
       .catch((e) => setError(errorText(e)));
   };
+  const setOutdoor = (entity: string) => save({ outdoor_entity: entity || null });
 
   return (
     <div className="settings">
@@ -58,6 +83,8 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
         </div>
       </section>
 
+      {data && <CostSettings data={data} save={save} />}
+
       <RoomSettings getHass={getHass} />
 
       {devices.map((d) => (
@@ -73,6 +100,143 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
     </div>
   );
 }
+
+const KW_STEPS = [6, 9, 12, 15, 18, 20, 24, 25, 28, 30, 32, 35, 40, 45, 50];
+
+/** Boiler output and gas price, for the estimated cost in the heating history. */
+function CostSettings({ data, save }: { data: SettingsData; save: (change: Partial<SettingsData>) => void }) {
+  // The fixed unit rate while it's being stepped (saved 0.8 s after the last step).
+  const [rate, setRate] = useState<number | null>(null);
+  const rateRef = useRef<number | null>(null);
+  const timer = useRef<number>();
+  const kw = data.boiler_kw;
+  const stepKw = (dir: 1 | -1) => {
+    if (kw == null) return save({ boiler_kw: 24 });
+    const next = dir > 0 ? KW_STEPS.find((k) => k > kw) : [...KW_STEPS].reverse().find((k) => k < kw);
+    save({ boiler_kw: next ?? kw });
+  };
+  const minor = MINOR_UNITS[data.currency];
+  const shownRate = rate ?? data.fixed_price;
+  const stepRate = (dir: 1 | -1, held = 0) => {
+    // 0.01p (or cent) a tap; held, the buttons repeat and speed up, then move 0.1p at a time.
+    const now = rateRef.current ?? data.fixed_price ?? 0.06;
+    const size = held > 15 ? 0.001 : 0.0001;
+    const next = Math.max(0, Math.round((dir > 0 ? Math.floor(now / size + 1e-6) + 1 : Math.ceil(now / size - 1e-6) - 1) * size * 10000) / 10000);
+    rateRef.current = next;
+    setRate(next);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      save({ price_source: "fixed", fixed_price: next });
+      rateRef.current = null;
+      setRate(null);
+    }, 800);
+  };
+  const choosePrice = (source: string) =>
+    // A fixed price starts from whatever price was in use, so it's a few taps from right.
+    save(source === "fixed" && data.fixed_price == null ? { price_source: source, fixed_price: data.price ?? 0.06 } : { price_source: source || null });
+  const fit = data.fit;
+  const meterNote = !data.gas_meter
+    ? "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for."
+    : fit
+      ? `Learned ${fit.kw.toFixed(1)} kW while heating from ${fit.days} days${fit.baseline >= 0.5 ? ` (plus ${fit.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.`
+      : data.learned_at
+        ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours."
+        : "Learning from the last 14 days…";
+  const perKwh = (v: number | null) => (v != null ? `${unitPrice(v, data.currency)} per kWh` : null);
+  const priceNote =
+    data.price_source === "fixed"
+      ? "Your unit rate, below."
+      : data.price_source === "energy" && data.energy_price == null
+      ? "The Energy dashboard has no gas price (or it can't be read)."
+      : data.price_source && data.price_source !== "fixed" && data.price == null
+        ? "That entity has no price right now."
+        : perKwh(data.price) ?? "Pick where the price comes from.";
+  return (
+    <section className="settings-section">
+      <h3>Heating cost</h3>
+      <p className="muted small settings-help">
+        An estimated cost in the heating history: the boiler's time on × its average output while on × the gas price. A modern boiler turns its
+        flame down, so it averages well below its rating: a gas meter gives the real figure.
+      </p>
+      <div className="settings-group">
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="meter-gas-outline" /></span>
+          <div className="settings-text">
+            <span>Gas meter</span>
+            <span className="muted small">{meterNote}</span>
+          </div>
+          <select aria-label="Gas meter" value={data.gas_meter ?? ""} onChange={(e) => save({ gas_meter: e.target.value || null })}>
+            <option value="">None</option>
+            {data.gas_meter_candidates.map((c) => (
+              <option key={c.entity_id} value={c.entity_id}>
+                {c.name}
+                {c.area ? ` · ${c.area}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="fire" /></span>
+          <div className="settings-text">
+            <span>Boiler rating</span>
+            <span className="muted small">
+              {data.output_basis === "meter"
+                ? "Not needed while the gas meter gives the output."
+                : `Its heating output in kW, from the manual or label (often 24–35 kW for a combi). Counted at ${Math.round(data.modulation * 100)}% without a gas meter.`}
+            </span>
+          </div>
+          <div className="settings-controls">
+            <Adjust value={kw != null ? `${kw.toLocaleString()} kW` : "Not set"} onLower={() => stepKw(-1)} onRaise={() => stepKw(1)} />
+            {kw != null && (
+              <button className="ghost small" onClick={() => save({ boiler_kw: null })}>
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="cash" /></span>
+          <div className="settings-text">
+            <span>Gas price</span>
+            <span className="muted small">{priceNote}</span>
+          </div>
+          <div className="settings-controls">
+            <select aria-label="Gas price" value={data.price_source ?? ""} onChange={(e) => choosePrice(e.target.value)}>
+              <option value="">None</option>
+              <option value="energy">Energy dashboard</option>
+              <option value="fixed">Unit rate</option>
+              {data.price_candidates.map((c) => (
+                <option key={c.entity_id} value={c.entity_id}>
+                  {c.name} ({c.unit})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {data.price_source === "fixed" && (
+          <div className="settings-row">
+            <span className="device-icon"><Icon name="tag-outline" /></span>
+            <div className="settings-text">
+              <span>Unit rate</span>
+              <span className="muted small">From your bill or tariff: the gas price per kWh, without the standing charge.</span>
+            </div>
+            <div className="settings-controls">
+              <Adjust
+                value={shownRate == null ? "–" : minor ? `${(shownRate * 100).toFixed(2)}${minor}` : unitPrice(shownRate, data.currency)}
+                onLower={(held) => stepRate(-1, held)}
+                onRaise={(held) => stepRate(1, held)}
+                hold
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** Currencies whose unit rates are quoted in hundredths: the symbol shown after the number. */
+const MINOR_UNITS: Record<string, string> = { GBP: "p", EUR: "c", USD: "¢", CAD: "¢", AUD: "c", NZD: "c", IEP: "p" };
 
 function RoomSettings({ getHass }: { getHass: () => Hass }) {
   const [rooms, setRooms] = useState<Room[] | null>(null);
@@ -213,19 +377,58 @@ function BoostRows({ getHass, device, channel, info }: { getHass: () => Hass; de
   );
 }
 
-function Adjust({ label, value, onLower, onRaise }: { label?: string; value: string; onLower: () => void; onRaise: () => void }) {
+function Adjust({ label, value, onLower, onRaise, hold }: { label?: string; value: string; onLower: (held: number) => void; onRaise: (held: number) => void; hold?: boolean }) {
+  const lower = useHold(onLower, hold);
+  const raise = useHold(onRaise, hold);
   return (
     <div className="adjust">
       {label && <span className="muted small">{label}</span>}
       <div className="stepper">
-        <button className="round" onClick={onLower} aria-label={`Lower ${label ?? ""}`.trim()}>
+        <button className="round" {...lower} aria-label={`Lower ${label ?? ""}`.trim()}>
           <Icon name="minus" />
         </button>
         <span className="stepper-value">{value}</span>
-        <button className="round" onClick={onRaise} aria-label={`Raise ${label ?? ""}`.trim()}>
+        <button className="round" {...raise} aria-label={`Raise ${label ?? ""}`.trim()}>
           <Icon name="plus" />
         </button>
       </div>
     </div>
   );
+}
+
+/**
+ * A button's handlers: a click steps once; with `hold`, pressing and holding repeats,
+ * faster the longer it's held (`step` gets how many repeats so far, to take bigger steps).
+ * Keyboard clicks (detail 0) still step once.
+ */
+function useHold(step: (held: number) => void, hold?: boolean) {
+  const stepRef = useRef(step);
+  stepRef.current = step;
+  const timer = useRef<number>();
+  const stop = () => window.clearTimeout(timer.current);
+  useEffect(() => stop, []);
+  if (!hold) return { onClick: () => step(0) };
+  const start = (e: PointerEvent) => {
+    if (e.button !== 0) return;
+    stepRef.current(0);
+    let delay = 400;
+    let n = 0;
+    const again = () => {
+      n += 1;
+      stepRef.current(n);
+      delay = n < 5 ? 150 : n < 20 ? 70 : 30;
+      timer.current = window.setTimeout(again, delay);
+    };
+    timer.current = window.setTimeout(again, delay);
+  };
+  return {
+    onPointerDown: start,
+    onPointerUp: stop,
+    onPointerLeave: stop,
+    onPointerCancel: stop,
+    onContextMenu: (e: MouseEvent) => e.preventDefault(),
+    onClick: (e: MouseEvent) => {
+      if (e.detail === 0) step(0);
+    },
+  };
 }
