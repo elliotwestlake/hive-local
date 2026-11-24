@@ -1,5 +1,7 @@
 name: Validate
-on: [push, pull_request]
+# workflow_dispatch: release-please.yml starts it on the release PR's branch, since a PR
+# opened with the built-in token doesn't trigger pull_request workflows.
+on: [push, pull_request, workflow_dispatch]
 jobs:
   marketplace:
     runs-on: ubuntu-latest

@@ -1,0 +1,62 @@
+name: Release
+# release-please keeps one open release PR ("chore(release): x.y.z") up to date with the
+# changes merged to main since the last release: the version bump (manifest.json too), the
+# CHANGELOG and the notes, grouped from the conventional commit messages (feat → New,
+# fix → Fixed). Merging that PR tags the version and publishes the GitHub release, which the
+# Marketplace (formerly HACS) offers as an update.
+#
+# The release PR can be tried first: add the `pre-release` label and prerelease.yml
+# publishes it as a pre-release. When it merges, that pre-release is removed here so
+# release-please can publish the real release under the same tag.
+#
+# It uses the built-in token, so the release PR is opened by github-actions[bot]. GitHub
+# doesn't run pull_request workflows for changes made with that token, but it does let it
+# start workflows by hand: so after creating or updating the release PR this starts the
+# checks (validate.yml, commits.yml) on its branch, and the pre-release when it has the
+# `pre-release` label. Their results show on the release PR as usual.
+# Needs the repo setting "Allow GitHub Actions to create and approve pull requests".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+concurrency: release
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove a pre-release of the version on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("custom_components/hive_local/manifest.json"))["version"])')
+          tag="v$version"
+          if [ "$(gh release view "$tag" --json isPrerelease --jq .isPrerelease 2>/dev/null)" = "true" ]; then
+            gh release delete "$tag" --cleanup-tag --yes
+            echo "::notice::Removed the $tag pre-release so the release can be published"
+          fi
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - name: Start the checks (and pre-release) on the release PR
+        if: steps.release.outputs.pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_JSON: ${{ steps.release.outputs.pr }}
+          BASE: ${{ github.sha }}
+        run: |
+          branch=$(jq -r .headBranchName <<<"$PR_JSON")
+          number=$(jq -r .number <<<"$PR_JSON")
+          title=$(jq -r .title <<<"$PR_JSON")
+          gh workflow run validate.yml --ref "$branch"
+          gh workflow run commits.yml --ref "$branch" -f title="$title" -f base="$BASE"
+          if gh pr view "$number" --json labels --jq '.labels[].name' | grep -qx pre-release; then
+            gh workflow run prerelease.yml --ref "$branch" -f pr="$number"
+          fi
+          echo "::notice::Started the checks on release PR #$number ($branch)"
