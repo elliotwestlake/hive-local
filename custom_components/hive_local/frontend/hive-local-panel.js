@@ -315,7 +315,7 @@ var i = da.exports, ja = { exports: {} }, Ee = {}, Sa = { exports: {} }, Na = {}
       return s.now() - a;
     };
   }
-  var u = [], c = [], v = 1, m = null, h = 3, g = !1, y = !1, w = !1, _ = typeof setTimeout == "function" ? setTimeout : null, p = typeof clearTimeout == "function" ? clearTimeout : null, d = typeof setImmediate < "u" ? setImmediate : null;
+  var u = [], c = [], g = 1, m = null, h = 3, v = !1, y = !1, w = !1, _ = typeof setTimeout == "function" ? setTimeout : null, p = typeof clearTimeout == "function" ? clearTimeout : null, d = typeof setImmediate < "u" ? setImmediate : null;
   typeof navigator < "u" && navigator.scheduling !== void 0 && navigator.scheduling.isInputPending !== void 0 && navigator.scheduling.isInputPending.bind(navigator.scheduling);
   function f(z) {
     for (var O = n(c); O !== null; ) {
@@ -333,7 +333,7 @@ var i = da.exports, ja = { exports: {} }, Ee = {}, Sa = { exports: {} }, Na = {}
     }
   }
   function k(z, O) {
-    y = !1, w && (w = !1, p(j), j = -1), g = !0;
+    y = !1, w && (w = !1, p(j), j = -1), v = !0;
     var E = h;
     try {
       for (f(O), m = n(u); m !== null && (!(m.expirationTime > O) || z && !I()); ) {
@@ -352,7 +352,7 @@ var i = da.exports, ja = { exports: {} }, Ee = {}, Sa = { exports: {} }, Na = {}
       }
       return ae;
     } finally {
-      m = null, h = E, g = !1;
+      m = null, h = E, v = !1;
     }
   }
   var C = !1, $ = null, j = -1, S = 5, P = -1;
@@ -394,7 +394,7 @@ var i = da.exports, ja = { exports: {} }, Ee = {}, Sa = { exports: {} }, Na = {}
   e.unstable_IdlePriority = 5, e.unstable_ImmediatePriority = 1, e.unstable_LowPriority = 4, e.unstable_NormalPriority = 3, e.unstable_Profiling = null, e.unstable_UserBlockingPriority = 2, e.unstable_cancelCallback = function(z) {
     z.callback = null;
   }, e.unstable_continueExecution = function() {
-    y || g || (y = !0, ot(k));
+    y || v || (y = !0, ot(k));
   }, e.unstable_forceFrameRate = function(z) {
     0 > z || 125 < z ? console.error("forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported") : S = 0 < z ? Math.floor(1e3 / z) : 5;
   }, e.unstable_getCurrentPriorityLevel = function() {
@@ -456,7 +456,7 @@ var i = da.exports, ja = { exports: {} }, Ee = {}, Sa = { exports: {} }, Na = {}
       default:
         F = 5e3;
     }
-    return F = E + F, z = { id: v++, callback: O, priorityLevel: z, startTime: E, expirationTime: F, sortIndex: -1 }, E > M ? (z.sortIndex = E, t(c, z), n(u) === null && z === n(c) && (w ? (p(j), j = -1) : w = !0, Ct(x, E - M))) : (z.sortIndex = F, t(u, z), y || g || (y = !0, ot(k))), z;
+    return F = E + F, z = { id: g++, callback: O, priorityLevel: z, startTime: E, expirationTime: F, sortIndex: -1 }, E > M ? (z.sortIndex = E, t(c, z), n(u) === null && z === n(c) && (w ? (p(j), j = -1) : w = !0, Ct(x, E - M))) : (z.sortIndex = F, t(u, z), y || v || (y = !0, ot(k))), z;
   }, e.unstable_shouldYield = I, e.unstable_wrapCallback = function(z) {
     var O = h;
     return function() {
@@ -1093,8 +1093,8 @@ function pd(e, t, n, r, l, o, s, a, u) {
   var c = Array.prototype.slice.call(arguments, 3);
   try {
     t.apply(n, c);
-  } catch (v) {
-    this.onError(v);
+  } catch (g) {
+    this.onError(g);
   }
 }
 var Rn = !1, Yr = null, Gr = !1, So = null, hd = { onError: function(e) {
@@ -2028,27 +2028,27 @@ function Xl(e, t, n, r, l) {
     r = r.return;
   }
   Ua(function() {
-    var c = o, v = fi(n), m = [];
+    var c = o, g = fi(n), m = [];
     e: {
       var h = gu.get(e);
       if (h !== void 0) {
-        var g = xi, y = e;
+        var v = xi, y = e;
         switch (e) {
           case "keypress":
             if (Fr(n) === 0) break e;
           case "keydown":
           case "keyup":
-            g = Yd;
+            v = Yd;
             break;
           case "focusin":
-            y = "focus", g = Wl;
+            y = "focus", v = Wl;
             break;
           case "focusout":
-            y = "blur", g = Wl;
+            y = "blur", v = Wl;
             break;
           case "beforeblur":
           case "afterblur":
-            g = Wl;
+            v = Wl;
             break;
           case "click":
             if (n.button === 2) break e;
@@ -2060,7 +2060,7 @@ function Xl(e, t, n, r, l) {
           case "mouseout":
           case "mouseover":
           case "contextmenu":
-            g = ps;
+            v = ps;
             break;
           case "drag":
           case "dragend":
@@ -2070,32 +2070,32 @@ function Xl(e, t, n, r, l) {
           case "dragover":
           case "dragstart":
           case "drop":
-            g = Od;
+            v = Od;
             break;
           case "touchcancel":
           case "touchend":
           case "touchmove":
           case "touchstart":
-            g = Zd;
+            v = Zd;
             break;
           case fu:
           case pu:
           case hu:
-            g = Id;
+            v = Id;
             break;
           case mu:
-            g = qd;
+            v = qd;
             break;
           case "scroll":
-            g = Md;
+            v = Md;
             break;
           case "wheel":
-            g = tf;
+            v = tf;
             break;
           case "copy":
           case "cut":
           case "paste":
-            g = Ud;
+            v = Ud;
             break;
           case "gotpointercapture":
           case "lostpointercapture":
@@ -2105,7 +2105,7 @@ function Xl(e, t, n, r, l) {
           case "pointerout":
           case "pointerover":
           case "pointerup":
-            g = ms;
+            v = ms;
         }
         var w = (t & 4) !== 0, _ = !w && e === "scroll", p = w ? h !== null ? h + "Capture" : null : h;
         w = [];
@@ -2115,15 +2115,15 @@ function Xl(e, t, n, r, l) {
           if (f.tag === 5 && x !== null && (f = x, p !== null && (x = Kn(d, p), x != null && w.push(er(d, x, f)))), _) break;
           d = d.return;
         }
-        0 < w.length && (h = new g(h, y, null, n, v), m.push({ event: h, listeners: w }));
+        0 < w.length && (h = new v(h, y, null, n, g), m.push({ event: h, listeners: w }));
       }
     }
     if (!(t & 7)) {
       e: {
-        if (h = e === "mouseover" || e === "pointerover", g = e === "mouseout" || e === "pointerout", h && n !== wo && (y = n.relatedTarget || n.fromElement) && (Tt(y) || y[tt])) break e;
-        if ((g || h) && (h = v.window === v ? v : (h = v.ownerDocument) ? h.defaultView || h.parentWindow : window, g ? (y = n.relatedTarget || n.toElement, g = c, y = y ? Tt(y) : null, y !== null && (_ = Wt(y), y !== _ || y.tag !== 5 && y.tag !== 6) && (y = null)) : (g = null, y = c), g !== y)) {
-          if (w = ps, x = "onMouseLeave", p = "onMouseEnter", d = "mouse", (e === "pointerout" || e === "pointerover") && (w = ms, x = "onPointerLeave", p = "onPointerEnter", d = "pointer"), _ = g == null ? h : Zt(g), f = y == null ? h : Zt(y), h = new w(x, d + "leave", g, n, v), h.target = _, h.relatedTarget = f, x = null, Tt(v) === c && (w = new w(p, d + "enter", y, n, v), w.target = f, w.relatedTarget = _, x = w), _ = x, g && y) t: {
-            for (w = g, p = y, d = 0, f = w; f; f = Vt(f)) d++;
+        if (h = e === "mouseover" || e === "pointerover", v = e === "mouseout" || e === "pointerout", h && n !== wo && (y = n.relatedTarget || n.fromElement) && (Tt(y) || y[tt])) break e;
+        if ((v || h) && (h = g.window === g ? g : (h = g.ownerDocument) ? h.defaultView || h.parentWindow : window, v ? (y = n.relatedTarget || n.toElement, v = c, y = y ? Tt(y) : null, y !== null && (_ = Wt(y), y !== _ || y.tag !== 5 && y.tag !== 6) && (y = null)) : (v = null, y = c), v !== y)) {
+          if (w = ps, x = "onMouseLeave", p = "onMouseEnter", d = "mouse", (e === "pointerout" || e === "pointerover") && (w = ms, x = "onPointerLeave", p = "onPointerEnter", d = "pointer"), _ = v == null ? h : Zt(v), f = y == null ? h : Zt(y), h = new w(x, d + "leave", v, n, g), h.target = _, h.relatedTarget = f, x = null, Tt(g) === c && (w = new w(p, d + "enter", y, n, g), w.target = f, w.relatedTarget = _, x = w), _ = x, v && y) t: {
+            for (w = v, p = y, d = 0, f = w; f; f = Vt(f)) d++;
             for (f = 0, x = p; x; x = Vt(x)) f++;
             for (; 0 < d - f; ) w = Vt(w), d--;
             for (; 0 < f - d; ) p = Vt(p), f--;
@@ -2134,19 +2134,19 @@ function Xl(e, t, n, r, l) {
             w = null;
           }
           else w = null;
-          g !== null && bs(m, h, g, w, !1), y !== null && _ !== null && bs(m, _, y, w, !0);
+          v !== null && bs(m, h, v, w, !1), y !== null && _ !== null && bs(m, _, y, w, !0);
         }
       }
       e: {
-        if (h = c ? Zt(c) : window, g = h.nodeName && h.nodeName.toLowerCase(), g === "select" || g === "input" && h.type === "file") var k = uf;
+        if (h = c ? Zt(c) : window, v = h.nodeName && h.nodeName.toLowerCase(), v === "select" || v === "input" && h.type === "file") var k = uf;
         else if (xs(h)) if (su) k = pf;
         else {
           k = df;
           var C = cf;
         }
-        else (g = h.nodeName) && g.toLowerCase() === "input" && (h.type === "checkbox" || h.type === "radio") && (k = ff);
+        else (v = h.nodeName) && v.toLowerCase() === "input" && (h.type === "checkbox" || h.type === "radio") && (k = ff);
         if (k && (k = k(e, c))) {
-          iu(m, k, n, v);
+          iu(m, k, n, g);
           break e;
         }
         C && C(e, h, c), e === "focusout" && (C = h._wrapperState) && C.controlled && h.type === "number" && mo(h, "number", h.value);
@@ -2164,13 +2164,13 @@ function Xl(e, t, n, r, l) {
         case "contextmenu":
         case "mouseup":
         case "dragend":
-          Eo = !1, Ss(m, n, v);
+          Eo = !1, Ss(m, n, g);
           break;
         case "selectionchange":
           if (gf) break;
         case "keydown":
         case "keyup":
-          Ss(m, n, v);
+          Ss(m, n, g);
       }
       var $;
       if (wi) e: {
@@ -2188,7 +2188,7 @@ function Xl(e, t, n, r, l) {
         j = void 0;
       }
       else Yt ? lu(e, n) && (j = "onCompositionEnd") : e === "keydown" && n.keyCode === 229 && (j = "onCompositionStart");
-      j && (ru && n.locale !== "ko" && (Yt || j !== "onCompositionStart" ? j === "onCompositionEnd" && Yt && ($ = nu()) : (dt = v, vi = "value" in dt ? dt.value : dt.textContent, Yt = !0)), C = el(c, j), 0 < C.length && (j = new hs(j, e, null, n, v), m.push({ event: j, listeners: C }), $ ? j.data = $ : ($ = ou(n), $ !== null && (j.data = $)))), ($ = rf ? lf(e, n) : of(e, n)) && (c = el(c, "onBeforeInput"), 0 < c.length && (v = new hs("onBeforeInput", "beforeinput", null, n, v), m.push({ event: v, listeners: c }), v.data = $));
+      j && (ru && n.locale !== "ko" && (Yt || j !== "onCompositionStart" ? j === "onCompositionEnd" && Yt && ($ = nu()) : (dt = g, vi = "value" in dt ? dt.value : dt.textContent, Yt = !0)), C = el(c, j), 0 < C.length && (j = new hs(j, e, null, n, g), m.push({ event: j, listeners: C }), $ ? j.data = $ : ($ = ou(n), $ !== null && (j.data = $)))), ($ = rf ? lf(e, n) : of(e, n)) && (c = el(c, "onBeforeInput"), 0 < c.length && (g = new hs("onBeforeInput", "beforeinput", null, n, g), m.push({ event: g, listeners: c }), g.data = $));
     }
     vu(m, t);
   });
@@ -2539,12 +2539,12 @@ function Nu(e) {
   }
   function u(p, d, f, x) {
     var k = f.type;
-    return k === Kt ? v(p, d, f.props.children, x, f.key) : d !== null && (d.elementType === k || typeof k == "object" && k !== null && k.$$typeof === st && Ms(k) === d.type) ? (x = l(d, f.props), x.ref = bn(p, d, f), x.return = p, x) : (x = Hr(f.type, f.key, f.props, null, p.mode, x), x.ref = bn(p, d, f), x.return = p, x);
+    return k === Kt ? g(p, d, f.props.children, x, f.key) : d !== null && (d.elementType === k || typeof k == "object" && k !== null && k.$$typeof === st && Ms(k) === d.type) ? (x = l(d, f.props), x.ref = bn(p, d, f), x.return = p, x) : (x = Hr(f.type, f.key, f.props, null, p.mode, x), x.ref = bn(p, d, f), x.return = p, x);
   }
   function c(p, d, f, x) {
     return d === null || d.tag !== 4 || d.stateNode.containerInfo !== f.containerInfo || d.stateNode.implementation !== f.implementation ? (d = io(f, p.mode, x), d.return = p, d) : (d = l(d, f.children || []), d.return = p, d);
   }
-  function v(p, d, f, x, k) {
+  function g(p, d, f, x, k) {
     return d === null || d.tag !== 7 ? (d = Ot(f, p.mode, x, k), d.return = p, d) : (d = l(d, f), d.return = p, d);
   }
   function m(p, d, f) {
@@ -2581,12 +2581,12 @@ function Nu(e) {
             x
           );
       }
-      if (Tn(f) || kn(f)) return k !== null ? null : v(p, d, f, x, null);
+      if (Tn(f) || kn(f)) return k !== null ? null : g(p, d, f, x, null);
       Cr(p, f);
     }
     return null;
   }
-  function g(p, d, f, x, k) {
+  function v(p, d, f, x, k) {
     if (typeof x == "string" && x !== "" || typeof x == "number") return p = p.get(f) || null, a(d, p, "" + x, k);
     if (typeof x == "object" && x !== null) {
       switch (x.$$typeof) {
@@ -2596,9 +2596,9 @@ function Nu(e) {
           return p = p.get(x.key === null ? f : x.key) || null, c(d, p, x, k);
         case st:
           var C = x._init;
-          return g(p, d, f, C(x._payload), k);
+          return v(p, d, f, C(x._payload), k);
       }
-      if (Tn(x) || kn(x)) return p = p.get(f) || null, v(d, p, x, k, null);
+      if (Tn(x) || kn(x)) return p = p.get(f) || null, g(d, p, x, k, null);
       Cr(d, x);
     }
     return null;
@@ -2618,7 +2618,7 @@ function Nu(e) {
       for (; j < f.length; j++) $ = m(p, f[j], x), $ !== null && (d = o($, d, j), C === null ? k = $ : C.sibling = $, C = $);
       return Q && zt(p, j), k;
     }
-    for ($ = r(p, $); j < f.length; j++) S = g($, p, j, f[j], x), S !== null && (e && S.alternate !== null && $.delete(S.key === null ? j : S.key), d = o(S, d, j), C === null ? k = S : C.sibling = S, C = S);
+    for ($ = r(p, $); j < f.length; j++) S = v($, p, j, f[j], x), S !== null && (e && S.alternate !== null && $.delete(S.key === null ? j : S.key), d = o(S, d, j), C === null ? k = S : C.sibling = S, C = S);
     return e && $.forEach(function(I) {
       return t(p, I);
     }), Q && zt(p, j), k;
@@ -2644,7 +2644,7 @@ function Nu(e) {
       for (; !P.done; j++, P = f.next()) P = m(p, P.value, x), P !== null && (d = o(P, d, j), C === null ? k = P : C.sibling = P, C = P);
       return Q && zt(p, j), k;
     }
-    for ($ = r(p, $); !P.done; j++, P = f.next()) P = g($, p, j, P.value, x), P !== null && (e && P.alternate !== null && $.delete(P.key === null ? j : P.key), d = o(P, d, j), C === null ? k = P : C.sibling = P, C = P);
+    for ($ = r(p, $); !P.done; j++, P = f.next()) P = v($, p, j, P.value, x), P !== null && (e && P.alternate !== null && $.delete(P.key === null ? j : P.key), d = o(P, d, j), C === null ? k = P : C.sibling = P, C = P);
     return e && $.forEach(function(R) {
       return t(p, R);
     }), Q && zt(p, j), k;
@@ -2789,17 +2789,17 @@ function al(e, t, n, r) {
     l.shared.pending = null;
     var u = a, c = u.next;
     u.next = null, s === null ? o = c : s.next = c, s = u;
-    var v = e.alternate;
-    v !== null && (v = v.updateQueue, a = v.lastBaseUpdate, a !== s && (a === null ? v.firstBaseUpdate = c : a.next = c, v.lastBaseUpdate = u));
+    var g = e.alternate;
+    g !== null && (g = g.updateQueue, a = g.lastBaseUpdate, a !== s && (a === null ? g.firstBaseUpdate = c : a.next = c, g.lastBaseUpdate = u));
   }
   if (o !== null) {
     var m = l.baseState;
-    s = 0, v = c = u = null, a = o;
+    s = 0, g = c = u = null, a = o;
     do {
-      var h = a.lane, g = a.eventTime;
+      var h = a.lane, v = a.eventTime;
       if ((r & h) === h) {
-        v !== null && (v = v.next = {
-          eventTime: g,
+        g !== null && (g = g.next = {
+          eventTime: v,
           lane: 0,
           tag: a.tag,
           payload: a.payload,
@@ -2808,10 +2808,10 @@ function al(e, t, n, r) {
         });
         e: {
           var y = e, w = a;
-          switch (h = t, g = n, w.tag) {
+          switch (h = t, v = n, w.tag) {
             case 1:
               if (y = w.payload, typeof y == "function") {
-                m = y.call(g, m, h);
+                m = y.call(v, m, h);
                 break e;
               }
               m = y;
@@ -2819,7 +2819,7 @@ function al(e, t, n, r) {
             case 3:
               y.flags = y.flags & -65537 | 128;
             case 0:
-              if (y = w.payload, h = typeof y == "function" ? y.call(g, m, h) : y, h == null) break e;
+              if (y = w.payload, h = typeof y == "function" ? y.call(v, m, h) : y, h == null) break e;
               m = G({}, m, h);
               break e;
             case 2:
@@ -2827,13 +2827,13 @@ function al(e, t, n, r) {
           }
         }
         a.callback !== null && a.lane !== 0 && (e.flags |= 64, h = l.effects, h === null ? l.effects = [a] : h.push(a));
-      } else g = { eventTime: g, lane: h, tag: a.tag, payload: a.payload, callback: a.callback, next: null }, v === null ? (c = v = g, u = m) : v = v.next = g, s |= h;
+      } else v = { eventTime: v, lane: h, tag: a.tag, payload: a.payload, callback: a.callback, next: null }, g === null ? (c = g = v, u = m) : g = g.next = v, s |= h;
       if (a = a.next, a === null) {
         if (a = l.shared.pending, a === null) break;
         h = a, a = h.next, h.next = null, l.lastBaseUpdate = h, l.shared.pending = null;
       }
     } while (!0);
-    if (v === null && (u = m), l.baseState = u, l.firstBaseUpdate = c, l.lastBaseUpdate = v, t = l.shared.interleaved, t !== null) {
+    if (g === null && (u = m), l.baseState = u, l.firstBaseUpdate = c, l.lastBaseUpdate = g, t = l.shared.interleaved, t !== null) {
       l = t;
       do
         s |= l.lane, l = l.next;
@@ -2964,17 +2964,17 @@ function to(e) {
     o = l.next, r = r.baseState;
     var a = s = null, u = null, c = o;
     do {
-      var v = c.lane;
-      if ((It & v) === v) u !== null && (u = u.next = { lane: 0, action: c.action, hasEagerState: c.hasEagerState, eagerState: c.eagerState, next: null }), r = c.hasEagerState ? c.eagerState : e(r, c.action);
+      var g = c.lane;
+      if ((It & g) === g) u !== null && (u = u.next = { lane: 0, action: c.action, hasEagerState: c.hasEagerState, eagerState: c.eagerState, next: null }), r = c.hasEagerState ? c.eagerState : e(r, c.action);
       else {
         var m = {
-          lane: v,
+          lane: g,
           action: c.action,
           hasEagerState: c.hasEagerState,
           eagerState: c.eagerState,
           next: null
         };
-        u === null ? (a = u = m, s = r) : u = u.next = m, Y.lanes |= v, At |= v;
+        u === null ? (a = u = m, s = r) : u = u.next = m, Y.lanes |= g, At |= g;
       }
       c = c.next;
     } while (c !== null && c !== o);
@@ -3419,16 +3419,16 @@ function Qs(e, t, n, r, l) {
     s.props = a;
     var u = s.context, c = n.contextType;
     typeof c == "object" && c !== null ? c = Me(c) : (c = je(n) ? Ft : fe.current, c = fn(t, c));
-    var v = n.getDerivedStateFromProps, m = typeof v == "function" || typeof s.getSnapshotBeforeUpdate == "function";
+    var g = n.getDerivedStateFromProps, m = typeof g == "function" || typeof s.getSnapshotBeforeUpdate == "function";
     m || typeof s.UNSAFE_componentWillReceiveProps != "function" && typeof s.componentWillReceiveProps != "function" || (a !== r || u !== c) && As(t, s, r, c), at = !1;
     var h = t.memoizedState;
-    s.state = h, al(t, r, s, l), u = t.memoizedState, a !== r || h !== u || ke.current || at ? (typeof v == "function" && (Do(t, n, v, r), u = t.memoizedState), (a = at || Is(t, n, a, r, h, u, c)) ? (m || typeof s.UNSAFE_componentWillMount != "function" && typeof s.componentWillMount != "function" || (typeof s.componentWillMount == "function" && s.componentWillMount(), typeof s.UNSAFE_componentWillMount == "function" && s.UNSAFE_componentWillMount()), typeof s.componentDidMount == "function" && (t.flags |= 4194308)) : (typeof s.componentDidMount == "function" && (t.flags |= 4194308), t.memoizedProps = r, t.memoizedState = u), s.props = r, s.state = u, s.context = c, r = a) : (typeof s.componentDidMount == "function" && (t.flags |= 4194308), r = !1);
+    s.state = h, al(t, r, s, l), u = t.memoizedState, a !== r || h !== u || ke.current || at ? (typeof g == "function" && (Do(t, n, g, r), u = t.memoizedState), (a = at || Is(t, n, a, r, h, u, c)) ? (m || typeof s.UNSAFE_componentWillMount != "function" && typeof s.componentWillMount != "function" || (typeof s.componentWillMount == "function" && s.componentWillMount(), typeof s.UNSAFE_componentWillMount == "function" && s.UNSAFE_componentWillMount()), typeof s.componentDidMount == "function" && (t.flags |= 4194308)) : (typeof s.componentDidMount == "function" && (t.flags |= 4194308), t.memoizedProps = r, t.memoizedState = u), s.props = r, s.state = u, s.context = c, r = a) : (typeof s.componentDidMount == "function" && (t.flags |= 4194308), r = !1);
   } else {
     s = t.stateNode, Cu(e, t), a = t.memoizedProps, c = t.type === t.elementType ? a : Fe(t.type, a), s.props = c, m = t.pendingProps, h = s.context, u = n.contextType, typeof u == "object" && u !== null ? u = Me(u) : (u = je(n) ? Ft : fe.current, u = fn(t, u));
-    var g = n.getDerivedStateFromProps;
-    (v = typeof g == "function" || typeof s.getSnapshotBeforeUpdate == "function") || typeof s.UNSAFE_componentWillReceiveProps != "function" && typeof s.componentWillReceiveProps != "function" || (a !== m || h !== u) && As(t, s, r, u), at = !1, h = t.memoizedState, s.state = h, al(t, r, s, l);
+    var v = n.getDerivedStateFromProps;
+    (g = typeof v == "function" || typeof s.getSnapshotBeforeUpdate == "function") || typeof s.UNSAFE_componentWillReceiveProps != "function" && typeof s.componentWillReceiveProps != "function" || (a !== m || h !== u) && As(t, s, r, u), at = !1, h = t.memoizedState, s.state = h, al(t, r, s, l);
     var y = t.memoizedState;
-    a !== m || h !== y || ke.current || at ? (typeof g == "function" && (Do(t, n, g, r), y = t.memoizedState), (c = at || Is(t, n, c, r, h, y, u) || !1) ? (v || typeof s.UNSAFE_componentWillUpdate != "function" && typeof s.componentWillUpdate != "function" || (typeof s.componentWillUpdate == "function" && s.componentWillUpdate(r, y, u), typeof s.UNSAFE_componentWillUpdate == "function" && s.UNSAFE_componentWillUpdate(r, y, u)), typeof s.componentDidUpdate == "function" && (t.flags |= 4), typeof s.getSnapshotBeforeUpdate == "function" && (t.flags |= 1024)) : (typeof s.componentDidUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 4), typeof s.getSnapshotBeforeUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 1024), t.memoizedProps = r, t.memoizedState = y), s.props = r, s.state = y, s.context = u, r = c) : (typeof s.componentDidUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 4), typeof s.getSnapshotBeforeUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 1024), r = !1);
+    a !== m || h !== y || ke.current || at ? (typeof v == "function" && (Do(t, n, v, r), y = t.memoizedState), (c = at || Is(t, n, c, r, h, y, u) || !1) ? (g || typeof s.UNSAFE_componentWillUpdate != "function" && typeof s.componentWillUpdate != "function" || (typeof s.componentWillUpdate == "function" && s.componentWillUpdate(r, y, u), typeof s.UNSAFE_componentWillUpdate == "function" && s.UNSAFE_componentWillUpdate(r, y, u)), typeof s.componentDidUpdate == "function" && (t.flags |= 4), typeof s.getSnapshotBeforeUpdate == "function" && (t.flags |= 1024)) : (typeof s.componentDidUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 4), typeof s.getSnapshotBeforeUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 1024), t.memoizedProps = r, t.memoizedState = y), s.props = r, s.state = y, s.context = u, r = c) : (typeof s.componentDidUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 4), typeof s.getSnapshotBeforeUpdate != "function" || a === e.memoizedProps && h === e.memoizedState || (t.flags |= 1024), r = !1);
   }
   return Bo(e, t, n, r, o, l);
 }
@@ -4012,16 +4012,16 @@ function Wf(e, t) {
           n = null;
           break e;
         }
-        var s = 0, a = -1, u = -1, c = 0, v = 0, m = e, h = null;
+        var s = 0, a = -1, u = -1, c = 0, g = 0, m = e, h = null;
         t: for (; ; ) {
-          for (var g; m !== n || l !== 0 && m.nodeType !== 3 || (a = s + l), m !== o || r !== 0 && m.nodeType !== 3 || (u = s + r), m.nodeType === 3 && (s += m.nodeValue.length), (g = m.firstChild) !== null; )
-            h = m, m = g;
+          for (var v; m !== n || l !== 0 && m.nodeType !== 3 || (a = s + l), m !== o || r !== 0 && m.nodeType !== 3 || (u = s + r), m.nodeType === 3 && (s += m.nodeValue.length), (v = m.firstChild) !== null; )
+            h = m, m = v;
           for (; ; ) {
             if (m === e) break t;
-            if (h === n && ++c === l && (a = s), h === o && ++v === r && (u = s), (g = m.nextSibling) !== null) break;
+            if (h === n && ++c === l && (a = s), h === o && ++g === r && (u = s), (v = m.nextSibling) !== null) break;
             m = h, h = m.parentNode;
           }
-          m = g;
+          m = v;
         }
         n = a === -1 || u === -1 ? null : { start: a, end: u };
       } else n = null;
@@ -4268,8 +4268,8 @@ function uc(e, t) {
           a === "input" && o.type === "radio" && o.name != null && Ta(l, o), yo(a, s);
           var c = yo(a, o);
           for (s = 0; s < u.length; s += 2) {
-            var v = u[s], m = u[s + 1];
-            v === "style" ? Oa(l, m) : v === "dangerouslySetInnerHTML" ? Ma(l, m) : v === "children" ? Qn(l, m) : ai(l, v, m, c);
+            var g = u[s], m = u[s + 1];
+            g === "style" ? Oa(l, m) : g === "dangerouslySetInnerHTML" ? Ma(l, m) : g === "children" ? Qn(l, m) : ai(l, g, m, c);
           }
           switch (a) {
             case "input":
@@ -4281,8 +4281,8 @@ function uc(e, t) {
             case "select":
               var h = l._wrapperState.wasMultiple;
               l._wrapperState.wasMultiple = !!o.multiple;
-              var g = o.value;
-              g != null ? ln(l, !!o.multiple, g, !1) : h !== !!o.multiple && (o.defaultValue != null ? ln(
+              var v = o.value;
+              v != null ? ln(l, !!o.multiple, v, !1) : h !== !!o.multiple && (o.defaultValue != null ? ln(
                 l,
                 !!o.multiple,
                 o.defaultValue,
@@ -4320,10 +4320,10 @@ function uc(e, t) {
       Oe(t, e), He(e), l = e.child, l.flags & 8192 && (o = l.memoizedState !== null, l.stateNode.isHidden = o, !o || l.alternate !== null && l.alternate.memoizedState !== null || (Ui = Z())), r & 4 && Zs(e);
       break;
     case 22:
-      if (v = n !== null && n.memoizedState !== null, e.mode & 1 ? (de = (c = de) || v, Oe(t, e), de = c) : Oe(t, e), He(e), r & 8192) {
-        if (c = e.memoizedState !== null, (e.stateNode.isHidden = c) && !v && e.mode & 1) for (L = e, v = e.child; v !== null; ) {
-          for (m = L = v; L !== null; ) {
-            switch (h = L, g = h.child, h.tag) {
+      if (g = n !== null && n.memoizedState !== null, e.mode & 1 ? (de = (c = de) || g, Oe(t, e), de = c) : Oe(t, e), He(e), r & 8192) {
+        if (c = e.memoizedState !== null, (e.stateNode.isHidden = c) && !g && e.mode & 1) for (L = e, g = e.child; g !== null; ) {
+          for (m = L = g; L !== null; ) {
+            switch (h = L, v = h.child, h.tag) {
               case 0:
               case 11:
               case 14:
@@ -4351,14 +4351,14 @@ function uc(e, t) {
                   continue;
                 }
             }
-            g !== null ? (g.return = h, L = g) : qs(m);
+            v !== null ? (v.return = h, L = v) : qs(m);
           }
-          v = v.sibling;
+          g = g.sibling;
         }
-        e: for (v = null, m = e; ; ) {
+        e: for (g = null, m = e; ; ) {
           if (m.tag === 5) {
-            if (v === null) {
-              v = m;
+            if (g === null) {
+              g = m;
               try {
                 l = m.stateNode, c ? (o = l.style, typeof o.setProperty == "function" ? o.setProperty("display", "none", "important") : o.display = "none") : (a = m.stateNode, u = m.memoizedProps.style, s = u != null && u.hasOwnProperty("display") ? u.display : null, a.style.display = Ra("display", s));
               } catch (w) {
@@ -4366,7 +4366,7 @@ function uc(e, t) {
               }
             }
           } else if (m.tag === 6) {
-            if (v === null) try {
+            if (g === null) try {
               m.stateNode.nodeValue = c ? "" : m.memoizedProps;
             } catch (w) {
               X(e, e.return, w);
@@ -4378,9 +4378,9 @@ function uc(e, t) {
           if (m === e) break e;
           for (; m.sibling === null; ) {
             if (m.return === null || m.return === e) break e;
-            v === m && (v = null), m = m.return;
+            g === m && (g = null), m = m.return;
           }
-          v === m && (v = null), m.sibling.return = m.return, m = m.sibling;
+          g === m && (g = null), m.sibling.return = m.return, m = m.sibling;
         }
       }
       break;
@@ -4514,9 +4514,9 @@ function Js(e) {
             if (t.memoizedState === null) {
               var c = t.alternate;
               if (c !== null) {
-                var v = c.memoizedState;
-                if (v !== null) {
-                  var m = v.dehydrated;
+                var g = c.memoizedState;
+                if (g !== null) {
+                  var m = g.dehydrated;
                   m !== null && Xn(m);
                 }
               }
@@ -4870,14 +4870,14 @@ function fc(e, t) {
       e: {
         var o = e, s = n.return, a = n, u = t;
         if (t = ie, a.flags |= 32768, u !== null && typeof u == "object" && typeof u.then == "function") {
-          var c = u, v = a, m = v.tag;
-          if (!(v.mode & 1) && (m === 0 || m === 11 || m === 15)) {
-            var h = v.alternate;
-            h ? (v.updateQueue = h.updateQueue, v.memoizedState = h.memoizedState, v.lanes = h.lanes) : (v.updateQueue = null, v.memoizedState = null);
+          var c = u, g = a, m = g.tag;
+          if (!(g.mode & 1) && (m === 0 || m === 11 || m === 15)) {
+            var h = g.alternate;
+            h ? (g.updateQueue = h.updateQueue, g.memoizedState = h.memoizedState, g.lanes = h.lanes) : (g.updateQueue = null, g.memoizedState = null);
           }
-          var g = Bs(s);
-          if (g !== null) {
-            g.flags &= -257, Ws(g, s, a, o, t), g.mode & 1 && Us(o, c, t), t = g, u = c;
+          var v = Bs(s);
+          if (v !== null) {
+            v.flags &= -257, Ws(v, s, a, o, t), v.mode & 1 && Us(o, c, t), t = v, u = c;
             var y = t.updateQueue;
             if (y === null) {
               var w = /* @__PURE__ */ new Set();
@@ -5035,27 +5035,27 @@ function cn() {
               for (var u = 0; u < a.length; u++) {
                 var c = a[u];
                 for (L = c; L !== null; ) {
-                  var v = L;
-                  switch (v.tag) {
+                  var g = L;
+                  switch (g.tag) {
                     case 0:
                     case 11:
                     case 15:
-                      An(8, v, o);
+                      An(8, g, o);
                   }
-                  var m = v.child;
-                  if (m !== null) m.return = v, L = m;
+                  var m = g.child;
+                  if (m !== null) m.return = g, L = m;
                   else for (; L !== null; ) {
-                    v = L;
-                    var h = v.sibling, g = v.return;
-                    if (ic(v), v === c) {
+                    g = L;
+                    var h = g.sibling, v = g.return;
+                    if (ic(g), g === c) {
                       L = null;
                       break;
                     }
                     if (h !== null) {
-                      h.return = g, L = h;
+                      h.return = v, L = h;
                       break;
                     }
-                    L = g;
+                    L = v;
                   }
                 }
               }
@@ -5277,8 +5277,8 @@ vc = function(e, t, n) {
                   var c = o.updateQueue;
                   if (c !== null) {
                     c = c.shared;
-                    var v = c.pending;
-                    v === null ? u.next = u : (u.next = v.next, v.next = u), c.pending = u;
+                    var g = c.pending;
+                    g === null ? u.next = u : (u.next = g.next, g.next = u), c.pending = u;
                   }
                 }
                 o.lanes |= n, u = o.alternate, u !== null && (u.lanes |= n), Fo(
@@ -5742,8 +5742,8 @@ function _c(e, t, n) {
     l(!0);
     try {
       await e().callWS({ entry_id: t, channel: n, ...u }), s({ kind: "ok", text: c });
-    } catch (v) {
-      s({ kind: "error", text: me(v) });
+    } catch (g) {
+      s({ kind: "error", text: me(g) });
     } finally {
       l(!1);
     }
@@ -5760,57 +5760,57 @@ function fp({
 }) {
   const [s, a] = N.useState([]), [u, c] = N.useState("all");
   N.useEffect(() => {
-    const g = e().connection.subscribeMessage((y) => a(y.rooms), {
+    const v = e().connection.subscribeMessage((y) => a(y.rooms), {
       type: "hive_local/rooms/subscribe"
     });
     return () => {
-      g.then((y) => y()).catch(() => {
+      v.then((y) => y()).catch(() => {
       });
     };
   }, [e]);
-  const v = t.flatMap((g) => g.channels.map((y) => {
+  const g = t.flatMap((v) => v.channels.map((y) => {
     var w, _;
-    return { d: g, c: y, s: ((_ = (w = n[g.entry_id]) == null ? void 0 : w[y]) == null ? void 0 : _.status) ?? null };
+    return { d: v, c: y, s: ((_ = (w = n[v.entry_id]) == null ? void 0 : w[y]) == null ? void 0 : _.status) ?? null };
   })), m = t.length > 1, h = [
     { id: "all", label: "All", icon: "" },
     { id: "heat", label: "Heating", icon: "radiator" },
-    ...v.some(({ c: g }) => g === "water") ? [{ id: "water", label: "Hot water", icon: "water-boiler" }] : [],
+    ...g.some(({ c: v }) => v === "water") ? [{ id: "water", label: "Hot water", icon: "water-boiler" }] : [],
     ...s.length ? [{ id: "rooms", label: "Rooms", icon: "home-thermometer-outline" }] : []
   ];
   return /* @__PURE__ */ i.jsx("div", { className: "home", children: t.length > 0 && /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
     /* @__PURE__ */ i.jsx("h3", { className: "home-section", children: "Quick actions" }),
     /* @__PURE__ */ i.jsx(pp, { getHass: e, devices: t, status: n }),
     /* @__PURE__ */ i.jsx("h3", { className: "home-section", children: "Your devices" }),
-    h.length > 2 && /* @__PURE__ */ i.jsx("div", { className: "pills", role: "tablist", "aria-label": "Show", children: h.map((g) => /* @__PURE__ */ i.jsxs("button", { role: "tab", "aria-selected": u === g.id, className: `pill ${u === g.id ? "on" : ""}`, onClick: () => c(g.id), children: [
-      g.icon && /* @__PURE__ */ i.jsx(T, { name: g.icon }),
+    h.length > 2 && /* @__PURE__ */ i.jsx("div", { className: "pills", role: "tablist", "aria-label": "Show", children: h.map((v) => /* @__PURE__ */ i.jsxs("button", { role: "tab", "aria-selected": u === v.id, className: `pill ${u === v.id ? "on" : ""}`, onClick: () => c(v.id), children: [
+      v.icon && /* @__PURE__ */ i.jsx(T, { name: v.icon }),
       " ",
-      g.label
-    ] }, g.id)) }),
+      v.label
+    ] }, v.id)) }),
     /* @__PURE__ */ i.jsxs("div", { className: "device-grid", children: [
-      v.filter(({ c: g }) => u === "all" || u === g).map(({ d: g, c: y }) => {
+      g.filter(({ c: v }) => u === "all" || u === v).map(({ d: v, c: y }) => {
         var w;
         return /* @__PURE__ */ i.jsx(
           bc,
           {
             getHass: e,
-            device: g,
+            device: v,
             channel: y,
-            info: (w = n[g.entry_id]) == null ? void 0 : w[y],
+            info: (w = n[v.entry_id]) == null ? void 0 : w[y],
             showDevice: m,
             limits: r,
-            onOpen: () => l(g.entry_id, y)
+            onOpen: () => l(v.entry_id, y)
           },
-          `${g.entry_id}-${y}`
+          `${v.entry_id}-${y}`
         );
       }),
-      (u === "all" || u === "rooms") && s.map((g) => /* @__PURE__ */ i.jsx(hp, { room: g, showReceiver: m, onOpen: () => o(g.id) }, g.id))
+      (u === "all" || u === "rooms") && s.map((v) => /* @__PURE__ */ i.jsx(hp, { room: v, showReceiver: m, onOpen: () => o(v.id) }, v.id))
     ] })
   ] }) });
 }
 function pp({ getHass: e, devices: t, status: n }) {
   var m, h;
-  const [r, l] = N.useState(null), [o, s] = N.useState(null), a = t.length > 1, u = async (g, y, w) => {
-    l(g);
+  const [r, l] = N.useState(null), [o, s] = N.useState(null), a = t.length > 1, u = async (v, y, w) => {
+    l(v);
     try {
       for (const _ of y) await e().callWS(_);
       s({ ok: !0, text: w });
@@ -5820,44 +5820,44 @@ function pp({ getHass: e, devices: t, status: n }) {
       l(null);
     }
   }, c = [];
-  for (const g of t)
-    for (const y of g.channels) {
-      const w = (m = n[g.entry_id]) == null ? void 0 : m[y];
+  for (const v of t)
+    for (const y of v.channels) {
+      const w = (m = n[v.entry_id]) == null ? void 0 : m[y];
       if (((h = w == null ? void 0 : w.status) == null ? void 0 : h.mode) === "boost") continue;
       const _ = Mt((w == null ? void 0 : w.boost_minutes) ?? 30), p = y === "water" ? "hot water" : "heating";
       c.push({
-        id: `boost-${g.entry_id}-${y}`,
-        label: `Boost ${p} · ${_}${a ? ` (${g.name})` : ""}`,
+        id: `boost-${v.entry_id}-${y}`,
+        label: `Boost ${p} · ${_}${a ? ` (${v.name})` : ""}`,
         icon: "rocket-launch",
         kind: y,
-        msgs: [{ type: "hive_local/boost", entry_id: g.entry_id, channel: y }],
+        msgs: [{ type: "hive_local/boost", entry_id: v.entry_id, channel: y }],
         done: `Boosting ${p} for ${_}`
       });
     }
-  const v = t.flatMap(
-    (g) => g.channels.filter((y) => {
+  const g = t.flatMap(
+    (v) => v.channels.filter((y) => {
       var _, p, d;
-      const w = (d = (p = (_ = n[g.entry_id]) == null ? void 0 : _[y]) == null ? void 0 : p.status) == null ? void 0 : d.mode;
+      const w = (d = (p = (_ = n[v.entry_id]) == null ? void 0 : _[y]) == null ? void 0 : p.status) == null ? void 0 : d.mode;
       return w && w !== "schedule";
-    }).map((y) => ({ d: g, c: y }))
+    }).map((y) => ({ d: v, c: y }))
   );
-  return v.length && c.push({
+  return g.length && c.push({
     id: "schedule",
     label: "Everything back to schedule",
     icon: "calendar-clock",
     kind: "neutral",
-    msgs: v.map(
-      ({ d: g, c: y }) => {
+    msgs: g.map(
+      ({ d: v, c: y }) => {
         var w, _, p;
-        return ((p = (_ = (w = n[g.entry_id]) == null ? void 0 : w[y]) == null ? void 0 : _.status) == null ? void 0 : p.mode) === "boost" ? { type: "hive_local/cancel_boost", entry_id: g.entry_id, channel: y } : { type: "hive_local/mode", entry_id: g.entry_id, channel: y, mode: "schedule" };
+        return ((p = (_ = (w = n[v.entry_id]) == null ? void 0 : w[y]) == null ? void 0 : _.status) == null ? void 0 : p.mode) === "boost" ? { type: "hive_local/cancel_boost", entry_id: v.entry_id, channel: y } : { type: "hive_local/mode", entry_id: v.entry_id, channel: y, mode: "schedule" };
       }
     ),
     done: "Back on the schedule"
   }), /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
-    /* @__PURE__ */ i.jsx("div", { className: "quick", children: c.map((g) => /* @__PURE__ */ i.jsxs("button", { className: `quick-action ${g.kind}`, disabled: r != null, onClick: () => u(g.id, g.msgs, g.done), children: [
-      /* @__PURE__ */ i.jsx("span", { className: "quick-icon", children: /* @__PURE__ */ i.jsx(T, { name: r === g.id ? "timer-sand" : g.icon }) }),
-      /* @__PURE__ */ i.jsx("span", { className: "quick-label", children: g.label })
-    ] }, g.id)) }),
+    /* @__PURE__ */ i.jsx("div", { className: "quick", children: c.map((v) => /* @__PURE__ */ i.jsxs("button", { className: `quick-action ${v.kind}`, disabled: r != null, onClick: () => u(v.id, v.msgs, v.done), children: [
+      /* @__PURE__ */ i.jsx("span", { className: "quick-icon", children: /* @__PURE__ */ i.jsx(T, { name: r === v.id ? "timer-sand" : v.icon }) }),
+      /* @__PURE__ */ i.jsx("span", { className: "quick-label", children: v.label })
+    ] }, v.id)) }),
     o && /* @__PURE__ */ i.jsx("div", { className: `status ${o.ok ? "ok" : "error"}`, children: o.text })
   ] });
 }
@@ -5909,7 +5909,7 @@ function bc({
   page: a = !1
 }) {
   var ne, Ht, We;
-  const u = n === "water", c = (r == null ? void 0 : r.status) ?? null, { busy: v, result: m, send: h } = _c(e, t.entry_id, n), g = !!c && c.mode !== "off" && c.heating, y = !c || c.mode === "off" ? "off" : g ? "heating" : "idle", w = !u && (c == null ? void 0 : c.setpoint) != null && c.setpoint <= 1, _ = u || (c == null ? void 0 : c.setpoint) == null ? null : w ? (r == null ? void 0 : r.frost_temperature) ?? null : c.setpoint, p = [
+  const u = n === "water", c = (r == null ? void 0 : r.status) ?? null, { busy: g, result: m, send: h } = _c(e, t.entry_id, n), v = !!c && c.mode !== "off" && c.heating, y = !c || c.mode === "off" ? "off" : v ? "heating" : "idle", w = !u && (c == null ? void 0 : c.setpoint) != null && c.setpoint <= 1, _ = u || (c == null ? void 0 : c.setpoint) == null ? null : w ? (r == null ? void 0 : r.frost_temperature) ?? null : c.setpoint, p = [
     { id: "schedule", label: "Schedule" },
     { id: "manual", label: u ? "Always on" : "Manual" },
     { id: "off", label: "Off" }
@@ -5937,10 +5937,10 @@ function bc({
     ] }),
     " ",
     /* @__PURE__ */ i.jsx(T, { name: "rocket-launch", className: "status-icon" })
-  ] }) : u ? M = g ? /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
+  ] }) : u ? M = v ? /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
     "Heating water ",
     /* @__PURE__ */ i.jsx(T, { name: "water", className: "status-icon" })
-  ] }) : "Not heating now" : g ? M = /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
+  ] }) : "Not heating now" : v ? M = /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
     "Heating to ",
     /* @__PURE__ */ i.jsxs("b", { children: [
       _,
@@ -5989,7 +5989,7 @@ function bc({
           ] }),
           /* @__PURE__ */ i.jsxs("div", { className: "device-row", children: [
             /* @__PURE__ */ i.jsxs("div", { className: "device-big", children: [
-              u ? c ? c.mode === "off" ? "Off" : g ? "On" : "Idle" : "–" : (c == null ? void 0 : c.current_temperature) != null ? c.current_temperature.toFixed(1) : "–",
+              u ? c ? c.mode === "off" ? "Off" : v ? "On" : "Idle" : "–" : (c == null ? void 0 : c.current_temperature) != null ? c.current_temperature.toFixed(1) : "–",
               !u && /* @__PURE__ */ i.jsx("span", { children: "°" }),
               /* @__PURE__ */ i.jsx("small", { children: u ? "Now" : "Actual" })
             ] }),
@@ -5997,7 +5997,7 @@ function bc({
               "button",
               {
                 className: `device-action ${z ? "boosting" : ""}`,
-                disabled: v || !c,
+                disabled: g || !c,
                 onClick: (U) => {
                   U.stopPropagation(), k(!0);
                 },
@@ -6028,7 +6028,7 @@ function bc({
         "button",
         {
           className: (c == null ? void 0 : c.mode) === U.id ? "on" : "",
-          disabled: v || !c,
+          disabled: g || !c,
           onClick: () => h({ type: "hive_local/mode", mode: U.id }, U.id === "schedule" ? "Following the schedule" : U.label),
           children: U.label
         },
@@ -6050,7 +6050,7 @@ function bc({
         defaultTemp: f,
         durations: S,
         clampTemp: j,
-        busy: v,
+        busy: g,
         onBoost: ot,
         onStop: () => h({ type: "hive_local/cancel_boost" }, "Boost cancelled").then(() => k(!1)),
         onClose: () => k(!1)
@@ -6069,10 +6069,10 @@ function mp({
   defaultMinutes: a,
   defaultTemp: u,
   durations: c,
-  clampTemp: v,
+  clampTemp: g,
   busy: m,
   onBoost: h,
-  onStop: g,
+  onStop: v,
   onClose: y
 }) {
   const [w, _] = N.useState(a), [p, d] = N.useState(u);
@@ -6097,12 +6097,12 @@ function mp({
       !n && /* @__PURE__ */ i.jsxs("div", { className: "sheet-field", children: [
         /* @__PURE__ */ i.jsx("span", { className: "sheet-label", children: "Temperature" }),
         /* @__PURE__ */ i.jsxs("div", { className: "sheet-temp", children: [
-          /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => d(v(p - 0.5)), "aria-label": "Lower", children: /* @__PURE__ */ i.jsx(T, { name: "minus" }) }),
+          /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => d(g(p - 0.5)), "aria-label": "Lower", children: /* @__PURE__ */ i.jsx(T, { name: "minus" }) }),
           /* @__PURE__ */ i.jsxs("span", { className: "sheet-temp-value", children: [
             p.toFixed(1),
             "°"
           ] }),
-          /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => d(v(p + 0.5)), "aria-label": "Raise", children: /* @__PURE__ */ i.jsx(T, { name: "plus" }) })
+          /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => d(g(p + 0.5)), "aria-label": "Raise", children: /* @__PURE__ */ i.jsx(T, { name: "plus" }) })
         ] })
       ] }),
       /* @__PURE__ */ i.jsxs("div", { className: "sheet-field", children: [
@@ -6110,7 +6110,7 @@ function mp({
         /* @__PURE__ */ i.jsx("div", { className: "sheet-lengths", role: "radiogroup", "aria-label": "How long", children: c.map((f) => /* @__PURE__ */ i.jsx("button", { role: "radio", "aria-checked": f === w, className: f === w ? "on" : "", onClick: () => _(f), children: Mt(f) }, f)) })
       ] })
     ] }),
-    r ? /* @__PURE__ */ i.jsxs("button", { className: "sheet-go stop", disabled: m, onClick: g, children: [
+    r ? /* @__PURE__ */ i.jsxs("button", { className: "sheet-go stop", disabled: m, onClick: v, children: [
       /* @__PURE__ */ i.jsx("span", { className: "stop-square" }),
       " ",
       l ? "Stop pre-heating" : "Stop boost"
@@ -6120,9 +6120,10 @@ function mp({
 }
 const gp = [60, 90, 120, 180];
 function vp({ getHass: e, device: t, info: n }) {
-  const { busy: r, result: l, send: o } = _c(e, t.entry_id, "heat"), s = [.../* @__PURE__ */ new Set([...gp, n.max_lead])].sort((u, c) => u - c);
+  var u;
+  const { busy: r, result: l, send: o } = _c(e, t.entry_id, "heat"), s = [.../* @__PURE__ */ new Set([...gp, n.max_lead])].sort((c, g) => c - g);
   let a;
-  return n.enabled ? n.active_for ? a = `Pre-heating now, for ${n.active_for}.` : n.rate == null ? a = `Still learning how fast your home warms up (${n.warmups} of ${n.warmups_needed} warm-ups seen).` : n.schedule_known ? n.next ? a = `Next: starts ${n.next.start} to reach ${n.next.setpoint}° by ${n.next.at}.` : a = "Nothing to pre-heat for yet." : a = "Reading the heating schedule…" : a = "Start heating early, so it's warm by the time the schedule says.", /* @__PURE__ */ i.jsxs("section", { className: "card preheat", children: [
+  return n.enabled ? n.active_for ? a = `Pre-heating now, for ${n.active_for}.` : n.rate == null ? a = `Still learning how fast your home warms up (${n.warmups} of ${n.warmups_needed} warm-ups seen).` : n.schedule_known ? (u = n.next) != null && u.skipped ? a = `Not pre-heating for ${n.next.at}: it was stopped early. Turn pre-heat off and on to start it again.` : n.next ? a = `Next: starts ${n.next.start} to reach ${n.next.setpoint}° by ${n.next.at}.` : a = "Nothing to pre-heat for yet." : a = "Reading the heating schedule…" : a = "Start heating early, so it's warm by the time the schedule says.", /* @__PURE__ */ i.jsxs("section", { className: "card preheat", children: [
     /* @__PURE__ */ i.jsxs("div", { className: "target-row", children: [
       /* @__PURE__ */ i.jsxs("div", { className: "device-row", children: [
         /* @__PURE__ */ i.jsx("span", { className: "device-icon", children: /* @__PURE__ */ i.jsx(T, { name: "sun-clock" }) }),
@@ -6131,17 +6132,17 @@ function vp({ getHass: e, device: t, info: n }) {
           /* @__PURE__ */ i.jsx("span", { className: "muted small", children: a })
         ] })
       ] }),
-      /* @__PURE__ */ i.jsx("div", { className: "segmented", role: "radiogroup", "aria-label": "Pre-heat", children: [!0, !1].map((u) => /* @__PURE__ */ i.jsx(
+      /* @__PURE__ */ i.jsx("div", { className: "segmented", role: "radiogroup", "aria-label": "Pre-heat", children: [!0, !1].map((c) => /* @__PURE__ */ i.jsx(
         "button",
         {
           role: "radio",
-          "aria-checked": n.enabled === u,
-          className: n.enabled === u ? "on" : "",
+          "aria-checked": n.enabled === c,
+          className: n.enabled === c ? "on" : "",
           disabled: r,
-          onClick: () => o({ type: "hive_local/preheat", enabled: u }, u ? "Pre-heat on" : "Pre-heat off"),
-          children: u ? "On" : "Off"
+          onClick: () => o({ type: "hive_local/preheat", enabled: c }, c ? "Pre-heat on" : "Pre-heat off"),
+          children: c ? "On" : "Off"
         },
-        String(u)
+        String(c)
       )) })
     ] }),
     n.enabled && /* @__PURE__ */ i.jsxs("div", { className: "target-row", children: [
@@ -6149,17 +6150,17 @@ function vp({ getHass: e, device: t, info: n }) {
         /* @__PURE__ */ i.jsx("span", { children: "Start at most" }),
         /* @__PURE__ */ i.jsx("span", { className: "muted small", children: n.rate != null ? `Your home warms about ${n.rate.toFixed(1)}° an hour` : "Before the scheduled time" })
       ] }),
-      /* @__PURE__ */ i.jsx("div", { className: "segmented", role: "radiogroup", "aria-label": "Start at most", children: s.map((u) => /* @__PURE__ */ i.jsx(
+      /* @__PURE__ */ i.jsx("div", { className: "segmented", role: "radiogroup", "aria-label": "Start at most", children: s.map((c) => /* @__PURE__ */ i.jsx(
         "button",
         {
           role: "radio",
-          "aria-checked": n.max_lead === u,
-          className: n.max_lead === u ? "on" : "",
+          "aria-checked": n.max_lead === c,
+          className: n.max_lead === c ? "on" : "",
           disabled: r,
-          onClick: () => o({ type: "hive_local/preheat", max_lead: u }, "Saved"),
-          children: u % 60 ? `${u / 60} h`.replace(".5 h", "½ h") : `${u / 60} h`
+          onClick: () => o({ type: "hive_local/preheat", max_lead: c }, "Saved"),
+          children: c % 60 ? `${c / 60} h`.replace(".5 h", "½ h") : `${c / 60} h`
         },
-        u
+        c
       )) })
     ] }),
     (l == null ? void 0 : l.kind) === "error" && /* @__PURE__ */ i.jsx("div", { className: "status error", children: l.text })
@@ -6178,8 +6179,8 @@ function wp({
   preheatFor: o
 }) {
   var O;
-  const [s, a] = N.useState({}), [u, c] = N.useState({}), [v, m] = N.useState("monday"), [h, g] = N.useState({ kind: "idle" }), y = t.entry_id, w = n === "water", _ = JSON.stringify(s) !== JSON.stringify(u), p = N.useCallback(async () => {
-    g({ kind: "busy", text: "Reading from receiver…" });
+  const [s, a] = N.useState({}), [u, c] = N.useState({}), [g, m] = N.useState("monday"), [h, v] = N.useState({ kind: "idle" }), y = t.entry_id, w = n === "water", _ = JSON.stringify(s) !== JSON.stringify(u), p = N.useCallback(async () => {
+    v({ kind: "busy", text: "Reading from receiver…" });
     try {
       const E = await e().callWS({
         type: "hive_local/get",
@@ -6188,18 +6189,18 @@ function wp({
       });
       a(E.schedule), c(E.schedule);
       const M = Object.keys(E.schedule).length;
-      g(
+      v(
         E.complete ? { kind: "ok", text: "Schedule read from receiver" } : M ? { kind: "error", text: `Only got ${M}/7 days — try reading again` } : { kind: "error", text: "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." }
       );
     } catch (E) {
-      g({ kind: "error", text: me(E) });
+      v({ kind: "error", text: me(E) });
     }
   }, [y, n, e]);
   N.useEffect(() => {
     p();
   }, [p]), N.useEffect(() => {
     if (h.kind !== "ok") return;
-    const E = setTimeout(() => g({ kind: "idle" }), 4e3);
+    const E = setTimeout(() => v({ kind: "idle" }), 4e3);
     return () => clearTimeout(E);
   }, [h]);
   const d = async () => {
@@ -6210,7 +6211,7 @@ function wp({
       }).map((M) => [M, s[M]])
     );
     if (Object.keys(E).length) {
-      g({ kind: "busy", text: "Writing to receiver…" });
+      v({ kind: "busy", text: "Writing to receiver…" });
       try {
         const M = await e().callWS({
           type: "hive_local/set",
@@ -6220,15 +6221,15 @@ function wp({
         }), F = { ...s, ...M.schedule };
         a(F), c(F);
         const ae = Object.keys(M.schedule).map((ne) => ne[0].toUpperCase() + ne.slice(1, 3));
-        g({
+        v({
           kind: "ok",
           text: `Wrote ${ae.join(", ")}. Read back to confirm the receiver kept it.`
         });
       } catch (M) {
-        g({ kind: "error", text: me(M) });
+        v({ kind: "error", text: me(M) });
       }
     }
-  }, f = s[v] ?? [], x = r.max_transitions, k = (E) => a((M) => ({ ...M, [v]: [...E].sort((F, ae) => Vr(F.time) - Vr(ae.time)) })), C = () => {
+  }, f = s[g] ?? [], x = r.max_transitions, k = (E) => a((M) => ({ ...M, [g]: [...E].sort((F, ae) => Vr(F.time) - Vr(ae.time)) })), C = () => {
     const E = f[f.length - 1], M = E ? kp(f, Vr(E.time) + 60) : "06:00", F = w ? r.water_on : (E == null ? void 0 : E.setpoint) ?? 20;
     k([...f, { time: M, setpoint: F }]);
   }, $ = (E) => a((M) => {
@@ -6238,7 +6239,7 @@ function wp({
   }), j = N.useMemo(() => {
     const E = Object.values(s).flat().map((M) => M.setpoint).filter((M) => M > r.heat_min);
     return { lo: Math.min(15, ...E), hi: Math.max(24, ...E) };
-  }, [s, r.heat_min]), S = Et[((/* @__PURE__ */ new Date()).getDay() + 6) % 7], [P, I] = N.useState(null), [R, J] = N.useState(!1), xe = Et.filter((E) => JSON.stringify(s[E]) !== JSON.stringify(u[E])), bt = Et[(Et.indexOf(v) + 1) % 7], ot = (O = (s[bt] ?? [])[0]) == null ? void 0 : O.time, Ct = (E) => w ? E.setpoint < r.water_on : E.setpoint <= r.heat_min;
+  }, [s, r.heat_min]), S = Et[((/* @__PURE__ */ new Date()).getDay() + 6) % 7], [P, I] = N.useState(null), [R, J] = N.useState(!1), xe = Et.filter((E) => JSON.stringify(s[E]) !== JSON.stringify(u[E])), bt = Et[(Et.indexOf(g) + 1) % 7], ot = (O = (s[bt] ?? [])[0]) == null ? void 0 : O.time, Ct = (E) => w ? E.setpoint < r.water_on : E.setpoint <= r.heat_min;
   let z = "Stored on the receiver, so it keeps running without Home Assistant.";
   return l === "schedule" ? z = "Your schedule is running." : l === "manual" ? z = `Your schedule isn't being used: ${w ? "hot water is always on" : "heating is on Manual"}.` : l === "off" ? z = `Your schedule isn't being used: ${w ? "hot water" : "heating"} is off.` : l === "boost" && o ? z = `Your schedule is running, starting early so it's warm by ${o}.` : l === "boost" && (z = "Boosting now. Your schedule carries on after the boost."), /* @__PURE__ */ i.jsxs("div", { className: "sched", children: [
     /* @__PURE__ */ i.jsx("p", { className: "sched-status muted", children: z }),
@@ -6246,9 +6247,9 @@ function wp({
       "button",
       {
         role: "tab",
-        "aria-selected": E === v,
+        "aria-selected": E === g,
         "aria-label": E,
-        className: `sched-day ${E === v ? "on" : ""} ${E === S ? "today" : ""}`,
+        className: `sched-day ${E === g ? "on" : ""} ${E === S ? "today" : ""}`,
         onClick: () => {
           m(E), I(null);
         },
@@ -6263,7 +6264,7 @@ function wp({
     /* @__PURE__ */ i.jsxs("div", { className: "sched-list", children: [
       f.length === 0 && /* @__PURE__ */ i.jsxs("p", { className: "muted sched-empty", children: [
         "Nothing scheduled on ",
-        v[0].toUpperCase() + v.slice(1),
+        g[0].toUpperCase() + g.slice(1),
         " yet."
       ] }),
       f.map((E, M) => {
@@ -6316,7 +6317,7 @@ function wp({
           }, disabled: !f.length, children: [
             /* @__PURE__ */ i.jsx(T, { name: "content-copy" }),
             " Copy ",
-            zn(v),
+            zn(g),
             " to weekdays"
           ] }),
           /* @__PURE__ */ i.jsxs("button", { role: "menuitem", onClick: () => {
@@ -6324,7 +6325,7 @@ function wp({
           }, disabled: !f.length, children: [
             /* @__PURE__ */ i.jsx(T, { name: "content-copy" }),
             " Copy ",
-            zn(v),
+            zn(g),
             " to the weekend"
           ] }),
           /* @__PURE__ */ i.jsxs("button", { role: "menuitem", onClick: () => {
@@ -6332,7 +6333,7 @@ function wp({
           }, disabled: !f.length, children: [
             /* @__PURE__ */ i.jsx(T, { name: "content-copy" }),
             " Copy ",
-            zn(v),
+            zn(g),
             " to every day"
           ] })
         ] })
@@ -6343,7 +6344,7 @@ function wp({
       Sp,
       {
         slot: f[P],
-        dayName: v[0].toUpperCase() + v.slice(1),
+        dayName: g[0].toUpperCase() + g.slice(1),
         isWater: w,
         limits: r,
         canDelete: !0,
@@ -6381,7 +6382,7 @@ function Sp({
     const m = (h) => h.key === "Escape" && a();
     return window.addEventListener("keydown", m), () => window.removeEventListener("keydown", m);
   }, [a]);
-  const u = n ? e.setpoint < r.water_on : e.setpoint <= r.heat_min, c = (m) => Math.min(r.heat_max, Math.max(5, Math.round(m * 2) / 2)), v = u ? 20 : e.setpoint;
+  const u = n ? e.setpoint < r.water_on : e.setpoint <= r.heat_min, c = (m) => Math.min(r.heat_max, Math.max(5, Math.round(m * 2) / 2)), g = u ? 20 : e.setpoint;
   return /* @__PURE__ */ i.jsx("div", { className: "sheet-backdrop", onClick: a, children: /* @__PURE__ */ i.jsxs("div", { className: "sheet heat", role: "dialog", "aria-modal": "true", "aria-label": `Edit ${t} at ${e.time}`, onClick: (m) => m.stopPropagation(), children: [
     /* @__PURE__ */ i.jsx("span", { className: "sheet-handle" }),
     /* @__PURE__ */ i.jsxs("div", { className: "sheet-title", children: [
@@ -6395,7 +6396,7 @@ function Sp({
     /* @__PURE__ */ i.jsxs("div", { className: "sheet-field", children: [
       /* @__PURE__ */ i.jsx("span", { className: "sheet-label", children: n ? "Hot water" : "Heating" }),
       /* @__PURE__ */ i.jsxs("div", { className: "sheet-lengths", children: [
-        /* @__PURE__ */ i.jsx("button", { className: u ? "" : "on", onClick: () => o({ ...e, setpoint: n ? r.water_on : v }), children: n ? "On" : "Heat to" }),
+        /* @__PURE__ */ i.jsx("button", { className: u ? "" : "on", onClick: () => o({ ...e, setpoint: n ? r.water_on : g }), children: n ? "On" : "Heat to" }),
         /* @__PURE__ */ i.jsx("button", { className: u ? "on" : "", onClick: () => o({ ...e, setpoint: n ? r.water_off : r.heat_min }), children: "Off" })
       ] })
     ] }),
@@ -6471,7 +6472,7 @@ function Cp(e) {
 }
 function Cc({ getHass: e, devices: t, channel: n }) {
   var I;
-  const [r, l] = N.useState((I = t[0]) == null ? void 0 : I.entry_id), o = t.find((R) => R.entry_id === r) ?? t[0], s = n ?? "heat", [a, u] = N.useState(7), [c, v] = N.useState("time"), [m, h] = N.useState(0), [g, y] = N.useState(null), [w, _] = N.useState(""), [p, d] = N.useState(!0), f = s === "water", x = N.useCallback(() => {
+  const [r, l] = N.useState((I = t[0]) == null ? void 0 : I.entry_id), o = t.find((R) => R.entry_id === r) ?? t[0], s = n ?? "heat", [a, u] = N.useState(7), [c, g] = N.useState("time"), [m, h] = N.useState(0), [v, y] = N.useState(null), [w, _] = N.useState(""), [p, d] = N.useState(!0), f = s === "water", x = N.useCallback(() => {
     o && e().callWS({ type: "hive_local/stats", entry_id: o.entry_id, channel: s, days: a, offset: m }).then((R) => {
       y(R), _("");
     }).catch((R) => {
@@ -6490,7 +6491,7 @@ function Cc({ getHass: e, devices: t, channel: n }) {
     const R = setInterval(x, Np);
     return () => clearInterval(R);
   }, [x, m]), !o) return null;
-  const k = g && g.period === a && g.offset === m ? g : null, C = k ? Cp(k) : [], $ = a === 1 ? "hour" : "day", j = !f && !!(k != null && k.outdoor), S = f ? null : (k == null ? void 0 : k.cost) ?? null, P = f || c === "cost" && !S && k ? "time" : c;
+  const k = v && v.period === a && v.offset === m ? v : null, C = k ? Cp(k) : [], $ = a === 1 ? "hour" : "day", j = !f && !!(k != null && k.outdoor), S = f ? null : (k == null ? void 0 : k.cost) ?? null, P = f || c === "cost" && !S && k ? "time" : c;
   return /* @__PURE__ */ i.jsxs("div", { className: "history", children: [
     !n && /* @__PURE__ */ i.jsx("h2", { className: "history-title", children: "Heating history" }),
     !n && t.length > 1 && /* @__PURE__ */ i.jsx("div", { className: "history-tabs", role: "tablist", children: t.map((R) => /* @__PURE__ */ i.jsx("button", { role: "tab", "aria-selected": R.entry_id === o.entry_id, className: R.entry_id === o.entry_id ? "on" : "", onClick: () => {
@@ -6501,9 +6502,9 @@ function Cc({ getHass: e, devices: t, channel: n }) {
         u(R.id), h(0);
       }, children: R.label }, R.id)) }),
       !f && /* @__PURE__ */ i.jsxs("div", { className: "history-toggle", role: "radiogroup", "aria-label": "Show", children: [
-        /* @__PURE__ */ i.jsx("button", { role: "radio", "aria-checked": P === "time", title: "Time on", "aria-label": "Time on", className: `wide ${P === "time" ? "on" : ""}`, onClick: () => v("time"), children: /* @__PURE__ */ i.jsx(T, { name: "clock-outline" }) }),
-        /* @__PURE__ */ i.jsx("button", { role: "radio", "aria-checked": P === "temp", title: "Temperature", "aria-label": "Temperature", className: `wide ${P === "temp" ? "on" : ""}`, onClick: () => v("temp"), children: /* @__PURE__ */ i.jsx(T, { name: "thermometer" }) }),
-        (S || c === "cost") && /* @__PURE__ */ i.jsx("button", { role: "radio", "aria-checked": P === "cost", title: "Estimated cost", "aria-label": "Estimated cost", className: `wide ${P === "cost" ? "on" : ""}`, onClick: () => v("cost"), children: /* @__PURE__ */ i.jsx(T, { name: "cash" }) })
+        /* @__PURE__ */ i.jsx("button", { role: "radio", "aria-checked": P === "time", title: "Time on", "aria-label": "Time on", className: `wide ${P === "time" ? "on" : ""}`, onClick: () => g("time"), children: /* @__PURE__ */ i.jsx(T, { name: "clock-outline" }) }),
+        /* @__PURE__ */ i.jsx("button", { role: "radio", "aria-checked": P === "temp", title: "Temperature", "aria-label": "Temperature", className: `wide ${P === "temp" ? "on" : ""}`, onClick: () => g("temp"), children: /* @__PURE__ */ i.jsx(T, { name: "thermometer" }) }),
+        (S || c === "cost") && /* @__PURE__ */ i.jsx("button", { role: "radio", "aria-checked": P === "cost", title: "Estimated cost", "aria-label": "Estimated cost", className: `wide ${P === "cost" ? "on" : ""}`, onClick: () => g("cost"), children: /* @__PURE__ */ i.jsx(T, { name: "cash" }) })
       ] })
     ] }),
     /* @__PURE__ */ i.jsxs("div", { className: "history-date", children: [
@@ -6559,12 +6560,12 @@ function Ep(e, t, n) {
   return { lo: l, hi: Math.max(o, l + 4) };
 }
 function zp({ data: e, metric: t, water: n, units: r, rows: l, cost: o }) {
-  const s = Math.max(1, l.filter((_) => _.minutes != null).length), a = e.previous, u = !!(a != null && a.has_data) && a.known_minutes >= 0.5 * e.known_minutes, c = u ? e.heating_minutes - a.heating_minutes : 0, v = e.temperature, m = (_) => o ? Xi(_ / 60 * o.per_hour, o.currency) : "–", [h, g, y, w] = t === "cost" ? ["Estimated cost", m(e.heating_minutes), `Average per ${r}`, m(e.heating_minutes / s)] : t === "time" ? [n ? "Hot water on" : "Boiler on", Qr(e.heating_minutes), `Average per ${r}`, Qr(e.heating_minutes / s)] : ["Average", v.avg != null ? `${v.avg.toFixed(1)}°` : "–", "Lowest – highest", v.min != null && v.max != null ? `${v.min.toFixed(1)}–${v.max.toFixed(1)}°` : "–"];
+  const s = Math.max(1, l.filter((_) => _.minutes != null).length), a = e.previous, u = !!(a != null && a.has_data) && a.known_minutes >= 0.5 * e.known_minutes, c = u ? e.heating_minutes - a.heating_minutes : 0, g = e.temperature, m = (_) => o ? Xi(_ / 60 * o.per_hour, o.currency) : "–", [h, v, y, w] = t === "cost" ? ["Estimated cost", m(e.heating_minutes), `Average per ${r}`, m(e.heating_minutes / s)] : t === "time" ? [n ? "Hot water on" : "Boiler on", Qr(e.heating_minutes), `Average per ${r}`, Qr(e.heating_minutes / s)] : ["Average", g.avg != null ? `${g.avg.toFixed(1)}°` : "–", "Lowest – highest", g.min != null && g.max != null ? `${g.min.toFixed(1)}–${g.max.toFixed(1)}°` : "–"];
   return /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
     /* @__PURE__ */ i.jsxs("div", { className: "history-summary", children: [
       /* @__PURE__ */ i.jsxs("div", { children: [
         /* @__PURE__ */ i.jsx("span", { className: "muted", children: h }),
-        /* @__PURE__ */ i.jsx("b", { children: g })
+        /* @__PURE__ */ i.jsx("b", { children: v })
       ] }),
       /* @__PURE__ */ i.jsx("i", {}),
       /* @__PURE__ */ i.jsxs("div", { children: [
@@ -6632,14 +6633,14 @@ function Mp({
   onTab: a,
   onBack: u
 }) {
-  var g, y;
-  const [c, v] = N.useState(s === "schedule");
+  var v, y;
+  const [c, g] = N.useState(s === "schedule");
   N.useEffect(() => {
-    s === "schedule" && v(!0);
+    s === "schedule" && g(!0);
   }, [s]);
   const m = r == null ? void 0 : r.status, h = [
     o ? t.name : null,
-    m ? m.mode === "schedule" ? "On schedule" : m.mode === "boost" ? (g = r == null ? void 0 : r.preheat) != null && g.active_for ? `Pre-heating for ${r.preheat.active_for}` : "Boosting" : m.mode === "off" ? "Off" : n === "water" ? "Always on" : "Manual" : "Waiting for the receiver"
+    m ? m.mode === "schedule" ? "On schedule" : m.mode === "boost" ? (v = r == null ? void 0 : r.preheat) != null && v.active_for ? `Pre-heating for ${r.preheat.active_for}` : "Boosting" : m.mode === "off" ? "Off" : n === "water" ? "Always on" : "Manual" : "Waiting for the receiver"
   ].filter(Boolean).join(" · ");
   return /* @__PURE__ */ i.jsxs("div", { className: "device-page", children: [
     /* @__PURE__ */ i.jsxs("div", { className: "page-head", children: [
@@ -6664,26 +6665,26 @@ function Fp({
   limits: r,
   onOpenDevice: l
 }) {
-  const [o, s] = N.useState(null), [a, u] = N.useState(""), [c, v] = N.useState(!1), m = N.useCallback(() => {
-    e().callWS({ type: "hive_local/rooms/valves" }).then((g) => s(g.valves)).catch((g) => u(me(g)));
+  const [o, s] = N.useState(null), [a, u] = N.useState(""), [c, g] = N.useState(!1), m = N.useCallback(() => {
+    e().callWS({ type: "hive_local/rooms/valves" }).then((v) => s(v.valves)).catch((v) => u(me(v)));
   }, [e]);
   N.useEffect(() => {
     m();
-    const g = setInterval(m, Op);
-    return () => clearInterval(g);
+    const v = setInterval(m, Op);
+    return () => clearInterval(v);
   }, [m]);
   const h = t.length > 1;
   return /* @__PURE__ */ i.jsxs("div", { className: "stack devices-page", children: [
     /* @__PURE__ */ i.jsx("h2", { className: "history-title", children: "Devices" }),
     a && /* @__PURE__ */ i.jsx("div", { className: "status error", children: a }),
     /* @__PURE__ */ i.jsxs("div", { className: "device-grid", children: [
-      t.map((g) => /* @__PURE__ */ i.jsx(Ip, { device: g, status: n, onOpen: (y) => l(g.entry_id, y) }, g.entry_id)),
-      o == null ? void 0 : o.map((g) => /* @__PURE__ */ i.jsx(Ap, { valve: g }, g.entity_id))
+      t.map((v) => /* @__PURE__ */ i.jsx(Ip, { device: v, status: n, onOpen: (y) => l(v.entry_id, y) }, v.entry_id)),
+      o == null ? void 0 : o.map((v) => /* @__PURE__ */ i.jsx(Ap, { valve: v }, v.entity_id))
     ] }),
     o && !o.length && /* @__PURE__ */ i.jsx("p", { className: "muted", children: "No Hive radiator valves yet. Pair them with ZHA or Zigbee2MQTT and they'll show up here." }),
     h && /* @__PURE__ */ i.jsx("p", { className: "muted small", children: "Each receiver is a heating zone." }),
-    /* @__PURE__ */ i.jsx("div", { className: "fab-wrap", children: /* @__PURE__ */ i.jsx("button", { className: "fab", "aria-label": "Add a device", onClick: () => v(!0), children: /* @__PURE__ */ i.jsx(T, { name: "plus" }) }) }),
-    c && /* @__PURE__ */ i.jsx(Up, { onClose: () => v(!1) })
+    /* @__PURE__ */ i.jsx("div", { className: "fab-wrap", children: /* @__PURE__ */ i.jsx("button", { className: "fab", "aria-label": "Add a device", onClick: () => g(!0), children: /* @__PURE__ */ i.jsx(T, { name: "plus" }) }) }),
+    c && /* @__PURE__ */ i.jsx(Up, { onClose: () => g(!1) })
   ] });
 }
 const Dp = { z2m: "Zigbee2MQTT", zha: "ZHA" };
@@ -6813,27 +6814,27 @@ function Bp({ valve: e, heating: t }) {
 }
 const Wp = 8;
 function Hp({ getHass: e, valves: t, info: n, roomName: r, thisRoom: l, chosen: o, onToggle: s }) {
-  const [a, u] = N.useState(null), [c, v] = N.useState(null), m = N.useRef();
+  const [a, u] = N.useState(null), [c, g] = N.useState(null), m = N.useRef();
   N.useEffect(() => () => window.clearTimeout(m.current), []);
-  const [h, g] = N.useState(""), y = t.length > Wp, w = h.trim().toLowerCase(), _ = r.trim().toLowerCase(), p = (j) => !!_ && (j.area ?? "").toLowerCase() === _, d = (j) => {
+  const [h, v] = N.useState(""), y = t.length > Wp, w = h.trim().toLowerCase(), _ = r.trim().toLowerCase(), p = (j) => !!_ && (j.area ?? "").toLowerCase() === _, d = (j) => {
     var P;
     const S = (P = n.get(j.entity_id)) == null ? void 0 : P.room;
     return S && S !== l ? S : null;
   }, [f] = N.useState(() => new Set(o)), x = (j) => f.has(j.entity_id) ? 0 : p(j) ? 1 : d(j) ? 3 : 2, k = [...t].sort((j, S) => x(j) - x(S)), C = w ? k.filter((j) => j.name.toLowerCase().includes(w) || (j.area ?? "").toLowerCase().includes(w)) : k, $ = async (j) => {
-    v(null), u(j.entity_id);
+    g(null), u(j.entity_id);
     try {
-      await e().callWS({ type: "hive_local/rooms/identify", entity_id: j.entity_id }), v({ kind: "ok", text: `${j.name} is flashing its light.` }), window.clearTimeout(m.current), m.current = window.setTimeout(() => {
-        u(null), v(null);
+      await e().callWS({ type: "hive_local/rooms/identify", entity_id: j.entity_id }), g({ kind: "ok", text: `${j.name} is flashing its light.` }), window.clearTimeout(m.current), m.current = window.setTimeout(() => {
+        u(null), g(null);
       }, 1e4);
     } catch (S) {
-      u(null), v({ kind: "error", text: me(S) });
+      u(null), g({ kind: "error", text: me(S) });
     }
   };
   return t.length ? /* @__PURE__ */ i.jsxs("div", { className: "valve-picker", children: [
     y && /* @__PURE__ */ i.jsxs("label", { className: "valve-search", children: [
       /* @__PURE__ */ i.jsx(T, { name: "magnify" }),
-      /* @__PURE__ */ i.jsx("input", { type: "search", value: h, placeholder: "Search valves or areas", "aria-label": "Search valves or areas", onChange: (j) => g(j.target.value) }),
-      h && /* @__PURE__ */ i.jsx("button", { type: "button", className: "ghost round", "aria-label": "Clear the search", onClick: () => g(""), children: /* @__PURE__ */ i.jsx(T, { name: "close" }) })
+      /* @__PURE__ */ i.jsx("input", { type: "search", value: h, placeholder: "Search valves or areas", "aria-label": "Search valves or areas", onChange: (j) => v(j.target.value) }),
+      h && /* @__PURE__ */ i.jsx("button", { type: "button", className: "ghost round", "aria-label": "Clear the search", onClick: () => v(""), children: /* @__PURE__ */ i.jsx(T, { name: "close" }) })
     ] }),
     !C.length && w && /* @__PURE__ */ i.jsxs("span", { className: "muted small", children: [
       'No valves match "',
@@ -6885,7 +6886,7 @@ function $c({ getHass: e, room: t, onDone: n, dialog: r }) {
     const S = (P) => P.key === "Escape" && n();
     return window.addEventListener("keydown", S), () => window.removeEventListener("keydown", S);
   }, [r, n]);
-  const [l, o] = N.useState(null), [s, a] = N.useState((t == null ? void 0 : t.receiver) ?? ""), [u, c] = N.useState((t == null ? void 0 : t.name) ?? ""), [v, m] = N.useState(new Set((t == null ? void 0 : t.valves) ?? [])), [h, g] = N.useState((t == null ? void 0 : t.sensor) ?? ""), [y, w] = N.useState(!1), [_, p] = N.useState(!1), [d, f] = N.useState(""), [x, k] = N.useState(/* @__PURE__ */ new Map());
+  const [l, o] = N.useState(null), [s, a] = N.useState((t == null ? void 0 : t.receiver) ?? ""), [u, c] = N.useState((t == null ? void 0 : t.name) ?? ""), [g, m] = N.useState(new Set((t == null ? void 0 : t.valves) ?? [])), [h, v] = N.useState((t == null ? void 0 : t.sensor) ?? ""), [y, w] = N.useState(!1), [_, p] = N.useState(!1), [d, f] = N.useState(""), [x, k] = N.useState(/* @__PURE__ */ new Map());
   N.useEffect(() => {
     e().callWS({ type: "hive_local/rooms/candidates" }).then(o).catch((S) => f(me(S))), e().callWS({ type: "hive_local/rooms/valves" }).then((S) => k(new Map(S.valves.map((P) => [P.entity_id, P])))).catch(() => {
     });
@@ -6912,7 +6913,7 @@ function $c({ getHass: e, room: t, onDone: n, dialog: r }) {
             type: "hive_local/rooms/save",
             ...t ? { room_id: t.id } : {},
             name: u,
-            valves: [...v],
+            valves: [...g],
             sensor: h || null,
             receiver: s || null
           });
@@ -6925,18 +6926,18 @@ function $c({ getHass: e, room: t, onDone: n, dialog: r }) {
           /* @__PURE__ */ i.jsxs("fieldset", { className: "field", children: [
             /* @__PURE__ */ i.jsxs("legend", { children: [
               "Hive radiator valves",
-              v.size > 0 && /* @__PURE__ */ i.jsxs("span", { className: "valve-count", children: [
-                v.size,
+              g.size > 0 && /* @__PURE__ */ i.jsxs("span", { className: "valve-count", children: [
+                g.size,
                 " chosen"
               ] })
             ] }),
             !l && !d && /* @__PURE__ */ i.jsx("span", { className: "muted small", children: "Loading…" }),
             l && !l.valves.length && /* @__PURE__ */ i.jsx("span", { className: "muted small", children: "No Hive radiator valves found. Pair them with ZHA or Zigbee2MQTT first." }),
-            /* @__PURE__ */ i.jsx(Hp, { getHass: e, valves: (l == null ? void 0 : l.valves) ?? [], info: x, roomName: u, thisRoom: (t == null ? void 0 : t.name) ?? null, chosen: v, onToggle: j })
+            /* @__PURE__ */ i.jsx(Hp, { getHass: e, valves: (l == null ? void 0 : l.valves) ?? [], info: x, roomName: u, thisRoom: (t == null ? void 0 : t.name) ?? null, chosen: g, onToggle: j })
           ] }),
           /* @__PURE__ */ i.jsxs("label", { className: "field", children: [
             /* @__PURE__ */ i.jsx("span", { children: "Room temperature from" }),
-            /* @__PURE__ */ i.jsxs("select", { id: `room-sensor-${(t == null ? void 0 : t.id) ?? "new"}`, value: h, onChange: (S) => g(S.target.value), children: [
+            /* @__PURE__ */ i.jsxs("select", { id: `room-sensor-${(t == null ? void 0 : t.id) ?? "new"}`, value: h, onChange: (S) => v(S.target.value), children: [
               /* @__PURE__ */ i.jsx("option", { value: "", children: "The valves (their average)" }),
               ((l == null ? void 0 : l.sensors) ?? []).map((S) => /* @__PURE__ */ i.jsxs("option", { value: S.entity_id, children: [
                 S.name,
@@ -6953,7 +6954,7 @@ function $c({ getHass: e, room: t, onDone: n, dialog: r }) {
           ] }),
           d && /* @__PURE__ */ i.jsx("div", { className: "status error", children: d }),
           /* @__PURE__ */ i.jsxs("div", { className: "actions", children: [
-            /* @__PURE__ */ i.jsx("button", { className: "primary", type: "submit", disabled: y || !u.trim() || !v.size || C && !s, children: t ? "Save" : "Add room" }),
+            /* @__PURE__ */ i.jsx("button", { className: "primary", type: "submit", disabled: y || !u.trim() || !g.size || C && !s, children: t ? "Save" : "Add room" }),
             /* @__PURE__ */ i.jsx("button", { type: "button", className: "ghost", onClick: n, disabled: y, children: "Cancel" }),
             /* @__PURE__ */ i.jsx("span", { className: "spacer" }),
             t && (_ ? /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
@@ -6976,7 +6977,7 @@ function $c({ getHass: e, room: t, onDone: n, dialog: r }) {
 }
 function Qp({ getHass: e, roomId: t, several: n, onClose: r }) {
   var p;
-  const [l, o] = N.useState(null), [s, a] = N.useState(!1), [u, c] = N.useState(null), [v, m] = N.useState(""), h = N.useRef();
+  const [l, o] = N.useState(null), [s, a] = N.useState(!1), [u, c] = N.useState(null), [g, m] = N.useState(""), h = N.useRef();
   if (N.useEffect(() => {
     const d = e().connection.subscribeMessage(
       (f) => o(f.rooms.find((x) => x.id === t) ?? null),
@@ -6992,7 +6993,7 @@ function Qp({ getHass: e, roomId: t, several: n, onClose: r }) {
     return window.addEventListener("keydown", d), () => window.removeEventListener("keydown", d);
   }, [r, s]), !l) return null;
   if (s) return /* @__PURE__ */ i.jsx($c, { getHass: e, room: l, onDone: () => a(!1), dialog: !0 });
-  const g = u ?? l.target ?? ((p = l.target_range) == null ? void 0 : p[1]) ?? 20, y = (d) => {
+  const v = u ?? l.target ?? ((p = l.target_range) == null ? void 0 : p[1]) ?? 20, y = (d) => {
     const f = Math.min(35, Math.max(5, d));
     c(f), m(""), window.clearTimeout(h.current), h.current = window.setTimeout(async () => {
       try {
@@ -7027,19 +7028,19 @@ function Qp({ getHass: e, roomId: t, several: n, onClose: r }) {
     /* @__PURE__ */ i.jsxs("div", { className: "sheet-field", children: [
       /* @__PURE__ */ i.jsx("span", { className: "sheet-label", children: l.target_range && u == null ? `Target (valves set to ${vl(l.target_range[0])}–${vl(l.target_range[1])})` : "Target" }),
       /* @__PURE__ */ i.jsxs("div", { className: "sheet-temp", children: [
-        /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => y(g - 0.5), "aria-label": "Lower", children: /* @__PURE__ */ i.jsx(T, { name: "minus" }) }),
+        /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => y(v - 0.5), "aria-label": "Lower", children: /* @__PURE__ */ i.jsx(T, { name: "minus" }) }),
         /* @__PURE__ */ i.jsxs("span", { className: "sheet-temp-value", children: [
-          g.toFixed(1),
+          v.toFixed(1),
           "°"
         ] }),
-        /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => y(g + 0.5), "aria-label": "Raise", children: /* @__PURE__ */ i.jsx(T, { name: "plus" }) })
+        /* @__PURE__ */ i.jsx("button", { className: "round sheet-step", onClick: () => y(v + 0.5), "aria-label": "Raise", children: /* @__PURE__ */ i.jsx(T, { name: "plus" }) })
       ] })
     ] }),
     /* @__PURE__ */ i.jsxs("div", { className: "sheet-field", children: [
       /* @__PURE__ */ i.jsx("span", { className: "sheet-label", children: "Valves" }),
       /* @__PURE__ */ i.jsx("ul", { className: "valves", children: l.valve_states.map((d) => /* @__PURE__ */ i.jsx(Bp, { valve: d, heating: l.heating_valves.includes(d.entity_id) }, d.entity_id)) })
     ] }),
-    v && /* @__PURE__ */ i.jsx("div", { className: "status error", children: v }),
+    g && /* @__PURE__ */ i.jsx("div", { className: "status error", children: g }),
     /* @__PURE__ */ i.jsxs("div", { className: "room-sheet-actions", children: [
       /* @__PURE__ */ i.jsxs("button", { className: "ghost", onClick: () => a(!0), children: [
         /* @__PURE__ */ i.jsx(T, { name: "pencil-outline" }),
@@ -7054,21 +7055,21 @@ function Kp(e) {
   return /lounge|living|sitting|family|snug/.test(t) ? "sofa-outline" : /bed|nursery|guest/.test(t) ? "bed-outline" : /kitchen|dining/.test(t) ? "silverware-fork-knife" : /landing|hall|stair/.test(t) ? "stairs" : /study|office/.test(t) ? "desk" : /bath|shower|en-?suite|wc|toilet/.test(t) ? "shower" : "home-thermometer-outline";
 }
 function Yp({ getHass: e, onDone: t }) {
-  const [n, r] = N.useState(null), [l, o] = N.useState(/* @__PURE__ */ new Map()), [s, a] = N.useState(/* @__PURE__ */ new Set()), [u, c] = N.useState({}), [v, m] = N.useState(!1), [h, g] = N.useState("");
+  const [n, r] = N.useState(null), [l, o] = N.useState(/* @__PURE__ */ new Map()), [s, a] = N.useState(/* @__PURE__ */ new Set()), [u, c] = N.useState({}), [g, m] = N.useState(!1), [h, v] = N.useState("");
   N.useEffect(() => {
     e().callWS({ type: "hive_local/rooms/suggest" }).then((x) => {
       r(x), a(new Set(x.rooms.map((k, C) => C)));
-    }).catch((x) => g(me(x))), e().callWS({ type: "hive_local/rooms/candidates" }).then((x) => o(new Map([...x.valves, ...x.sensors].map((k) => [k.entity_id, k.name])))).catch(() => {
+    }).catch((x) => v(me(x))), e().callWS({ type: "hive_local/rooms/candidates" }).then((x) => o(new Map([...x.valves, ...x.sensors].map((k) => [k.entity_id, k.name])))).catch(() => {
     });
   }, [e]);
   const y = ((n == null ? void 0 : n.receivers.length) ?? 0) > 1, w = ((n == null ? void 0 : n.rooms) ?? []).map((x, k) => [x, k]).filter(([, x]) => s.has(x)), _ = w.length > 0 && (!y || w.every(([, x]) => u[x])), p = ((n == null ? void 0 : n.rooms) ?? []).reduce((x, k) => x + k.valves.length, 0), d = async () => {
-    m(!0), g("");
+    m(!0), v("");
     try {
       for (const [x, k] of w)
         await e().callWS({ type: "hive_local/rooms/save", name: x.name, valves: x.valves, sensor: x.sensor, receiver: u[k] ?? null });
       t();
     } catch (x) {
-      g(me(x)), m(!1);
+      v(me(x)), m(!1);
     }
   }, f = (x) => a((k) => {
     const C = new Set(k);
@@ -7110,8 +7111,8 @@ function Yp({ getHass: e, onDone: t }) {
       }) })
     ] }),
     h && /* @__PURE__ */ i.jsx("div", { className: "status error", children: h }),
-    n && n.rooms.length > 0 && /* @__PURE__ */ i.jsx("button", { className: "sheet-go", style: { "--hl-accent": "var(--hl-brand)" }, disabled: v || !_, onClick: d, children: v ? "Creating…" : `Create ${w.length} room${w.length === 1 ? "" : "s"}` }),
-    /* @__PURE__ */ i.jsx("button", { className: "ghost sheet-cancel", onClick: t, disabled: v, children: n != null && n.rooms.length ? "I'll set them up myself" : "Close" })
+    n && n.rooms.length > 0 && /* @__PURE__ */ i.jsx("button", { className: "sheet-go", style: { "--hl-accent": "var(--hl-brand)" }, disabled: g || !_, onClick: d, children: g ? "Creating…" : `Create ${w.length} room${w.length === 1 ? "" : "s"}` }),
+    /* @__PURE__ */ i.jsx("button", { className: "ghost sheet-cancel", onClick: t, disabled: g, children: n != null && n.rooms.length ? "I'll set them up myself" : "Close" })
   ] });
 }
 function Gp({ getHass: e, devices: t, status: n }) {
@@ -7120,9 +7121,9 @@ function Gp({ getHass: e, devices: t, status: n }) {
     e().callWS({ type: "hive_local/settings" }).then(l).catch((c) => s(me(c)));
   }, [e]);
   const a = (c) => {
-    l((v) => v && { ...v, ...c }), e().callWS({ type: "hive_local/settings/set", ...c }).then((v) => {
-      l(v), s("");
-    }).catch((v) => s(me(v)));
+    l((g) => g && { ...g, ...c }), e().callWS({ type: "hive_local/settings/set", ...c }).then((g) => {
+      l(g), s("");
+    }).catch((g) => s(me(g)));
   }, u = (c) => a({ outdoor_entity: c || null });
   return /* @__PURE__ */ i.jsxs("div", { className: "settings", children: [
     /* @__PURE__ */ i.jsx("h2", { className: "history-title", children: "Settings" }),
@@ -7148,9 +7149,9 @@ function Gp({ getHass: e, devices: t, status: n }) {
     /* @__PURE__ */ i.jsx(Jp, { getHass: e }),
     t.map((c) => /* @__PURE__ */ i.jsxs("section", { className: "settings-section", children: [
       /* @__PURE__ */ i.jsx("h3", { children: t.length > 1 ? c.name : "Receiver" }),
-      /* @__PURE__ */ i.jsx("div", { className: "settings-group", children: c.channels.map((v) => {
+      /* @__PURE__ */ i.jsx("div", { className: "settings-group", children: c.channels.map((g) => {
         var m;
-        return /* @__PURE__ */ i.jsx(eh, { getHass: e, device: c, channel: v, info: (m = n[c.entry_id]) == null ? void 0 : m[v] }, v);
+        return /* @__PURE__ */ i.jsx(eh, { getHass: e, device: c, channel: g, info: (m = n[c.entry_id]) == null ? void 0 : m[g] }, g);
       }) })
     ] }, c.entry_id))
   ] });
@@ -7161,7 +7162,7 @@ function Xp({ data: e, save: t }) {
     if (s == null) return t({ boiler_kw: 24 });
     const p = _ > 0 ? ua.find((d) => d > s) : [...ua].reverse().find((d) => d < s);
     t({ boiler_kw: p ?? s });
-  }, u = Zp[e.currency], c = n ?? e.fixed_price, v = (_, p = 0) => {
+  }, u = Zp[e.currency], c = n ?? e.fixed_price, g = (_, p = 0) => {
     const d = l.current ?? e.fixed_price ?? 0.06, f = p > 15 ? 1e-3 : 1e-4, x = Math.max(0, Math.round((_ > 0 ? Math.floor(d / f + 1e-6) + 1 : Math.ceil(d / f - 1e-6) - 1) * f * 1e4) / 1e4);
     l.current = x, r(x), window.clearTimeout(o.current), o.current = window.setTimeout(() => {
       t({ price_source: "fixed", fixed_price: x }), l.current = null, r(null);
@@ -7169,7 +7170,7 @@ function Xp({ data: e, save: t }) {
   }, m = (_) => (
     // A fixed price starts from whatever price was in use, so it's a few taps from right.
     t(_ === "fixed" && e.fixed_price == null ? { price_source: _, fixed_price: e.price ?? 0.06 } : { price_source: _ || null })
-  ), h = e.fit, g = e.gas_meter ? h ? `Learned ${h.kw.toFixed(1)} kW while heating from ${h.days} days${h.baseline >= 0.5 ? ` (plus ${h.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.` : e.learned_at ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours." : "Learning from the last 14 days…" : "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for.", y = (_) => _ != null ? `${ei(_, e.currency)} per kWh` : null, w = e.price_source === "fixed" ? "Your unit rate, below." : e.price_source === "energy" && e.energy_price == null ? "The Energy dashboard has no gas price (or it can't be read)." : e.price_source && e.price_source !== "fixed" && e.price == null ? "That entity has no price right now." : y(e.price) ?? "Pick where the price comes from.";
+  ), h = e.fit, v = e.gas_meter ? h ? `Learned ${h.kw.toFixed(1)} kW while heating from ${h.days} days${h.baseline >= 0.5 ? ` (plus ${h.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.` : e.learned_at ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours." : "Learning from the last 14 days…" : "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for.", y = (_) => _ != null ? `${ei(_, e.currency)} per kWh` : null, w = e.price_source === "fixed" ? "Your unit rate, below." : e.price_source === "energy" && e.energy_price == null ? "The Energy dashboard has no gas price (or it can't be read)." : e.price_source && e.price_source !== "fixed" && e.price == null ? "That entity has no price right now." : y(e.price) ?? "Pick where the price comes from.";
   return /* @__PURE__ */ i.jsxs("section", { className: "settings-section", children: [
     /* @__PURE__ */ i.jsx("h3", { children: "Heating cost" }),
     /* @__PURE__ */ i.jsx("p", { className: "muted small settings-help", children: "An estimated cost in the heating history: the boiler's time on × its average output while on × the gas price. A modern boiler turns its flame down, so it averages well below its rating: a gas meter gives the real figure." }),
@@ -7178,7 +7179,7 @@ function Xp({ data: e, save: t }) {
         /* @__PURE__ */ i.jsx("span", { className: "device-icon", children: /* @__PURE__ */ i.jsx(T, { name: "meter-gas-outline" }) }),
         /* @__PURE__ */ i.jsxs("div", { className: "settings-text", children: [
           /* @__PURE__ */ i.jsx("span", { children: "Gas meter" }),
-          /* @__PURE__ */ i.jsx("span", { className: "muted small", children: g })
+          /* @__PURE__ */ i.jsx("span", { className: "muted small", children: v })
         ] }),
         /* @__PURE__ */ i.jsxs("select", { "aria-label": "Gas meter", value: e.gas_meter ?? "", onChange: (_) => t({ gas_meter: _.target.value || null }), children: [
           /* @__PURE__ */ i.jsx("option", { value: "", children: "None" }),
@@ -7227,8 +7228,8 @@ function Xp({ data: e, save: t }) {
           Hn,
           {
             value: c == null ? "–" : u ? `${(c * 100).toFixed(2)}${u}` : ei(c, e.currency),
-            onLower: (_) => v(-1, _),
-            onRaise: (_) => v(1, _),
+            onLower: (_) => g(-1, _),
+            onRaise: (_) => g(1, _),
             hold: !0
           }
         ) })
@@ -7238,19 +7239,19 @@ function Xp({ data: e, save: t }) {
 }
 const Zp = { GBP: "p", EUR: "c", USD: "¢", CAD: "¢", AUD: "c", NZD: "c", IEP: "p" };
 function Jp({ getHass: e }) {
-  const [t, n] = N.useState(null), [r, l] = N.useState([]), [o, s] = N.useState(null), [a, u] = N.useState(!1), [c, v] = N.useState(0);
+  const [t, n] = N.useState(null), [r, l] = N.useState([]), [o, s] = N.useState(null), [a, u] = N.useState(!1), [c, g] = N.useState(0);
   N.useEffect(() => {
-    e().callWS({ type: "hive_local/rooms/suggest" }).then((h) => v(h.rooms.length)).catch(() => {
+    e().callWS({ type: "hive_local/rooms/suggest" }).then((h) => g(h.rooms.length)).catch(() => {
     });
   }, [e, t]), N.useEffect(() => {
     const h = e().connection.subscribeMessage(
-      (g) => {
-        n(g.rooms), l(g.receivers);
+      (v) => {
+        n(v.rooms), l(v.receivers);
       },
       { type: "hive_local/rooms/subscribe" }
     );
     return () => {
-      h.then((g) => g()).catch(() => {
+      h.then((v) => v()).catch(() => {
       });
     };
   }, [e]);
@@ -7304,27 +7305,27 @@ function eh({ getHass: e, device: t, channel: n, info: r }) {
   const [l, o] = N.useState(null), s = N.useRef(), a = l ?? r;
   if (!a) return null;
   const u = (m, h) => {
-    const g = { ...a, [m]: h };
-    o(g), window.clearTimeout(s.current), s.current = window.setTimeout(() => {
+    const v = { ...a, [m]: h };
+    o(v), window.clearTimeout(s.current), s.current = window.setTimeout(() => {
       e().callWS({ type: "hive_local/defaults", entry_id: t.entry_id, channel: n, [m]: h }).finally(() => o(null));
     }, 800);
   }, c = (m) => {
-    const h = $r.findIndex((y) => y >= a.boost_minutes), g = h < 0 ? $r.length - 1 : h;
-    return $r[Math.min($r.length - 1, Math.max(0, g + m))];
-  }, v = n === "water";
+    const h = $r.findIndex((y) => y >= a.boost_minutes), v = h < 0 ? $r.length - 1 : h;
+    return $r[Math.min($r.length - 1, Math.max(0, v + m))];
+  }, g = n === "water";
   return /* @__PURE__ */ i.jsxs(i.Fragment, { children: [
     /* @__PURE__ */ i.jsxs("div", { className: "settings-row", children: [
-      /* @__PURE__ */ i.jsx("span", { className: "device-icon", children: /* @__PURE__ */ i.jsx(T, { name: v ? "water-boiler" : "radiator" }) }),
+      /* @__PURE__ */ i.jsx("span", { className: "device-icon", children: /* @__PURE__ */ i.jsx(T, { name: g ? "water-boiler" : "radiator" }) }),
       /* @__PURE__ */ i.jsxs("div", { className: "settings-text", children: [
-        /* @__PURE__ */ i.jsx("span", { children: v ? "Hot water boost" : "Heating boost" }),
+        /* @__PURE__ */ i.jsx("span", { children: g ? "Hot water boost" : "Heating boost" }),
         /* @__PURE__ */ i.jsx("span", { className: "muted small", children: "What Boost does unless you choose otherwise." })
       ] }),
       /* @__PURE__ */ i.jsxs("div", { className: "settings-controls", children: [
         /* @__PURE__ */ i.jsx(Hn, { label: "How long", value: qp(a.boost_minutes), onLower: () => u("boost_minutes", c(-1)), onRaise: () => u("boost_minutes", c(1)) }),
-        !v && /* @__PURE__ */ i.jsx(Hn, { label: "Temperature", value: `${a.boost_temperature.toFixed(1)}°`, onLower: () => u("boost_temperature", Math.max(5, a.boost_temperature - 0.5)), onRaise: () => u("boost_temperature", Math.min(32, a.boost_temperature + 0.5)) })
+        !g && /* @__PURE__ */ i.jsx(Hn, { label: "Temperature", value: `${a.boost_temperature.toFixed(1)}°`, onLower: () => u("boost_temperature", Math.max(5, a.boost_temperature - 0.5)), onRaise: () => u("boost_temperature", Math.min(32, a.boost_temperature + 0.5)) })
       ] })
     ] }),
-    !v && /* @__PURE__ */ i.jsxs("div", { className: "settings-row", children: [
+    !g && /* @__PURE__ */ i.jsxs("div", { className: "settings-row", children: [
       /* @__PURE__ */ i.jsx("span", { className: "device-icon", children: /* @__PURE__ */ i.jsx(T, { name: "snowflake" }) }),
       /* @__PURE__ */ i.jsxs("div", { className: "settings-text", children: [
         /* @__PURE__ */ i.jsx("span", { children: "Frost protection" }),
@@ -7376,7 +7377,7 @@ const th = [
 ];
 function nh({ getHass: e, narrow: t, onToggleMenu: n }) {
   var $;
-  const [r, l] = N.useState([]), [o, s] = N.useState(null), [a, u] = N.useState({}), [c, v] = N.useState("overview"), [m, h] = N.useState(null), [g, y] = N.useState("control"), [w, _] = N.useState(null), [p, d] = N.useState("");
+  const [r, l] = N.useState([]), [o, s] = N.useState(null), [a, u] = N.useState({}), [c, g] = N.useState("overview"), [m, h] = N.useState(null), [v, y] = N.useState("control"), [w, _] = N.useState(null), [p, d] = N.useState("");
   N.useEffect(() => {
     e().callWS({ type: "hive_local/devices" }).then((S) => {
       l(S.devices), s(S.limits);
@@ -7393,7 +7394,7 @@ function nh({ getHass: e, narrow: t, onToggleMenu: n }) {
   const f = (j, S) => {
     h({ entry: j, channel: S }), y("control");
   }, x = (j) => {
-    v(j), h(null), _(null);
+    g(j), h(null), _(null);
   }, k = m && r.find((j) => j.entry_id === m.entry), C = th;
   return /* @__PURE__ */ i.jsxs("div", { className: "panel", children: [
     /* @__PURE__ */ i.jsx("header", { children: /* @__PURE__ */ i.jsxs("div", { className: "toolbar-row", children: [
@@ -7422,7 +7423,7 @@ function nh({ getHass: e, narrow: t, onToggleMenu: n }) {
           info: ($ = a[k.entry_id]) == null ? void 0 : $[m.channel],
           limits: o,
           showDevice: r.length > 1,
-          tab: g,
+          tab: v,
           onTab: y,
           onBack: () => h(null)
         },

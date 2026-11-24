@@ -42,7 +42,7 @@ from .preheat import MIN_WARMUPS, Plan, Rate, plan
 from .preheat import learn_rate as _learn_rate
 from .schedule import DAYS
 from .transports import Transport
-from .z2m import BOOST_MAX_MINUTES, MODE_BOOST, MODE_SCHEDULE
+from .z2m import BOOST_MAX_MINUTES, MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,6 +66,8 @@ class Preheat:
         self.active_for: datetime | None = None
         self._skipped: set[datetime] = set()
         self._plan: Plan | None = None
+        self._plan_at: datetime | None = None
+        self._last_mode: str | None = None
         self._plan_key: tuple[datetime, float, int] | None = None
         self._unsubs: list[Callable[[], None]] = []
         self._starting = False
@@ -124,6 +126,8 @@ class Preheat:
             self._save()
             if (self.transport.status(CHANNEL_HEAT) or {}).get("mode") == MODE_BOOST:
                 await self.transport.async_cancel_boost(CHANNEL_HEAT)
+        if enabled:
+            self._skipped.clear()
         self._notify()
         if enabled:
             if not self._complete():
@@ -200,7 +204,9 @@ class Preheat:
         status = self.transport.status(CHANNEL_HEAT)
         if not status:
             return  # not reported yet (e.g. just after a restart)
-        if self.active_for is not None and status.get("mode") != MODE_BOOST and not self._starting:
+        mode = status.get("mode")
+        prev, self._last_mode = self._last_mode, mode
+        if self.active_for is not None and mode != MODE_BOOST and not self._starting:
             if dt_util.utcnow() < self.active_for - timedelta(minutes=2):
                 # Someone ended our boost early: leave this change alone.
                 _LOGGER.info("Pre-heat boost cancelled; skipping %s", self.active_for)
@@ -208,6 +214,12 @@ class Preheat:
             self.active_for = None
             self._save()
             self._notify()
+        if prev in (MODE_MANUAL, MODE_OFF) and mode == MODE_SCHEDULE and self._skipped:
+            # Put back on the schedule by hand: pre-heat for its changes again.
+            _LOGGER.info("Heating back on schedule; pre-heat can run again")
+            self._skipped.clear()
+        if mode != prev:
+            self._evaluate()  # don't wait for the next minute
 
     @callback
     def _evaluate(self) -> None:
@@ -228,8 +240,9 @@ class Preheat:
                 max_lead=self.max_lead,
             )
         self._plan = new_plan
+        self._plan_at = None if new_plan is None else self._at(now, new_plan.minutes_until)
         # minutes_until counts down every minute; only tell the panel when the times change.
-        key = None if new_plan is None else (self._at(now, new_plan.minutes_until), new_plan.setpoint, new_plan.lead)
+        key = None if new_plan is None else (self._plan_at, new_plan.setpoint, new_plan.lead)
         if key != self._plan_key:
             self._plan_key = key
             self._notify()
@@ -237,9 +250,13 @@ class Preheat:
             return
         if not status or status.get("mode") != MODE_SCHEDULE:
             return  # only from the schedule (not over someone's boost)
-        at = self._at(now, new_plan.minutes_until)
+        at = self._plan_at
         if at in self._skipped:
             return
+        # Claim it now, so a second evaluation before the task runs doesn't boost twice.
+        self.active_for = at
+        self._starting = True
+        self._save()
         self.hass.async_create_task(self._async_begin(at, new_plan))
 
     @staticmethod
@@ -250,9 +267,6 @@ class Preheat:
     async def _async_begin(self, at: datetime, p: Plan) -> None:
         minutes = max(1, min(BOOST_MAX_MINUTES, math.ceil((at - dt_util.utcnow()).total_seconds() / 60)))
         _LOGGER.info("Pre-heating to %s °C for %s (%s min)", p.setpoint, dt_util.as_local(at).strftime("%H:%M"), minutes)
-        self.active_for = at
-        self._save()
-        self._starting = True
         try:
             await self.transport.async_boost(CHANNEL_HEAT, minutes, p.setpoint)
         except Exception:  # noqa: BLE001
@@ -278,14 +292,15 @@ class Preheat:
 
     def as_dict(self) -> dict[str, Any]:
         """For the panel."""
-        now = dt_util.now()
         nxt = None
-        if self._plan is not None:
-            at = now + timedelta(minutes=self._plan.minutes_until)
+        if self._plan is not None and self._plan_at is not None:
+            at = dt_util.as_local(self._plan_at)
             nxt = {
                 "at": at.strftime("%H:%M"),
                 "setpoint": self._plan.setpoint,
                 "start": (at - timedelta(minutes=self._plan.lead)).strftime("%H:%M"),
+                # Pre-heating for it was stopped early, so it won't start again.
+                "skipped": self._plan_at in self._skipped,
             }
         return {
             "enabled": self.enabled,

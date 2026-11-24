@@ -63,7 +63,7 @@ export interface PreheatInfo {
   warmups_needed: number;
   schedule_known: boolean;
   active_for: string | null; // "07:00" while pre-heating
-  next: { at: string; setpoint: number; start: string } | null;
+  next: { at: string; setpoint: number; start: string; skipped?: boolean } | null;
 }
 
 /** entry_id -> channel -> info, pushed by hive_local/subscribe. */
