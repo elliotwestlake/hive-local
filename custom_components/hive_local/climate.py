@@ -89,6 +89,9 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
     def preset_mode(self) -> str | None:
         if not self._status:
             return None
+        # While away the heating is our boost underneath; one someone starts on top shows as boost.
+        if self._data.holiday.is_holding(self._channel):
+            return PRESET_AWAY
         if self._status["mode"] == MODE_BOOST:
             return PRESET_BOOST
         return PRESET_AWAY if self._channel in self._data.holiday.away else PRESET_NONE
@@ -123,14 +126,16 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
             await self.async_set_hvac_mode(HVACMode.OFF)
             return
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            if hvac_mode is None and self.preset_mode == PRESET_BOOST:
+            if hvac_mode is None and self._data.holiday.is_holding(self._channel):
+                await self._run(self._data.holiday.async_set_temperature(temperature))
+            elif hvac_mode is None and self.preset_mode == PRESET_BOOST:
                 await self._run(self._data.async_boost(self._channel, self._boost_minutes_left(), temperature))
             elif (hvac_mode or self.hvac_mode) == HVACMode.AUTO:
                 if hvac_mode is not None and self.hvac_mode != HVACMode.AUTO:
                     await self.async_set_hvac_mode(HVACMode.AUTO)
                 await self._run(self._data.transport.async_set_setpoint(self._channel, temperature))
             else:
-                await self._run(self._data.async_set_hold(temperature))
+                await self._run(self._data.transport.async_set_mode(self._channel, MODE_MANUAL, temperature))
         elif hvac_mode is not None:
             await self.async_set_hvac_mode(hvac_mode)
 

@@ -105,19 +105,6 @@ def setpoint_payload(ep: str | None, setpoint: float) -> dict[str, Any]:
     return {f"occupied_heating_setpoint{suffix(ep)}": setpoint}
 
 
-def timed_hold_payload(ep: str | None, minutes: int, setpoint: float) -> dict[str, Any]:
-    """A manual hold with a hold duration, in one payload (testing the holiday fail-safe)."""
-    if not 1 <= minutes <= BOOST_MAX_MINUTES:
-        raise ValueError(f"The hold must be 1-{BOOST_MAX_MINUTES} minutes")
-    sfx = suffix(ep)
-    return {
-        f"system_mode{sfx}": "heat",
-        f"temperature_setpoint_hold_duration{sfx}": int(minutes),
-        f"temperature_setpoint_hold{sfx}": 1,
-        f"occupied_heating_setpoint{sfx}": setpoint,
-    }
-
-
 def boost_payload(ep: str | None, minutes: int, setpoint: float | None = None) -> dict[str, Any]:
     """One payload: Hive needs all boost fields in a single command."""
     if not 1 <= minutes <= BOOST_MAX_MINUTES:

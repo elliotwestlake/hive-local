@@ -69,6 +69,8 @@ class Preheat:
         self._plan_key: tuple[datetime, float, int] | None = None
         self._unsubs: list[Callable[[], None]] = []
         self._starting = False
+        # Set by the holiday: no pre-heating while away.
+        self.blocked: Callable[[], bool] = lambda: False
 
     @property
     def available(self) -> bool:
@@ -237,6 +239,8 @@ class Preheat:
             return
         if not status or status.get("mode") != MODE_SCHEDULE:
             return  # only from the schedule (not over someone's boost)
+        if self.blocked():
+            return  # on holiday
         at = self._at(now, new_plan.minutes_until)
         if at in self._skipped:
             return

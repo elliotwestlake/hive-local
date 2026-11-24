@@ -206,24 +206,6 @@
           "description": "Which receiver. Leave out for every receiver."
         }
       }
-    },
-    "test_timed_hold": {
-      "name": "Test a timed hold",
-      "description": "Temporary test for the holiday fail-safe: holds the heating for a few minutes with a hold duration and reports in a notification whether the receiver ended it by itself.",
-      "fields": {
-        "device_id": {
-          "name": "Receiver",
-          "description": "Which receiver. Can be left out if you only have one."
-        },
-        "temperature": {
-          "name": "Temperature",
-          "description": "Temperature to hold during the test."
-        },
-        "minutes": {
-          "name": "Minutes",
-          "description": "How long the hold should last (2-60)."
-        }
-      }
     }
   }
 }

@@ -137,7 +137,7 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
   for (const d of devices)
     for (const c of d.channels) {
       const info = status[d.entry_id]?.[c];
-      if (info?.status?.mode === "boost") continue;
+      if (info?.status?.mode === "boost" && !info?.holiday?.holding) continue;
       const mins = formatMinutes(info?.boost_minutes ?? 30);
       const what = c === "water" ? "hot water" : "heating";
       actions.push({
@@ -150,7 +150,8 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
       });
     }
   const offSchedule = devices.flatMap((d) =>
-    d.channels.filter((c) => { const m = status[d.entry_id]?.[c]?.status?.mode; return m && m !== "schedule"; }).map((c) => ({ d, c })),
+    // Channels on holiday are left to "End holiday".
+    d.channels.filter((c) => { const m = status[d.entry_id]?.[c]?.status?.mode; return m && m !== "schedule" && !status[d.entry_id]?.[c]?.holiday; }).map((c) => ({ d, c })),
   );
   if (offSchedule.length)
     actions.push({
@@ -303,9 +304,11 @@ export function ChannelCard({
       () => setSheet(false),
     );
 
-  const targetLabel = !s ? "" : s.mode === "boost" ? "Boost to" : frostPeriod && pending == null ? "Frost" : s.mode === "manual" ? "Hold at" : "Target";
+  // While away the heating is a boost underneath (the holiday's fail-safe); it's shown as Away.
+  const holidayHold = !!info?.holiday?.holding;
+  const targetLabel = !s ? "" : holidayHold ? "Away at" : s.mode === "boost" ? "Boost to" : frostPeriod && pending == null ? "Frost" : s.mode === "manual" ? "Hold at" : "Target";
 
-  const boosting = s?.mode === "boost";
+  const boosting = s?.mode === "boost" && !holidayHold;
   // A pre-heat is a boost underneath (it ends at the scheduled time), but it's the schedule starting early.
   const preheatFor = boosting ? info?.preheat?.active_for ?? null : null;
   const preheating = preheatFor != null;
@@ -366,7 +369,7 @@ export function ChannelCard({
           <div className="target-text">
             <span className="target-label">{targetLabel || "Target"}</span>
             <span className="muted small">
-              {!s ? "" : holiday && s.mode === "manual" ? `While you're away, until ${formatUntil(holiday.until)}` : s.mode === "off" ? "Turn the heating on to set a target" : s.mode === "schedule" ? "Until the next scheduled change" : s.mode === "boost" ? "Keeps the boost time left" : "Held until you change it"}
+              {!s ? "" : holidayHold && holiday ? `While you're away, until ${formatUntil(holiday.until)}` : s.mode === "off" ? "Turn the heating on to set a target" : s.mode === "schedule" ? "Until the next scheduled change" : s.mode === "boost" ? "Keeps the boost time left" : "Held until you change it"}
             </span>
           </div>
           <div className="target-control">

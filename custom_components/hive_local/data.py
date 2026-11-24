@@ -60,13 +60,6 @@ class HiveData:
             temperature = self.boost_defaults(CHANNEL_HEAT).frost
         await self.holiday.async_set(until, temperature)
 
-    async def async_set_hold(self, temperature: float) -> None:
-        """A manual heating hold; while away, that's the holiday temperature."""
-        if CHANNEL_HEAT in self.holiday.away:
-            await self.holiday.async_set_temperature(temperature)
-        else:
-            await self.transport.async_set_mode(CHANNEL_HEAT, MODE_MANUAL, temperature)
-
     async def async_set_target(self, channel: str, temperature: float) -> None:
         """Like turning the thermostat dial (heating only).
 
@@ -79,12 +72,16 @@ class HiveData:
         if not status:
             raise ScheduleError("The receiver hasn't reported yet")
         mode = status["mode"]
+        if self.holiday.is_holding(channel):
+            # Away: change the holiday temperature (the boost underneath is ours).
+            await self.holiday.async_set_temperature(temperature)
+            return
         if mode == MODE_OFF:
             raise ScheduleError("Heating is off")
         if mode == MODE_BOOST:
             await self.async_boost(channel, status.get("boost_remaining") or None, temperature)
         elif mode == MODE_MANUAL:
-            await self.async_set_hold(temperature)
+            await self.transport.async_set_mode(channel, MODE_MANUAL, temperature)
         else:
             await self.transport.async_set_setpoint(channel, temperature)
 

@@ -15,6 +15,7 @@ from homeassistant.helpers.typing import ConfigType
 
 from . import services, websocket
 from .const import (
+    CHANNEL_HEAT,
     CONF_BASE_TOPIC,
     CONF_DEVICE,
     CONF_DEVICE_ID,
@@ -77,6 +78,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
     await preheat.async_start()
     holiday = Holiday(hass, transport)
     await holiday.async_start()
+    preheat.blocked = lambda: CHANNEL_HEAT in holiday.away
     entry.runtime_data = HiveData(transport, preheat, holiday)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

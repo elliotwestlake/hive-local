@@ -218,20 +218,6 @@ class Transport(ABC):
         mode, setpoint = self._resume.get(channel, (MODE_SCHEDULE, None))
         await self.async_set_mode(channel, mode, setpoint if mode == MODE_MANUAL else None)
 
-    async def async_timed_hold(self, channel: str, setpoint: float, minutes: int) -> None:
-        """A manual hold that should end by itself after `minutes` (holiday fail-safe test)."""
-        self.check_channel(channel)
-        if channel != CHANNEL_HEAT:
-            raise ScheduleError("Hot water has no temperature")
-        await self._async_timed_hold(channel, setpoint, minutes)
-
-    async def _async_timed_hold(self, channel: str, setpoint: float, minutes: int) -> None:
-        raise NotImplementedError
-
-    async def async_read_hold(self, channel: str) -> dict[str, Any]:
-        """Read the raw hold state now: {"system_mode", "hold", "duration"}."""
-        raise NotImplementedError
-
     @abstractmethod
     async def async_start(self) -> None:
         """Start listening for state."""

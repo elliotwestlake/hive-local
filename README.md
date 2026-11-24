@@ -105,12 +105,12 @@ Needs the recorder (it's on by default in Home Assistant).
 
 ## Holiday
 
-**Away until…** on the Overview (or `hive_local.set_holiday`) holds the heating at a low temperature and turns the hot water off until the date and time you pick, then puts everything back to what it was doing before (the schedule, or your manual hold). It covers every receiver. The temperature defaults to your frost protection setting (`number.<receiver>_heating_frost_protection`, 12 °C unless you've changed it).
+**Away until…** on the Overview (or `hive_local.set_holiday`) keeps the heating at a low temperature and turns the hot water off until the date and time you pick, then puts everything back to what it was doing before (the schedule, or your manual hold). It covers every receiver. The temperature defaults to your frost protection setting (`number.<receiver>_heating_frost_protection`, 12 °C unless you've changed it).
 
-- The cards say **Away until Sat 14:00**, and **End holiday** (a quick action, or **End** on the heating or hot water page) comes back early.
-- A boost while you're away is fine: when it ends, the heating goes back to the holiday temperature. **−** / **+** changes the holiday temperature.
-- If anyone changes the mode while you're away (on the thermostat, the mode select, **Everything back to schedule**), the holiday ends there and their change stays.
-- The receivers have no holiday mode of their own, so Home Assistant switches both ends. The end time is saved, so it survives a restart. **If Home Assistant is down when the holiday ends**, the receiver keeps holding the holiday temperature (frost protection, so nothing freezes, but the house stays cold) until Home Assistant is back, and then it resumes straight away.
+- The cards say **Away until Sat 14:00**, and **End holiday** (a quick action, or **End** on the heating or hot water page) comes back early. **−** / **+** changes the holiday temperature.
+- A boost while you're away is fine: when it ends, the holiday carries on.
+- If anyone changes the mode while you're away (on the thermostat, or the mode select), the holiday ends there and their change stays.
+- **If Home Assistant goes down:** the heating is held with a boost of up to 6 hours that Home Assistant renews every hour (the thermostat shows a boost). If Home Assistant stops, the boost runs out and the heating goes back to normal within 6 hours, and in the last 6 hours it's set to end exactly when you're back. Hot water stays off until Home Assistant is back. When it is, the holiday carries on (or ends, if it's over).
 - Radiator valves in your rooms aren't changed.
 
 ## Entities and actions

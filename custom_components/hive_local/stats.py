@@ -59,6 +59,9 @@ def sample_from_state(channel: str, t: float, state: str, attributes: dict[str, 
     # A pre-heat boost is the schedule starting early, not a boost.
     if attributes.get("preset_mode") == "boost" and not attributes.get("preheat"):
         mode = "boost"
+    # A holiday is a boost underneath (its fail-safe), but it's a held temperature.
+    elif attributes.get("preset_mode") == "away":
+        mode = "manual"
     return Sample(
         t,
         mode,

@@ -49,7 +49,7 @@ export function DevicePage({
   const s = info?.status;
   const subtitle = [
     showDevice ? device.name : null,
-    !s ? "Waiting for the receiver" : info?.holiday && s.mode !== "boost" ? `Away until ${formatUntil(info.holiday.until)}` : s.mode === "schedule" ? "On schedule" : s.mode === "boost" ? (info?.preheat?.active_for ? `Pre-heating for ${info.preheat.active_for}` : "Boosting") : s.mode === "off" ? "Off" : channel === "water" ? "Always on" : "Manual",
+    !s ? "Waiting for the receiver" : info?.holiday && (s.mode !== "boost" || info.holiday.holding) ? `Away until ${formatUntil(info.holiday.until)}` : s.mode === "schedule" ? "On schedule" : s.mode === "boost" ? (info?.preheat?.active_for ? `Pre-heating for ${info.preheat.active_for}` : "Boosting") : s.mode === "off" ? "Off" : channel === "water" ? "Always on" : "Manual",
   ]
     .filter(Boolean)
     .join(" · ");
