@@ -1,14 +1,8 @@
 name: Site
 
-# Builds the marketing site and docs (site/) and deploys them to Cloudflare Pages:
-# main to production, pull requests to a preview URL (posted on the PR's checks).
-#
-# Needs two repository secrets (Settings → Secrets and variables → Actions):
-#   CLOUDFLARE_API_TOKEN   a token with "Cloudflare Pages: Edit" on the account
-#   CLOUDFLARE_ACCOUNT_ID  the account's id (shown on the dashboard's overview page)
-# and a Pages project named hive-local (Workers & Pages → Create → Pages → Direct upload).
-# Without the secrets the site is still built, so a broken build fails the check, but
-# nothing is deployed.
+# Checks the marketing site and docs (site/) still build. Cloudflare Pages deploys them
+# itself through its GitHub integration (main → production, other branches → previews),
+# with root directory `site`, build command `npm run build` and output directory `dist`.
 
 on:
   push:
@@ -20,35 +14,20 @@ on:
 
 permissions:
   contents: read
-  deployments: write
-
-concurrency:
-  group: site-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   site:
     runs-on: ubuntu-latest
     env:
       ASTRO_TELEMETRY_DISABLED: "1"
-      # At job level so the deploy step's `if` can see whether it's set.
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: site/.node-version
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci
         working-directory: site
       - run: npm run build
         working-directory: site
-      - name: Deploy to Cloudflare Pages
-        # Forks' pull requests don't get the secrets, so they only build.
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy site/dist --project-name=hive-local --branch=${{ github.head_ref || github.ref_name }}
