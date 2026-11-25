@@ -62,7 +62,8 @@ The [wiki](https://github.com/elliotwestlake/hive-local/wiki) covers everything 
 
 ## Acknowledgements
 
-- **[Hive Local Thermostat](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat)** by Andrew Jackson showed how to drive Hive receivers locally; Hive Local's entities and actions match it, so moving across feels familiar. **[HomeDash's fork](https://github.com/homedashHA/HA-Hive-Local-Thermostat)** keeps it going, and inspired the boost deadline.
-- **mikestir** tracked down ZHA's "receiver goes red" problem in [zha-device-handlers#2776](https://github.com/zigpy/zha-device-handlers/issues/2776).
-- The **[Drayton Wiser integration](https://github.com/asantaga/wiserHomeAssistantPlatform)**, whose sidebar panel inspired this one.
-- **[Zigbee2MQTT](https://www.zigbee2mqtt.io/)** and **[zigpy](https://github.com/zigpy/zigpy)**, whose device definitions document the receivers.
+- **[Hive Local Thermostat](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat)** by Andrew Jackson showed how to drive Hive receivers locally through Zigbee2MQTT. Hive Local's boost, cancel-boost and mode entities, its actions and its frost protection setting were designed to match it, so moving across feels familiar. That integration is now retired.
+- **[HomeDash's fork](https://github.com/homedashHA/HA-Hive-Local-Thermostat)** keeps Hive Local Thermostat going. Its fix for receivers that lose track of a boost inspired Hive Local's own boost deadline.
+- **mikestir**, who tracked the ZHA "receiver goes red" problem down to the thermostat's reporting interval in [zha-device-handlers#2776](https://github.com/zigpy/zha-device-handlers/issues/2776). Hive Local applies that fix automatically.
+- The **[Drayton Wiser integration](https://github.com/asantaga/wiserHomeAssistantPlatform)**, whose sidebar panel inspired the Hive panel.
+- **[Zigbee2MQTT](https://www.zigbee2mqtt.io/)** and **[zigpy](https://github.com/zigpy/zigpy)**, whose device definitions document the Hive receivers' schedule and hold attributes.
