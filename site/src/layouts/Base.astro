@@ -1,0 +1,90 @@
+---
+import "../styles/global.css";
+import Icon from "../components/Icon.astro";
+import Search from "../components/Search.astro";
+import { REPO } from "../lib/nav";
+import { mdiGithub, mdiThemeLightDark } from "@mdi/js";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Which nav item is current. */
+  current?: "home" | "docs";
+}
+const { title, description, current } = Astro.props;
+const full = title === "Hive Local" ? title : `${title} · Hive Local`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const image = new URL("/logo/social-preview.png", Astro.site);
+---
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{full}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/logo/icon-512.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={full} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      // A theme picked with the toggle wins over the system's; set it before the page paints.
+      try {
+        const t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="logo" href="/" aria-label="Hive Local home">
+          <img src="/logo/icon.svg" alt="" width="30" height="30" />
+          <span><b>Hive</b> Local</span>
+        </a>
+        <a class:list={["nav-link", { on: current === "docs" }]} href="/docs/">Docs</a>
+        <Search />
+        <a class="nav-link" href={REPO} aria-label="Hive Local on GitHub"><Icon path={mdiGithub} /><span class="hide-sm">GitHub</span></a>
+        <button class="nav-link" type="button" data-theme-toggle aria-label="Switch between light and dark"><Icon path={mdiThemeLightDark} /></button>
+      </div>
+    </header>
+    <div id="main"><slot /></div>
+    <footer class="site-footer">
+      <div class="wrap">
+        <nav aria-label="Footer">
+          <a href="/docs/">Docs</a>
+          <a href="/docs/installation/">Install</a>
+          <a href="/docs/troubleshooting/">Troubleshooting</a>
+          <a href={REPO}>GitHub</a>
+          <a href={`${REPO}/issues`}>Report a problem</a>
+          <a href={`${REPO}/releases`}>Releases</a>
+        </nav>
+        <p>Hive Local is an independent community project, free and open source. It isn't affiliated with, endorsed by or supported by Hive or Centrica. “Hive” is used only to describe the hardware it works with.</p>
+      </div>
+    </footer>
+    <script>
+      document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
+        const root = document.documentElement;
+        const dark = root.dataset.theme
+          ? root.dataset.theme === "dark"
+          : matchMedia("(prefers-color-scheme: dark)").matches;
+        const next = dark ? "light" : "dark";
+        root.dataset.theme = next;
+        try { localStorage.setItem("theme", next); } catch {}
+      });
+    </script>
+    <style>
+      .skip { position: absolute; left: -999px; top: 8px; z-index: 20; padding: 8px 14px; border-radius: 10px; background: var(--brand); color: #fff; }
+      .skip:focus { left: 8px; }
+    </style>
+  </body>
+</html>
