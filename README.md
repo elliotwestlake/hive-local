@@ -24,7 +24,7 @@ Hive Local is an independent community project. It isn't affiliated with, endors
 - **Stats:** how long the boiler ran, the temperature outside, and an estimated cost from your gas meter.
 - **Pre-heat:** starts early so the house is warm by the time the schedule says.
 - **Away until…:** holiday mode that fails safe if Home Assistant goes down.
-- **Entities and actions** for automations, matching the retired Hive Local Thermostat integration.
+- **Entities and actions** for automations, designed to match the Hive Local Thermostat integration.
 
 ![Three phone screens: the heating schedule, a room's target and valves, and the boost sheet.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/phones.png)
 
@@ -62,8 +62,8 @@ The [wiki](https://github.com/elliotwestlake/hive-local/wiki) covers everything 
 
 ## Acknowledgements
 
-- **[Hive Local Thermostat](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat)** by Andrew Jackson showed how to drive Hive receivers locally through Zigbee2MQTT. Hive Local's boost, cancel-boost and mode entities, its actions and its frost protection setting were designed to match it, so moving across feels familiar. That integration is now retired.
-- **[HomeDash's fork](https://github.com/homedashHA/HA-Hive-Local-Thermostat)** keeps Hive Local Thermostat going. Its fix for receivers that lose track of a boost inspired Hive Local's own boost deadline.
+- **[Hive Local Thermostat](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat)** by Andrew Jackson showed how to drive Hive receivers locally through Zigbee2MQTT. Hive Local's boost, cancel-boost and mode entities, its actions and its frost protection setting were designed to match it, so moving across feels familiar.
+- **[HomeDash's fork](https://github.com/homedashHA/HA-Hive-Local-Thermostat)** of Hive Local Thermostat. Its fix for receivers that lose track of a boost inspired Hive Local's own boost deadline.
 - **mikestir**, who tracked the ZHA "receiver goes red" problem down to the thermostat's reporting interval in [zha-device-handlers#2776](https://github.com/zigpy/zha-device-handlers/issues/2776). Hive Local applies that fix automatically.
 - The **[Drayton Wiser integration](https://github.com/asantaga/wiserHomeAssistantPlatform)**, whose sidebar panel inspired the Hive panel.
 - **[Zigbee2MQTT](https://www.zigbee2mqtt.io/)** and **[zigpy](https://github.com/zigpy/zigpy)**, whose device definitions document the Hive receivers' schedule and hold attributes.

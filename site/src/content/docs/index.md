@@ -17,7 +17,7 @@ It adds a **Hive** panel to Home Assistant's sidebar, plus entities and actions 
 - **[Stats](/docs/stats/)**: how long the boiler ran, the temperature outside and an estimated cost.
 - **[Pre-heat](/docs/pre-heat/)** starts early, so the house is warm by the time the schedule says.
 - **[Away until…](/docs/holiday/)**: holiday mode that fails safe if Home Assistant goes down.
-- **[Entities and actions](/docs/entities-and-actions/)** for automations, matching the retired Hive Local Thermostat integration.
+- **[Entities and actions](/docs/entities-and-actions/)** for automations, designed to match the Hive Local Thermostat integration.
 
 ## What you need
 

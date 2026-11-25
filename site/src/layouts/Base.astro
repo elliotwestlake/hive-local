@@ -36,6 +36,8 @@ const image = new URL("/logo/social-preview.png", Astro.site);
     <meta property="og:image" content={image} />
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
+      // Animations hide things until they're revealed, but only once we know scripts run.
+      document.documentElement.classList.add("js");
       // A theme picked with the toggle wins over the system's; set it before the page paints.
       try {
         const t = localStorage.getItem("theme");
@@ -72,6 +74,19 @@ const image = new URL("/logo/social-preview.png", Astro.site);
       </div>
     </footer>
     <script>
+      // Reveal things as they scroll into view (see .reveal in global.css).
+      const reveal = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add("in");
+            reveal.unobserve(entry.target);
+          }
+        },
+        { rootMargin: "0px 0px -8% 0px", threshold: 0.12 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => reveal.observe(el));
+
       document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
         const root = document.documentElement;
         const dark = root.dataset.theme
