@@ -74,6 +74,13 @@ const STATUS = {
   },
 };
 
+// Rooms call for heat (#4): off by default; ?demand=on turns it on (rooms warm), ?demand=1 heats for the Bedroom.
+const DEMAND = params.get("demand");
+STATUS.e1.heat.demand = { enabled: !!DEMAND, outside_schedule: false, active: DEMAND === "1", rooms: DEMAND === "1" ? ["Bedroom"] : [],
+  calling: DEMAND === "1" ? ["Bedroom"] : [], setpoint: DEMAND === "1" ? 22.5 : null, reason: DEMAND === "1" ? null : DEMAND ? "warm" : "off" };
+if (DEMAND === "1") STATUS.e1.heat.status = { ...STATUS.e1.heat.status, mode: "boost", boost_remaining: 24, setpoint: 22.5, heating: true };
+if (DEMAND === "1") STATUS.e1.heat.preheat = { ...STATUS.e1.heat.preheat, next: null };
+
 // ?holiday=1: away until four days from now at 14:00 (heating on the holiday's 12° boost, hot water off).
 if (params.get("holiday") === "1") {
   const until = new Date(Date.now() + 4 * 86400000);

@@ -35,6 +35,11 @@ shot schedule 900,860 "tab=Overview&open=1&click=Schedule"
 shot controls 900,760 "tab=Overview&click=Boost"
 shot rooms 900,760 "tab=Overview&room=Lounge"
 shot room-schedule 900,900 "tab=Overview&room=Lounge&click=Schedule%20on%20the%20valves"
+# Rooms call for heat (#4): the card, its sheet, the device page and the Settings rows.
+shot demand 900,760 "tab=Overview&demand=1"
+shot demand-sheet 900,760 "tab=Overview&demand=1&click=For%20rooms"
+shot demand-page 900,660 "tab=Overview&demand=1&open=1"
+shot demand-settings 900,1350 "tab=Settings&demand=on"
 shot stats 900,780 "tab=Stats"
 shot stats-cost 900,780 "tab=Stats&click=Estimated%20cost"
 shot settings 900,640 "tab=Settings"
@@ -93,7 +98,8 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
     dithered(src, f"{docs}/screenshots/{dst}.png")
 # Only for a PR, unquantized: 256 colours lose the light grey boxes.
 for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
-           "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor"):
+           "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
+           "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)
