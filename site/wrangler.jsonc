@@ -1,0 +1,15 @@
+// Cloudflare: serve the built site (dist/) as static assets. No Worker code.
+// Cloudflare's GitHub integration builds it with root directory `site`,
+// build command `npm run build`, and deploys with `npx wrangler deploy`.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "hive-local",
+  "compatibility_date": "2026-11-20",
+  "assets": {
+    "directory": "./dist",
+    // Astro builds /docs/schedules/index.html: serve it at /docs/schedules/.
+    "html_handling": "auto-trailing-slash",
+    // Unknown paths get our 404 page.
+    "not_found_handling": "404-page"
+  }
+}

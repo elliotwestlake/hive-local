@@ -1,8 +1,9 @@
 name: Site
 
-# Checks the marketing site and docs (site/) still build. Cloudflare Pages deploys them
-# itself through its GitHub integration (main → production, other branches → previews),
-# with root directory `site`, build command `npm run build` and output directory `dist`.
+# Checks the marketing site and docs (site/) still build. Cloudflare deploys them itself
+# through its GitHub integration (main → production, other branches → previews): root
+# directory `site`, build command `npm run build`, deploy command `npx wrangler deploy`,
+# which reads site/wrangler.jsonc.
 
 on:
   push:
