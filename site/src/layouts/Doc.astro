@@ -1,0 +1,133 @@
+---
+import type { MarkdownHeading } from "astro";
+import Base from "./Base.astro";
+import Icon from "../components/Icon.astro";
+import { grouped, href, ordered, REPO, type Doc } from "../lib/nav";
+import { mdiArrowLeft, mdiArrowRight, mdiMenu, mdiPencilOutline } from "@mdi/js";
+
+interface Props { doc: Doc; headings: MarkdownHeading[] }
+const { doc, headings } = Astro.props;
+const docs = await ordered();
+const i = docs.findIndex((d) => d.id === doc.id);
+const prev = docs[i - 1];
+const next = docs[i + 1];
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const here = href(doc);
+---
+<Base title={doc.data.title} description={doc.data.description} current="docs">
+  <div class="wrap docs">
+    <details class="mobile-nav">
+      <summary><Icon path={mdiMenu} /> {doc.data.section} · {doc.data.title}</summary>
+      <nav aria-label="Docs">
+        {grouped(docs).map((g) => (
+          <div class="group"><h2>{g.section}</h2>
+            {g.docs.map((d) => <a href={href(d)} aria-current={href(d) === here ? "page" : undefined}>{d.data.title}</a>)}
+          </div>
+        ))}
+      </nav>
+    </details>
+    <aside class="sidebar">
+      <nav aria-label="Docs">
+        {grouped(docs).map((g) => (
+          <div class="group"><h2>{g.section}</h2>
+            {g.docs.map((d) => <a href={href(d)} aria-current={href(d) === here ? "page" : undefined}>{d.data.title}</a>)}
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <article data-pagefind-body>
+      <p class="section" data-pagefind-ignore>{doc.data.section}</p>
+      <h1>{doc.data.title}</h1>
+      <p class="lede">{doc.data.description}</p>
+      <div class="prose"><slot /></div>
+      <a class="edit" data-pagefind-ignore href={`${REPO}/edit/main/site/src/content/docs/${doc.id}.md`}><Icon path={mdiPencilOutline} /> Edit this page on GitHub</a>
+      <nav class="pager" aria-label="Previous and next" data-pagefind-ignore>
+        {prev ? <a class="card" href={href(prev)}><span class="muted"><Icon path={mdiArrowLeft} /> Previous</span>{prev.data.title}</a> : <span />}
+        {next ? <a class="card next" href={href(next)}><span class="muted">Next <Icon path={mdiArrowRight} /></span>{next.data.title}</a> : <span />}
+      </nav>
+    </article>
+
+    <aside class="toc">
+      {toc.length > 1 && (
+        <nav aria-label="On this page">
+          <h2>On this page</h2>
+          {toc.map((h) => <a class={`d${h.depth}`} href={`#${h.slug}`}>{h.text}</a>)}
+        </nav>
+      )}
+    </aside>
+  </div>
+</Base>
+
+<style>
+  .docs { display: grid; grid-template-columns: 220px minmax(0, 1fr) 200px; gap: 48px; padding-top: 40px; align-items: start; }
+  .sidebar, .toc { position: sticky; top: 96px; max-height: calc(100vh - 120px); overflow-y: auto; }
+  .group { display: grid; gap: 2px; margin-bottom: 22px; }
+  nav h2 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 6px; padding: 0 10px; }
+  .group a { display: block; padding: 6px 10px; border-radius: 10px; text-decoration: none; font-size: 15px; color: var(--muted); }
+  .group a:hover { color: var(--text); background: var(--soft); }
+  .group a[aria-current="page"] { color: var(--brand-strong); background: var(--brand-tint); font-weight: 650; }
+  .toc a { display: block; padding: 4px 0; font-size: 14px; text-decoration: none; color: var(--muted); line-height: 1.4; }
+  .toc a:hover { color: var(--text); }
+  .toc a.d3 { padding-left: 12px; }
+  .toc h2 { padding: 0; }
+
+  article { min-width: 0; max-width: 760px; }
+  .section { margin: 0; font-size: 14px; font-weight: 650; color: var(--brand-strong); }
+  h1 { font-size: clamp(32px, 4.4vw, 44px); line-height: 1.1; letter-spacing: -0.025em; margin: 6px 0 0; }
+  .lede { font-size: 19px; color: var(--muted); margin: 12px 0 0; }
+  .edit { display: inline-flex; align-items: center; gap: 6px; margin-top: 48px; font-size: 14px; color: var(--muted); text-decoration: none; }
+  .edit:hover { color: var(--text); }
+  .edit .icon { width: 16px; height: 16px; }
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  .pager a { display: grid; gap: 4px; padding: 14px 18px; text-decoration: none; font-weight: 650; }
+  .pager a:hover { background: var(--soft); }
+  .pager .muted { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; }
+  .pager .next { text-align: right; }
+  .pager .next .muted { justify-content: flex-end; }
+  .pager .icon { width: 16px; height: 16px; }
+
+  .mobile-nav { display: none; }
+  @media (max-width: 1100px) {
+    .docs { grid-template-columns: 210px minmax(0, 1fr); }
+    .toc { display: none; }
+  }
+  @media (max-width: 780px) {
+    .docs { grid-template-columns: minmax(0, 1fr); gap: 0; padding-top: 16px; }
+    .sidebar { display: none; }
+    .mobile-nav { display: block; margin-bottom: 24px; border: 1px solid var(--divider); border-radius: var(--radius); background: var(--surface); }
+    .mobile-nav summary { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; list-style: none; font-weight: 600; font-size: 15px; }
+    .mobile-nav summary::-webkit-details-marker { display: none; }
+    .mobile-nav nav { padding: 4px 6px 4px; border-top: 1px solid var(--divider); }
+    .mobile-nav .group { margin: 12px 0; }
+  }
+
+  /* Markdown */
+  .prose { margin-top: 32px; font-size: 16.5px; }
+  .prose :global(h2) { font-size: 26px; letter-spacing: -0.015em; line-height: 1.25; margin: 48px 0 0; padding-top: 24px; border-top: 1px solid var(--divider); }
+  .prose :global(h3) { font-size: 19px; margin: 32px 0 0; }
+  .prose :global(p), .prose :global(ul), .prose :global(ol) { margin: 14px 0 0; }
+  .prose :global(li + li) { margin-top: 6px; }
+  .prose :global(a) { color: var(--brand-strong); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .prose :global(strong) { font-weight: 680; }
+  .prose :global(code) { font-family: var(--mono); font-size: 0.88em; padding: 2px 6px; border-radius: 6px; background: var(--code-bg); }
+  .prose :global(pre) { margin: 18px 0 0; padding: 16px 18px; border-radius: 14px; border: 1px solid var(--divider); overflow-x: auto; font-size: 14px; line-height: 1.55; }
+  .prose :global(pre code) { padding: 0; background: none; font-size: inherit; }
+  .prose :global(img) { margin-top: 20px; border-radius: 14px; border: 1px solid var(--divider); }
+  .prose :global(table) { width: 100%; margin-top: 18px; border-collapse: separate; border-spacing: 0; border: 1px solid var(--divider); border-radius: 14px; overflow: hidden; font-size: 15px; display: block; overflow-x: auto; }
+  .prose :global(th), .prose :global(td) { text-align: left; padding: 10px 14px; vertical-align: top; }
+  .prose :global(th) { background: var(--soft); font-weight: 650; }
+  .prose :global(tr + tr td), .prose :global(tbody tr:first-child td) { border-top: 1px solid var(--divider); }
+  .prose :global(blockquote) { margin: 20px 0 0; padding: 14px 18px; border-radius: 14px; background: var(--brand-tint); border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent); }
+  .prose :global(blockquote p:first-child) { margin-top: 0; }
+  .prose :global(hr) { border: 0; border-top: 1px solid var(--divider); margin: 40px 0; }
+  .prose :global(.astro-code) { background-color: var(--surface) !important; }
+</style>
+
+<style is:global>
+  /* Shiki's dual themes: follow the site's theme. */
+  :root[data-theme="dark"] .astro-code, :root[data-theme="dark"] .astro-code span { color: var(--shiki-dark) !important; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .astro-code, :root:not([data-theme="light"]) .astro-code span { color: var(--shiki-dark) !important; }
+  }
+</style>

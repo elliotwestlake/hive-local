@@ -1,0 +1,122 @@
+---
+// Search the docs with Pagefind: its index is built from the site's HTML after `astro build`,
+// so it works with no server. The results list is ours, styled like the rest of the site.
+import Icon from "./Icon.astro";
+import { mdiMagnify, mdiClose } from "@mdi/js";
+---
+<button class="nav-link search-btn" type="button" data-search-open aria-label="Search the docs">
+  <Icon path={mdiMagnify} />
+  <span class="hide-sm">Search</span>
+  <kbd class="hide-sm">/</kbd>
+</button>
+
+<dialog class="search" aria-label="Search the docs">
+  <div class="search-box">
+    <Icon path={mdiMagnify} />
+    <input type="search" placeholder="Search the docs" autocomplete="off" spellcheck="false" />
+    <button class="close" type="button" data-search-close aria-label="Close"><Icon path={mdiClose} /></button>
+  </div>
+  <ol class="results" aria-live="polite"></ol>
+  <p class="hint muted">Type to search schedules, rooms, boost, troubleshooting…</p>
+</dialog>
+
+<script>
+  type Result = { url: string; meta: { title?: string }; excerpt: string };
+  type Pagefind = {
+    search: (q: string) => Promise<{ results: { data: () => Promise<Result> }[] }>;
+  };
+
+  const dialog = document.querySelector<HTMLDialogElement>("dialog.search")!;
+  const input = dialog.querySelector("input")!;
+  const list = dialog.querySelector<HTMLOListElement>(".results")!;
+  const hint = dialog.querySelector<HTMLParagraphElement>(".hint")!;
+  let pagefind: Pagefind | null = null;
+  let latest = 0;
+
+  async function load(): Promise<Pagefind | null> {
+    if (pagefind) return pagefind;
+    try {
+      const url = "/pagefind/pagefind.js";
+      pagefind = (await import(/* @vite-ignore */ url)) as Pagefind;
+    } catch {
+      hint.textContent = "Search works on the built site (npm run build, then npm run preview).";
+    }
+    return pagefind;
+  }
+
+  function open() {
+    dialog.showModal();
+    input.select();
+    void load();
+  }
+
+  async function run() {
+    const query = input.value.trim();
+    const ticket = ++latest;
+    const pf = await load();
+    if (!pf || ticket !== latest) return;
+    if (!query) {
+      list.replaceChildren();
+      hint.hidden = false;
+      return;
+    }
+    const found = await pf.search(query);
+    const results = await Promise.all(found.results.slice(0, 8).map((r) => r.data()));
+    if (ticket !== latest) return;
+    hint.hidden = results.length > 0;
+    if (!results.length) hint.textContent = `Nothing found for “${query}”.`;
+    list.replaceChildren(
+      ...results.map((r) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = r.url.replace(/\.html$/, "/").replace(/\/index\/$/, "/");
+        const title = document.createElement("strong");
+        title.textContent = r.meta.title ?? r.url;
+        const excerpt = document.createElement("span");
+        excerpt.innerHTML = r.excerpt; // Pagefind's excerpt, with <mark> around the matches
+        a.append(title, excerpt);
+        li.append(a);
+        return li;
+      }),
+    );
+  }
+
+  document.querySelectorAll("[data-search-open]").forEach((b) => b.addEventListener("click", open));
+  dialog.querySelector("[data-search-close]")!.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+  input.addEventListener("input", () => void run());
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") list.querySelector("a")?.click();
+  });
+  document.addEventListener("keydown", (e) => {
+    const typing = e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable]");
+    if ((e.key === "/" && !typing) || (e.key === "k" && (e.metaKey || e.ctrlKey))) {
+      e.preventDefault();
+      open();
+    }
+  });
+</script>
+
+<style>
+  dialog.search {
+    width: min(640px, calc(100vw - 32px)); max-height: min(70vh, 560px);
+    margin: 10vh auto auto; padding: 0; border: 1px solid var(--divider); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); overflow: hidden;
+  }
+  dialog.search[open] { display: flex; flex-direction: column; }
+  dialog.search::backdrop { background: rgba(0, 0, 0, 0.4); }
+  .search-box { display: flex; align-items: center; gap: 10px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--divider); color: var(--muted); }
+  .search-box input { flex: 1; height: 56px; border: 0; background: none; color: var(--text); font: inherit; font-size: 17px; outline: none; }
+  .search-box input::-webkit-search-cancel-button { display: none; }
+  .close { display: inline-flex; padding: 8px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
+  .close:hover { background: var(--soft); }
+  .results { list-style: none; margin: 0; padding: 8px; overflow-y: auto; }
+  .results:empty { display: none; }
+  /* Results are added at runtime, so Astro's scoping doesn't reach them. */
+  .results :global(a) { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; text-decoration: none; }
+  .results :global(a:hover), .results :global(a:focus-visible) { background: var(--soft); outline: none; }
+  .results :global(strong) { font-size: 15px; }
+  .results :global(span) { font-size: 14px; line-height: 1.5; color: var(--muted); }
+  .results :global(mark) { background: var(--brand-tint); color: inherit; border-radius: 3px; padding: 0 2px; }
+  .hint { margin: 0; padding: 16px; font-size: 14px; }
+</style>

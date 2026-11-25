@@ -1,0 +1,20 @@
+{
+  "name": "hive-local-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assets": "node scripts/assets.mjs",
+    "dev": "npm run assets && astro dev",
+    "build": "npm run assets && astro check && astro build && pagefind --site dist",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/sitemap": "^3.7.6",
+    "@fontsource-variable/figtree": "^5.3.0",
+    "@mdi/js": "^7.4.47",
+    "astro": "^5.18.2",
+    "pagefind": "^1.6.0",
+    "typescript": "^5.9.3"
+  }
+}
