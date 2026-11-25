@@ -7927,9 +7927,9 @@ function Ve(e) {
 		warn: !0
 	};
 	if (e.external_sensor === "partly") {
-		let e = n("unsupported");
+		let e = n("unsupported"), r = n("using").length;
 		return {
-			text: `${n("using").length} of ${t} valves use the room sensor${e.length ? `; ${e.join(", ")} can't` : ""}`,
+			text: `${r} of ${t} valves ${r === 1 ? "uses" : "use"} the room sensor${e.length ? `; ${e.join(", ")} can't` : ""}`,
 			warn: !1
 		};
 	}

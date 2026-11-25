@@ -90,14 +90,20 @@ const TWO = params.get("receivers") === "2";
 const RECEIVERS = TWO
   ? [{ entry_id: "e1", name: "Downstairs" }, { entry_id: "e2", name: "Upstairs" }]
   : [{ entry_id: "e1", name: "Hive Receiver" }];
+// ?valvesensor=partly|lost shows the Lounge valves only partly using, or losing, the room sensor (#3).
+const VALVE_SENSOR = params.get("valvesensor") || "using";
 const ROOMS = [
   {
     id: "a1", name: "Lounge", valves: ["climate.lounge_bay", "climate.lounge_door"], sensor: "sensor.lounge",
     receiver: "e1", receiver_name: RECEIVERS[0].name,
     sensor_name: "Lounge temperature",
-    valve_states: [valve("climate.lounge_bay", "Bay window valve", 19.2, 21, "heating", 78), valve("climate.lounge_door", "Door valve", 20.4, 21, "idle", 14)],
-    current_temperature: 19.8, temperature_source: "sensor", target: 21, target_range: null, heating: true,
+    valve_states: [
+      { ...valve("climate.lounge_bay", "Bay window valve", 19.2, 21, "heating", 78), external_sensor: "using", external_sensor_sent: 19.8 },
+      { ...valve("climate.lounge_door", "Door valve", 20.4, 21, "idle", 14), external_sensor: VALVE_SENSOR === "partly" ? "unsupported" : "using", external_sensor_sent: 19.8 },
+    ],
+    current_temperature: 19.8, temperature_source: VALVE_SENSOR === "lost" ? "valves" : "sensor", target: 21, target_range: null, heating: true,
     heating_valves: ["climate.lounge_bay"], unavailable: [], lowest_battery: 14, battery_low: true,
+    sensor_on_valves: true, external_sensor: VALVE_SENSOR === "lost" ? "waiting" : VALVE_SENSOR,
   },
   {
     id: "b2", name: "Bedroom", valves: ["climate.bedroom"], sensor: null, sensor_name: null,

@@ -49,6 +49,11 @@ shot heating 900,660 "tab=Overview&open=1"
 shot phone-schedule 390,770 "tab=Overview&narrow=1&open=1&click=Schedule"
 shot phone-room 390,770 "tab=Overview&narrow=1&room=Lounge"
 shot phone-boost 390,770 "tab=Overview&narrow=1&click=Boost"
+# Room sensor on the valves (#3): the room sheet, two other states and the editor's toggle.
+shot room-sensor 900,760 "tab=Overview&room=Lounge"
+shot room-sensor-partly 900,760 "tab=Overview&room=Lounge&valvesensor=partly"
+shot room-sensor-lost 900,760 "tab=Overview&room=Lounge&valvesensor=lost"
+shot room-editor-sensor 900,900 "tab=Overview&room=Lounge&click=Edit%20room"
 
 # Framed versions, the hero and the social preview.
 frame_h() { echo $((34 + $1 + 56 + 72)); }
@@ -86,7 +91,8 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
                  ("phones", "phones")):
     dithered(src, f"{docs}/screenshots/{dst}.png")
 # Only for a PR, unquantized: 256 colours lose the light grey boxes.
-for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page"):
+for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
+           "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)

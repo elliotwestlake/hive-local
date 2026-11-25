@@ -40,7 +40,7 @@ function sensorNote(room: Room): { text: string; warn: boolean } | null {
   if (room.external_sensor === "partly") {
     const cant = names("unsupported");
     const using = names("using").length;
-    return { text: `${using} of ${n} valves use the room sensor${cant.length ? `; ${cant.join(", ")} can't` : ""}`, warn: false };
+    return { text: `${using} of ${n} valves ${using === 1 ? "uses" : "use"} the room sensor${cant.length ? `; ${cant.join(", ")} can't` : ""}`, warn: false };
   }
   return { text: "Giving the valves the room temperature…", warn: false };
 }
