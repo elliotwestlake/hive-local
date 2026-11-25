@@ -14,6 +14,7 @@ export default defineConfig({
       formats: ["es"],
       fileName: () => "hive-local-panel.js",
     },
-    rollupOptions: { output: { inlineDynamicImports: true } },
+    // One file: no code splitting.
+    rolldownOptions: { output: { codeSplitting: false } },
   },
 });
