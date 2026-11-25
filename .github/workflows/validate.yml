@@ -1,7 +1,13 @@
 name: Validate
+# Pushes to main and pull requests, once each: a push to a PR's branch is covered by the
+# pull_request run, so other branches don't also run on push.
 # workflow_dispatch: release-please.yml starts it on the release PR's branch, since a PR
 # opened with the built-in token doesn't trigger pull_request workflows.
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 jobs:
   marketplace:
     runs-on: ubuntu-latest
