@@ -31,7 +31,7 @@ const features = [
     icon: mdiFire, kicker: "Heating and hot water",
     title: "Everything the thermostat does, in Home Assistant",
     text: "Turn the target up or down, switch between Schedule, Manual and Off, or boost for half an hour. A Hive sidebar panel puts it all in one place, and the same controls are entities for your automations.",
-    points: ["Boost with your own default time and temperature", "Climate and water heater entities, plus actions", "Matches the retired Hive Local Thermostat, so moving over is easy"],
+    points: ["Boost with your own default time and temperature", "Climate and water heater entities, plus actions", "Matches Hive Local Thermostat, so moving over is easy"],
     image: heating, alt: "The heating page: target, Schedule, Manual and Off, and pre-heat.", href: "/docs/the-hive-panel/",
   },
   {
@@ -96,8 +96,8 @@ const faqs = [
     a: "Your heating carries on. The schedule is stored on the receiver, and the wall thermostat still works. Boosts, pre-heats and holidays all use the receiver's own self-ending boost, so nothing is left on.",
   },
   {
-    q: "I used Hive Local Thermostat. Is this the same?",
-    a: "Hive Local covers what it did (boost and cancel actions, boost remaining sensors, schedule mode) with entities designed to match, and adds the panel, schedules, rooms, stats and more. That integration is now retired.",
+    q: "How is this different from Hive Local Thermostat?",
+    a: "Both control Hive receivers locally. Hive Local's boost, cancel and mode entities and actions were designed to match Hive Local Thermostat's, so moving across feels familiar, and it adds the Hive panel, schedules, rooms, stats, pre-heat and holiday mode.",
   },
   {
     q: "Is it safe to write schedules?",
@@ -109,7 +109,7 @@ const faqs = [
   <main>
     <section class="hero wrap">
       <span class="pill"><Icon path={mdiZigbee} /> For Home Assistant, on Zigbee2MQTT or ZHA</span>
-      <h1>Your Hive heating, without the Hive cloud.</h1>
+      <h1>Your Hive heating, without the cloud.</h1>
       <p class="lede">Hive Local runs your Hive receiver straight from Home Assistant over Zigbee. Change the schedule, boost the heating and see what the boiler's doing, with no hub, no account and nothing in the cloud.</p>
       <div class="cta">
         <a class="btn primary" href={MARKETPLACE}>Add to Home Assistant <Icon path={mdiArrowRight} /></a>

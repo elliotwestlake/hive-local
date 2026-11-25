@@ -81,7 +81,7 @@ Elliot reported (2026-11-19, OTR1 on ZHA): change the schedule on the SLT3d, Rea
 
 ## Roadmap: ZHA support + Hive Local Thermostat feature parity
 
-Goal: one integration that works whether the receiver is on Z2M or ZHA. It should also cover what the (now retired) andrew-codechimp *Hive Local Thermostat* integration did: boost/cancel actions, boost-remaining sensors and schedule-mode switching.
+Goal: one integration that works whether the receiver is on Z2M or ZHA. It should also cover what the andrew-codechimp *Hive Local Thermostat* integration does (it is **not** retired or deprecated; don't call it that, Elliot 2026-11-25): boost/cancel actions, boost-remaining sensors and schedule-mode switching.
 
 1. ~~**Transport abstraction.**~~ Done. A `transports/` package with a base class:
    `async_read(channel) -> Schedule`, `async_write(channel, Schedule)`, `async_set_mode(channel, "schedule"|"manual"|"off", setpoint=None)`, `async_boost(channel, minutes, setpoint)`, `async_cancel_boost(channel)`.

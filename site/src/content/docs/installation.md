@@ -39,7 +39,7 @@ Once Hive Local works, disable Zigbee2MQTT's or ZHA's own climate entities for t
 
 ## Moving from Hive Local Thermostat
 
-Hive Local covers what Hive Local Thermostat did, with entities designed to match: boost and cancel buttons and actions, boost remaining sensors, boost duration and temperature numbers, a mode select and frost protection. Add Hive Local, update your automations to its [entities and actions](/docs/entities-and-actions/), then remove the old integration.
+Hive Local covers what Hive Local Thermostat does, with entities designed to match: boost and cancel buttons and actions, boost remaining sensors, boost duration and temperature numbers, a mode select and frost protection. Add Hive Local, update your automations to its [entities and actions](/docs/entities-and-actions/), then remove Hive Local Thermostat so the two don't both control the receiver.
 
 ## Updating
 
