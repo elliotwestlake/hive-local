@@ -4,20 +4,16 @@ import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 import { MARKETPLACE, REPO } from "../lib/nav";
 import {
-  mdiArrowRight, mdiCalendarClock, mdiCash, mdiCellphone, mdiCheck, mdiCloudOffOutline,
-  mdiFire, mdiHomeThermometer, mdiRadiator, mdiShieldCheckOutline, mdiSourceBranch,
-  mdiBagSuitcaseOutline, mdiThermometerChevronUp, mdiZigbee, mdiChartBar, mdiWaterBoiler,
+  mdiArrowRight, mdiBagSuitcaseOutline, mdiCalendarClock, mdiCellphone, mdiChartBar, mdiCheck,
+  mdiCloudOffOutline, mdiFire, mdiGithub, mdiRadiator, mdiShieldCheckOutline, mdiSignalOff,
+  mdiSourceBranch, mdiThermometerChevronUp, mdiZigbee,
 } from "@mdi/js";
 
 import hero from "../assets/screenshots/hero.png";
-import heating from "../assets/screenshots/heating.png";
 import schedule from "../assets/screenshots/schedule.png";
 import rooms from "../assets/screenshots/rooms.png";
 import statsCost from "../assets/screenshots/stats-cost.png";
-import holiday from "../assets/screenshots/holiday.png";
-import devices from "../assets/screenshots/devices.png";
 import phones from "../assets/screenshots/phones.png";
-import dark from "../assets/screenshots/overview-dark.png";
 
 const facts = [
   { icon: mdiCloudOffOutline, title: "No Hive cloud or hub", text: "Everything runs over your own Zigbee network." },
@@ -26,19 +22,13 @@ const facts = [
   { icon: mdiSourceBranch, title: "Free and open source", text: "No account, no subscription, no tracking." },
 ];
 
+// The three headline features get a section each; the rest are cards below them.
 const features = [
-  {
-    icon: mdiFire, kicker: "Heating and hot water",
-    title: "Everything the thermostat does, in Home Assistant",
-    text: "Turn the target up or down, switch between Schedule, Manual and Off, or boost for half an hour. A Hive sidebar panel puts it all in one place, and the same controls are entities for your automations.",
-    points: ["Boost with your own default time and temperature", "Climate and water heater entities, plus actions", "Matches Hive Local Thermostat, so moving over is easy"],
-    image: heating, alt: "The heating page: target, Schedule, Manual and Off, and pre-heat.", href: "/docs/the-hive-panel/",
-  },
   {
     icon: mdiCalendarClock, kicker: "Schedules",
     title: "Edit the schedule on the receiver itself",
-    text: "Read the week from the receiver, change a day, copy it to the weekdays, and save. Only the days you changed are written, and because the schedule lives on the receiver it keeps running even when Home Assistant is down.",
-    points: ["Up to six times a day, like the Hive app", "Copy a day to weekdays, the weekend or every day", "Undo anything before you save"],
+    text: "Read the week from the receiver, change a day, copy it to the weekdays, and save. Because the schedule lives on the receiver, it keeps running even when Home Assistant is down.",
+    points: ["Up to six times a day, like the Hive app", "Copy a day to weekdays, the weekend or every day", "Only the days you changed are written"],
     image: schedule, alt: "A day's schedule, with each time's temperature.", href: "/docs/schedules/",
   },
   {
@@ -51,40 +41,26 @@ const features = [
   {
     icon: mdiChartBar, kicker: "Stats",
     title: "See how long the boiler ran, and what it cost",
-    text: "Day, week and month views of boiler time, compared with the period before and the temperature outside. Link your gas meter and Hive Local learns what your boiler really uses, for an honest cost estimate.",
+    text: "Day, week and month views of boiler time, against the period before and the weather. Link your gas meter and Hive Local learns what your boiler really uses, for an honest cost estimate.",
     points: ["Learns your boiler's real output from the gas meter", "Uses your Energy dashboard's gas price, or your own", "Outside temperature from any weather entity"],
     image: statsCost, alt: "A week of boiler time with its estimated cost.", href: "/docs/stats/",
   },
-  {
-    icon: mdiThermometerChevronUp, kicker: "Pre-heat",
-    title: "Warm by the time the schedule says",
-    text: "Pre-heat learns how fast your home warms up from its own history and starts the heating early, so it's 20° at 07:00 rather than starting to warm up then. It uses a self-ending boost, so it can't leave the heating on.",
-    points: ["Learns from 14 days of your own history", "Only starts as early as you allow", "Stops if you change your mind"],
-    image: heating, alt: "The pre-heat card on the heating page.", href: "/docs/pre-heat/", hidden: true,
-  },
-  {
-    icon: mdiBagSuitcaseOutline, kicker: "Away",
-    title: "Going away? Say when you're back",
-    text: "Holiday mode holds the heating at frost protection and turns the hot water off until the date you choose, then puts everything back the way it was. If Home Assistant goes down while you're away, the receiver ends the hold by itself within six hours.",
-    points: ["Back to your previous modes at the end", "Fails safe if Home Assistant stops", "One action for every receiver"],
-    image: holiday, alt: "The Away sheet: back on a date, heating held at 12°.", href: "/docs/holiday/",
-  },
-  {
-    icon: mdiHomeThermometer, kicker: "Devices",
-    title: "Your receivers and valves at a glance",
-    text: "See every Hive receiver and radiator valve, whether it's online, its room and its battery. If ZHA's \"receiver goes red\" problem affects you, Hive Local fixes the thermostat's reporting for you.",
-    points: ["Online status and batteries", "Fixes ZHA's “No signal” thermostat problem", "Diagnostics to attach to bug reports"],
-    image: devices, alt: "The Devices tab: the receiver and every radiator valve, with batteries.", href: "/docs/troubleshooting/",
-  },
-].filter((f) => !f.hidden);
-
-const hardware = [
-  { model: "SLR1, SLR1b, SLR1c, SLR1d", what: "Heating" },
-  { model: "OTR1 (OpenTherm)", what: "Heating" },
-  { model: "SLR2, SLR2b, SLR2c, SLR2d", what: "Heating and hot water" },
-  { model: "Hive radiator valve (UK7004240)", what: "Rooms" },
-  { model: "Hive thermostats (SLT)", what: "Keep working alongside" },
 ];
+
+const more = [
+  { icon: mdiFire, title: "Boost and modes", text: "Schedule, Manual, Off and boost from the panel, entities or actions, designed to match Hive Local Thermostat.", href: "/docs/entities-and-actions/" },
+  { icon: mdiThermometerChevronUp, title: "Pre-heat", text: "Learns how fast your home warms up and starts early, so it's warm when the schedule says.", href: "/docs/pre-heat/" },
+  { icon: mdiBagSuitcaseOutline, title: "Away until…", text: "Holds frost protection and turns the hot water off until you're back, and fails safe if Home Assistant stops.", href: "/docs/holiday/" },
+  { icon: mdiSignalOff, title: "Fixes “No signal” on ZHA", text: "Keeps Hive thermostats reporting often enough that the receiver doesn't drop them and turn the boiler off.", href: "/docs/troubleshooting/" },
+];
+
+const steps = [
+  { title: "Install", text: "Add Hive Local from the Marketplace (formerly HACS) and restart Home Assistant." },
+  { title: "Add your receiver", text: "Choose Zigbee2MQTT or ZHA, then pick the receiver, not the wall thermostat." },
+  { title: "Open Hive", text: "Find Hive in the sidebar, and read your schedule from the receiver." },
+];
+
+const hardware = ["SLR1 / SLR1b–d", "OTR1", "SLR2 / SLR2b–d", "Hive radiator valves", "Hive thermostats"];
 
 const faqs = [
   {
@@ -98,10 +74,6 @@ const faqs = [
   {
     q: "How is this different from Hive Local Thermostat?",
     a: "Both control Hive receivers locally. Hive Local's boost, cancel and mode entities and actions were designed to match Hive Local Thermostat's, so moving across feels familiar, and it adds the Hive panel, schedules, rooms, stats, pre-heat and holiday mode.",
-  },
-  {
-    q: "Is it safe to write schedules?",
-    a: "Hive Local writes a whole day at a time, only the days you change, and pads each one to the receiver's six slots so nothing old is left behind. It's still early software, so read your schedule first and check the change on the thermostat.",
   },
 ];
 ---
@@ -148,6 +120,20 @@ const faqs = [
       ))}
     </section>
 
+    <section class="wrap extras" aria-label="More features">
+      <h2 class="reveal">And there's more</h2>
+      <div class="more-grid">
+        {more.map((m, i) => (
+          <a class="more-card card reveal" href={m.href} style={`--d: ${i * 70}ms`}>
+            <span class="icon-box"><Icon path={m.icon} /></span>
+            <strong>{m.title}</strong>
+            <span class="muted">{m.text}</span>
+            <span class="go">Learn more <Icon path={mdiArrowRight} /></span>
+          </a>
+        ))}
+      </div>
+    </section>
+
     <section class="band">
       <div class="wrap band-inner">
         <div class="band-text reveal">
@@ -159,34 +145,8 @@ const faqs = [
       </div>
     </section>
 
-    <section class="wrap split reveal">
-      <div>
-        <span class="kicker"><span class="icon-box"><Icon path={mdiWaterBoiler} /></span>Hardware</span>
-        <h2>Works with Hive receivers</h2>
-        <p class="muted">Pair the receiver to Zigbee2MQTT or ZHA, then add it to Hive Local. Heating and hot water are set up from the model.</p>
-        <div class="card table">
-          {hardware.map((h) => (
-            <div class="row"><span>{h.model}</span><span class="muted">{h.what}</span></div>
-          ))}
-        </div>
-      </div>
-      <div>
-        <span class="kicker"><span class="icon-box"><Icon path={mdiCash} /></span>Install</span>
-        <h2>Set up in three steps</h2>
-        <ol class="steps">
-          <li><strong>Install from the Marketplace</strong><span class="muted">Add Hive Local in the Marketplace (formerly HACS) and restart Home Assistant.</span></li>
-          <li><strong>Add your receiver</strong><span class="muted">Choose Zigbee2MQTT or ZHA, then pick the receiver (not the wall thermostat).</span></li>
-          <li><strong>Open Hive in the sidebar</strong><span class="muted">Read your schedule from the receiver before changing it.</span></li>
-        </ol>
-        <div class="cta left">
-          <a class="btn primary" href={MARKETPLACE}>Add to Home Assistant</a>
-          <a class="btn" href="/docs/installation/">Full steps</a>
-        </div>
-      </div>
-    </section>
-
     <section class="wrap faq" aria-label="Questions">
-      <h2>Questions</h2>
+      <h2 class="reveal">Questions</h2>
       <div class="faq-list">
         {faqs.map((f, i) => (
           <details class="card reveal" style={`--d: ${i * 60}ms`}>
@@ -197,17 +157,29 @@ const faqs = [
       </div>
     </section>
 
-    <section class="wrap closing reveal">
-      <div class="card closing-card">
-        <div>
-          <h2>Take your heating local</h2>
-          <p class="muted">Free, open source and built by someone who runs it on their own Hive setup.</p>
-          <div class="cta left">
-            <a class="btn primary" href={MARKETPLACE}>Add to Home Assistant <Icon path={mdiArrowRight} /></a>
-            <a class="btn" href={REPO}>View on GitHub</a>
-          </div>
+    <section class="wrap start" aria-labelledby="start">
+      <div class="start-card card reveal">
+        <h2 id="start">Get started</h2>
+        <p class="muted">Three steps from installing to your own schedule.</p>
+        <ol class="steps">
+          {steps.map((s, i) => (
+            <li class="reveal" style={`--d: ${120 + i * 90}ms`}>
+              <span class="num">{i + 1}</span>
+              <strong>{s.title}</strong>
+              <span class="muted">{s.text}</span>
+            </li>
+          ))}
+        </ol>
+        <div class="cta">
+          <a class="btn primary" href={MARKETPLACE}>Add to Home Assistant <Icon path={mdiArrowRight} /></a>
+          <a class="btn" href="/docs/installation/">Installation guide</a>
+          <a class="btn" href={REPO}><Icon path={mdiGithub} /> GitHub</a>
         </div>
-        <Image src={dark} alt="The Overview in a dark theme." widths={[480, 960]} sizes="(max-width: 860px) 100vw, 420px" />
+        <div class="works">
+          <span class="muted">Works with</span>
+          {hardware.map((h) => <span class="chip">{h}</span>)}
+          <a class="more" href="/docs/hardware/">Supported hardware <Icon path={mdiArrowRight} /></a>
+        </div>
       </div>
     </section>
   </main>
@@ -257,17 +229,6 @@ const faqs = [
   .band-text p { color: var(--muted); font-size: 17px; margin: 14px 0 0; }
   .band img { border-radius: 20px; }
 
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; margin-top: 112px; }
-  .split > div > p { margin: 12px 0 0; }
-  .table { margin-top: 20px; overflow: hidden; }
-  .row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; font-size: 15px; }
-  .row + .row { border-top: 1px solid var(--divider); }
-  .row span:last-child { text-align: right; }
-  .steps { list-style: none; counter-reset: step; padding: 0; margin: 20px 0 0; display: grid; gap: 12px; }
-  .steps li { counter-increment: step; display: grid; grid-template-columns: 36px 1fr; column-gap: 14px; padding: 14px 16px; border: 1px solid var(--divider); border-radius: var(--radius); background: var(--surface); }
-  .steps li::before { content: counter(step); grid-row: span 2; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--brand-tint); color: var(--brand-strong); font-weight: 700; }
-  .steps span { font-size: 14px; }
-  @media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 56px; margin-top: 80px; } }
 
   .faq { margin-top: 112px; max-width: 820px; }
   .faq-list { display: grid; gap: 10px; margin-top: 24px; }
@@ -278,11 +239,6 @@ const faqs = [
   details[open] summary::after { transform: rotate(45deg); }
   details p { margin: 0 0 18px; color: var(--muted); }
 
-  .closing { margin-top: 112px; }
-  .closing-card { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; padding: 40px; overflow: hidden; background: linear-gradient(135deg, var(--brand-tint), transparent 60%), var(--surface); }
-  .closing-card p { margin: 12px 0 0; font-size: 17px; }
-  .closing-card img { border-radius: 14px; border: 1px solid var(--divider); }
-  @media (max-width: 860px) { .closing-card { grid-template-columns: 1fr; padding: 24px; } }
 
   /* Motion (see global.css): a soft glow breathing behind the hero, ticks that land one
      after another, screenshots that lean in on hover, and answers that slide open. */
@@ -300,9 +256,8 @@ const faqs = [
   .feature li :global(.icon) { transition: transform 0.4s var(--ease); transition-delay: calc(300ms + var(--i) * 110ms); }
   :global(.js) .feature-text.reveal li :global(.icon) { transform: scale(0.4); }
   :global(.js) .feature-text.reveal.in li :global(.icon) { transform: none; }
-  .feature-shot :global(img), .closing-card :global(img) { transition: transform 0.6s var(--ease); }
+  .feature-shot :global(img) { transition: transform 0.6s var(--ease); }
   .feature-shot:hover :global(img) { transform: scale(1.025); }
-  .closing-card:hover :global(img) { transform: translateY(-4px); }
   .fact { transition: border-color 0.2s, background 0.2s; }
   .fact:hover { border-color: color-mix(in srgb, var(--brand) 35%, var(--divider)); }
   .fact .icon-box { transition: background 0.25s, color 0.25s; }
@@ -314,7 +269,41 @@ const faqs = [
   @media (prefers-reduced-motion: reduce) {
     .hero::after { animation: none; }
     :global(.js) .feature-text.reveal li, :global(.js) .feature-text.reveal li :global(.icon) { opacity: 1; transform: none; transition: none; }
-    .feature-shot :global(img), .closing-card :global(img), details::details-content { transition: none; }
-    .feature-shot:hover :global(img), .closing-card:hover :global(img) { transform: none; }
+    .feature-shot :global(img), details::details-content { transition: none; }
+    .feature-shot:hover :global(img) { transform: none; }
+  }
+
+  /* And there's more: four compact cards, two by two on tablets, one column on phones. */
+  .extras { margin-top: 112px; }
+  .more-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+  .more-card { display: flex; flex-direction: column; gap: 8px; padding: 20px; text-decoration: none; transition: border-color 0.2s, background 0.2s; }
+  .more-card .icon-box { margin-bottom: 6px; transition: background 0.25s, color 0.25s; }
+  .more-card strong { font-size: 17px; }
+  .more-card .muted { font-size: 14.5px; line-height: 1.5; flex: 1; }
+  .more-card .go { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 14px; font-weight: 650; color: var(--brand-strong); }
+  .more-card .go :global(.icon) { width: 16px; height: 16px; transition: transform 0.2s var(--ease); }
+  .more-card:hover { border-color: color-mix(in srgb, var(--brand) 35%, var(--divider)); }
+  .more-card:hover .icon-box { background: var(--brand-tint); color: var(--brand-strong); }
+  .more-card:hover .go :global(.icon) { transform: translateX(3px); }
+  @media (max-width: 960px) { .more-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .more-grid { grid-template-columns: 1fr; } }
+
+  /* Get started: one centred card, steps side by side, then the hardware it works with. */
+  .start { margin-top: 112px; }
+  .start-card { padding: 48px 40px; text-align: center; background: radial-gradient(120% 90% at 50% 0%, var(--brand-tint), transparent 70%), var(--surface); }
+  .start-card > p { margin: 10px 0 0; font-size: 17px; }
+  .steps { list-style: none; padding: 0; margin: 36px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; counter-reset: none; }
+  .steps li { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .steps .num { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 6px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 750; font-size: 17px; }
+  .steps strong { font-size: 17px; }
+  .steps .muted { font-size: 14.5px; line-height: 1.5; max-width: 30ch; }
+  .start .cta { margin-top: 36px; }
+  .works { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--divider); font-size: 14px; }
+  .works > .muted { margin-right: 4px; font-weight: 600; }
+  .chip { padding: 5px 12px; border-radius: 999px; background: var(--soft); font-weight: 550; }
+  .works .more { margin: 0 0 0 4px; font-size: 14px; }
+  @media (max-width: 760px) {
+    .start-card { padding: 32px 20px; }
+    .steps { grid-template-columns: 1fr; gap: 22px; }
   }
 </style>
