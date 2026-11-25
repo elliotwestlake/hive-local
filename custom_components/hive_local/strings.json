@@ -219,12 +219,11 @@
     },
     "zha_device_lost": {
       "title": "ZHA no longer has {name}",
-      "description": "Hive Local can't find the receiver **{name}** in ZHA. ZHA may still be starting or reloading, or the receiver was removed from ZHA. Hive Local reconnects by itself when ZHA has it again; if this stays, reload Hive Local's entry for the receiver.",
       "fix_flow": {
         "step": {
           "confirm": {
             "title": "Reload {name}",
-            "description": "Reload Hive Local's entry for **{name}**, so it looks the receiver up in ZHA again."
+            "description": "Hive Local can't find the receiver **{name}** in ZHA. ZHA may still be starting or reloading, or the receiver was removed from ZHA. Hive Local reconnects by itself when ZHA has it again.\n\nReload Hive Local's entry for **{name}** now, so it looks the receiver up in ZHA again?"
           }
         }
       }

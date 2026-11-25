@@ -23,11 +23,15 @@ class ReloadFlow(RepairsFlow):
     async def async_step_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> data_entry_flow.FlowResult:
+        entry = self.hass.config_entries.async_get_entry(self.entry_id)
         if user_input is not None:
-            if self.hass.config_entries.async_get_entry(self.entry_id):
+            if entry:
                 await self.hass.config_entries.async_reload(self.entry_id)
             return self.async_create_entry(data={})
-        return self.async_show_form(step_id="confirm")
+        return self.async_show_form(
+            step_id="confirm",
+            description_placeholders={"name": entry.title if entry else "the receiver"},
+        )
 
 
 async def async_create_fix_flow(

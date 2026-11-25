@@ -173,6 +173,7 @@ async def test_zha_reload_reconnects(hass: HomeAssistant, receiver, freezer) -> 
         manager = repairs_flow_manager(hass)
         flow = await manager.async_init(DOMAIN, data={"issue_id": lost})
         assert flow["step_id"] == "confirm"
+        assert flow["description_placeholders"] == {"name": "Receiver"}
         current["clusters"] = {"heat": cluster}
         with patch.object(hass.config_entries, "async_reload", return_value=True) as reload:
             flow = await manager.async_configure(flow["flow_id"], {})
