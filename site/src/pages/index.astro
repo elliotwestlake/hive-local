@@ -108,21 +108,21 @@ const faqs = [
 <Base title="Hive Local" description="Local control of Hive heating and hot water from Home Assistant, with no Hive cloud and no Hive hub. Schedules, boost, rooms, stats and holiday mode.">
   <main>
     <section class="hero wrap">
-      <span class="pill"><Icon path={mdiZigbee} /> For Home Assistant, on Zigbee2MQTT or ZHA</span>
-      <h1>Your Hive heating, without the cloud.</h1>
-      <p class="lede">Hive Local runs your Hive receiver straight from Home Assistant over Zigbee. Change the schedule, boost the heating and see what the boiler's doing, with no hub, no account and nothing in the cloud.</p>
-      <div class="cta">
+      <span class="pill rise" style="--d: 0ms"><Icon path={mdiZigbee} /> For Home Assistant, on Zigbee2MQTT or ZHA</span>
+      <h1 class="rise" style="--d: 80ms">Your Hive heating, without the cloud.</h1>
+      <p class="lede rise" style="--d: 180ms">Hive Local runs your Hive receiver straight from Home Assistant over Zigbee. Change the schedule, boost the heating and see what the boiler's doing, with no hub, no account and nothing in the cloud.</p>
+      <div class="cta rise" style="--d: 260ms">
         <a class="btn primary" href={MARKETPLACE}>Add to Home Assistant <Icon path={mdiArrowRight} /></a>
         <a class="btn" href="/docs/">Read the docs</a>
       </div>
-      <div class="hero-shot">
+      <div class="hero-shot rise-shot" style="--d: 380ms">
         <Image src={hero} alt="The Hive panel on a desktop and a phone: heating following its schedule, and hot water on a boost." widths={[700, 1400, 2100, 2800]} sizes="(max-width: 1120px) 100vw, 1088px" loading="eager" />
       </div>
     </section>
 
     <section class="facts wrap" aria-label="At a glance">
-      {facts.map((f) => (
-        <div class="fact">
+      {facts.map((f, i) => (
+        <div class="fact reveal" style={`--d: ${i * 70}ms`}>
           <span class="icon-box"><Icon path={f.icon} /></span>
           <div><strong>{f.title}</strong><span class="muted">{f.text}</span></div>
         </div>
@@ -132,16 +132,16 @@ const faqs = [
     <section class="features wrap" aria-label="Features">
       {features.map((f, i) => (
         <article class:list={["feature", { flip: i % 2 === 1 }]}>
-          <div class="feature-text">
+          <div class="feature-text reveal">
             <span class="kicker"><span class="icon-box"><Icon path={f.icon} /></span>{f.kicker}</span>
             <h2>{f.title}</h2>
             <p>{f.text}</p>
             <ul>
-              {f.points.map((p) => <li><Icon path={mdiCheck} />{p}</li>)}
+              {f.points.map((p, j) => <li style={`--i: ${j}`}><Icon path={mdiCheck} />{p}</li>)}
             </ul>
             <a class="more" href={f.href}>Learn more <Icon path={mdiArrowRight} /></a>
           </div>
-          <div class="feature-shot card">
+          <div class="feature-shot card reveal" style="--d: 120ms">
             <Image src={f.image} alt={f.alt} widths={[560, 1028, 2056]} sizes="(max-width: 860px) 100vw, 560px" />
           </div>
         </article>
@@ -150,16 +150,16 @@ const faqs = [
 
     <section class="band">
       <div class="wrap band-inner">
-        <div class="band-text">
+        <div class="band-text reveal">
           <span class="kicker"><span class="icon-box"><Icon path={mdiCellphone} /></span>On your phone</span>
           <h2>Made for the phone in your hand</h2>
           <p>In the Home Assistant app the panel gets a bottom tab bar and sheets that slide up, so boosting the heating on the way home is two taps. It follows your Home Assistant theme, light or dark.</p>
         </div>
-        <Image src={phones} alt="Three phone screens: the heating schedule, a room's target and valves, and the boost sheet." widths={[700, 1400, 2800]} sizes="(max-width: 1120px) 100vw, 1088px" />
+        <Image class="reveal" style="--d: 120ms" src={phones} alt="Three phone screens: the heating schedule, a room's target and valves, and the boost sheet." widths={[700, 1400, 2800]} sizes="(max-width: 1120px) 100vw, 1088px" />
       </div>
     </section>
 
-    <section class="wrap split">
+    <section class="wrap split reveal">
       <div>
         <span class="kicker"><span class="icon-box"><Icon path={mdiWaterBoiler} /></span>Hardware</span>
         <h2>Works with Hive receivers</h2>
@@ -188,8 +188,8 @@ const faqs = [
     <section class="wrap faq" aria-label="Questions">
       <h2>Questions</h2>
       <div class="faq-list">
-        {faqs.map((f) => (
-          <details class="card">
+        {faqs.map((f, i) => (
+          <details class="card reveal" style={`--d: ${i * 60}ms`}>
             <summary>{f.q}</summary>
             <p>{f.a}</p>
           </details>
@@ -197,7 +197,7 @@ const faqs = [
       </div>
     </section>
 
-    <section class="wrap closing">
+    <section class="wrap closing reveal">
       <div class="card closing-card">
         <div>
           <h2>Take your heating local</h2>
@@ -215,7 +215,7 @@ const faqs = [
 
 <style>
   .hero { text-align: center; padding-top: 72px; display: flex; flex-direction: column; align-items: center; }
-  .hero .pill .icon { width: 16px; height: 16px; }
+  .hero .pill :global(.icon) { width: 16px; height: 16px; }
   h1 { font-size: clamp(38px, 6.4vw, 68px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 750; margin: 20px 0 0; max-width: 17ch; text-wrap: balance; }
   .lede { font-size: clamp(17px, 2.1vw, 20px); color: var(--muted); max-width: 60ch; margin: 20px 0 0; }
   .cta { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 28px; }
@@ -232,7 +232,7 @@ const faqs = [
   h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.15; letter-spacing: -0.02em; font-weight: 700; margin: 12px 0 0; }
   .kicker { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
   .kicker .icon-box { width: 34px; height: 34px; }
-  .kicker .icon-box .icon { width: 19px; height: 19px; }
+  .kicker .icon-box :global(.icon) { width: 19px; height: 19px; }
 
   .features { display: grid; gap: 96px; margin-top: 112px; }
   .feature { display: grid; grid-template-columns: 1fr 1.15fr; gap: 56px; align-items: center; }
@@ -240,10 +240,10 @@ const faqs = [
   .feature-text p { color: var(--muted); font-size: 17px; margin: 14px 0 0; }
   .feature ul { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 10px; }
   .feature li { display: flex; gap: 10px; align-items: flex-start; }
-  .feature li .icon { color: var(--brand); margin-top: 3px; }
+  .feature li :global(.icon) { color: var(--brand); margin-top: 3px; }
   .more { display: inline-flex; align-items: center; gap: 6px; margin-top: 22px; font-weight: 650; text-decoration: none; color: var(--brand-strong); }
   .more:hover { text-decoration: underline; }
-  .more .icon { width: 18px; height: 18px; }
+  .more :global(.icon) { width: 18px; height: 18px; }
   .feature-shot { overflow: hidden; background: var(--soft); }
   @media (max-width: 860px) {
     .features { gap: 64px; margin-top: 80px; }
@@ -275,7 +275,7 @@ const faqs = [
   summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 650; font-size: 17px; display: flex; justify-content: space-between; gap: 12px; }
   summary::-webkit-details-marker { display: none; }
   summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 22px; line-height: 1; }
-  details[open] summary::after { content: "−"; }
+  details[open] summary::after { transform: rotate(45deg); }
   details p { margin: 0 0 18px; color: var(--muted); }
 
   .closing { margin-top: 112px; }
@@ -283,4 +283,38 @@ const faqs = [
   .closing-card p { margin: 12px 0 0; font-size: 17px; }
   .closing-card img { border-radius: 14px; border: 1px solid var(--divider); }
   @media (max-width: 860px) { .closing-card { grid-template-columns: 1fr; padding: 24px; } }
+
+  /* Motion (see global.css): a soft glow breathing behind the hero, ticks that land one
+     after another, screenshots that lean in on hover, and answers that slide open. */
+  .hero-shot { position: relative; isolation: isolate; }
+  .hero::after {
+    content: ""; position: absolute; z-index: -1; left: 50%; top: 420px; width: min(900px, 90vw); height: 520px;
+    transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 22%, transparent), transparent);
+    filter: blur(40px); animation: glow 7s ease-in-out infinite alternate; pointer-events: none;
+  }
+  .hero { position: relative; }
+  @keyframes glow { from { opacity: 0.55; transform: translateX(-50%) scale(0.94); } to { opacity: 1; transform: translateX(-50%) scale(1.04); } }
+  .feature-text.reveal li { opacity: 1; }
+  :global(.js) .feature-text.reveal li { opacity: 0; transform: translateX(-10px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); transition-delay: calc(250ms + var(--i) * 110ms); }
+  :global(.js) .feature-text.reveal.in li { opacity: 1; transform: none; }
+  .feature li :global(.icon) { transition: transform 0.4s var(--ease); transition-delay: calc(300ms + var(--i) * 110ms); }
+  :global(.js) .feature-text.reveal li :global(.icon) { transform: scale(0.4); }
+  :global(.js) .feature-text.reveal.in li :global(.icon) { transform: none; }
+  .feature-shot :global(img), .closing-card :global(img) { transition: transform 0.6s var(--ease); }
+  .feature-shot:hover :global(img) { transform: scale(1.025); }
+  .closing-card:hover :global(img) { transform: translateY(-4px); }
+  .fact { transition: border-color 0.2s, background 0.2s; }
+  .fact:hover { border-color: color-mix(in srgb, var(--brand) 35%, var(--divider)); }
+  .fact .icon-box { transition: background 0.25s, color 0.25s; }
+  .fact:hover .icon-box { background: var(--brand-tint); color: var(--brand-strong); }
+  summary::after { transition: transform 0.3s var(--ease); }
+  details { interpolate-size: allow-keywords; }
+  details::details-content { height: 0; overflow: clip; transition: height 0.35s var(--ease), content-visibility 0.35s allow-discrete; }
+  details[open]::details-content { height: auto; }
+  @media (prefers-reduced-motion: reduce) {
+    .hero::after { animation: none; }
+    :global(.js) .feature-text.reveal li, :global(.js) .feature-text.reveal li :global(.icon) { opacity: 1; transform: none; transition: none; }
+    .feature-shot :global(img), .closing-card :global(img), details::details-content { transition: none; }
+    .feature-shot:hover :global(img), .closing-card:hover :global(img) { transform: none; }
+  }
 </style>

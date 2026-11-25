@@ -49,6 +49,7 @@
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
 body {
+  overflow-x: clip;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -131,3 +132,25 @@ a { color: inherit; }
 .site-footer a { text-decoration: none; }
 .site-footer a:hover { color: var(--text); }
 .site-footer p { margin: 0; max-width: 70ch; }
+
+/* Motion: calm and quick. Things ease up into place as the page loads (.rise) or as they
+   scroll into view (.reveal, set .in by Base.astro). Nothing is hidden unless scripts run
+   (html.js), and people who ask for less motion get none. */
+:root { --ease: cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes rise-shot { from { opacity: 0; transform: translateY(40px) scale(0.97); } }
+.rise { animation: rise 0.8s var(--ease) var(--d, 0ms) both; }
+.rise-shot { animation: rise-shot 1.1s var(--ease) var(--d, 0ms) both; }
+.js .reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.8s var(--ease) var(--d, 0ms), transform 0.8s var(--ease) var(--d, 0ms);
+}
+.js .reveal.in { opacity: 1; transform: none; }
+.btn .icon, .more .icon { transition: transform 0.2s var(--ease); }
+.btn:hover .icon, .more:hover .icon { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) {
+  .rise, .rise-shot { animation: none; }
+  .js .reveal { opacity: 1; transform: none; transition: none; }
+  .btn .icon, .more .icon { transition: none; }
+  html { scroll-behavior: auto; }
+}
