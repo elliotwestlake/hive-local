@@ -35,5 +35,9 @@ export function formatUntil(iso: string | Date): string {
   return `${(days < 6 ? WEEKDAY : DAY_MONTH).format(d)} ${TIME.format(d)}`;
 }
 
-export const formatMinutes = (m: number) =>
+/** "Bedroom", "Bedroom and Lounge", "3 rooms". */
+export const roomsLabel = (rooms: string[]) =>
+  rooms.length === 0 ? "rooms" : rooms.length <= 2 ? rooms.join(" and ") : `${rooms.length} rooms`;
+
+export const formatMinutes =(m: number) =>
   m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`;

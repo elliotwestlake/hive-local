@@ -53,6 +53,19 @@ export interface ChannelInfo {
   frost_temperature: number; // HA-side setting, shown during schedule "off" periods
   preheat?: PreheatInfo; // heating only
   holiday?: HolidayInfo | null; // while away
+  demand?: DemandInfo; // heating only
+}
+
+/** Rooms call for heat (heating): boost while a room this receiver heats is cold. Off by default. */
+export interface DemandInfo {
+  enabled: boolean;
+  outside_schedule: boolean; // may heat during the schedule's "off" periods
+  active: boolean; // our boost is running now
+  rooms: string[]; // the rooms it's heating for, while active
+  calling: string[]; // rooms that want heat now
+  setpoint: number | null;
+  /** Why it isn't heating: off, warm, no_rooms, stopped, mode, schedule_off, heating, holiday, preheat, waiting. */
+  reason: string | null;
 }
 
 /** Holiday (away): heating holds `temperature`, hot water is off, until `until`. */

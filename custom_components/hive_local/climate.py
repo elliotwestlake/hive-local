@@ -157,7 +157,12 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         # Stats counts a pre-heat as following the schedule, not as a boost.
         until = self._data.holiday.until(self._channel)
-        return {"preheat": self._data.preheat.is_active, "holiday_until": until.isoformat() if until else None}
+        # Rooms calling for heat is a boost underneath too, but it's still the schedule.
+        return {
+            "preheat": self._data.preheat.is_active,
+            "holiday_until": until.isoformat() if until else None,
+            "room_demand": self._data.demand.rooms_heating(),
+        }
 
     def _boost_minutes_left(self) -> int | None:
         """Changing the temperature mid-boost keeps the time left (None: use the default)."""

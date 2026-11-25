@@ -78,6 +78,12 @@ def test_preheat_boost_counts_as_schedule():
     assert pre.mode == "schedule" and pre.heating
 
 
+def test_rooms_calling_for_heat_counts_as_schedule():
+    rooms = st.sample_from_state("heat", 0, "auto", {"preset_mode": "boost", "room_demand": ["Bedroom"], "hvac_action": "heating"})
+    assert rooms.mode == "schedule" and rooms.heating
+    assert st.sample_from_state("heat", 0, "auto", {"preset_mode": "boost", "room_demand": None}).mode == "boost"
+
+
 def test_outdoor_per_day_bucket_and_period():
     R = st.Reading
     samples = [S(0, "schedule", current=19.0)]
