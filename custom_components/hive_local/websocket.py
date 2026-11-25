@@ -21,7 +21,7 @@ hive_local/rooms/candidates                        -> {"valves", "sensors", "rec
 hive_local/rooms/valves                            -> {"valves": every Hive valve with state, battery, area, room and identify} for the Devices tab
 hive_local/rooms/suggest                           -> {"rooms": a room per area with free Hive valves, "receivers"} for first-time setup
 hive_local/rooms/identify {entity_id}              -> presses the valve's Identify button (it flashes its light)
-hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?}
+hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?, sensor_on_valves?}
 hive_local/rooms/delete {room_id}
 hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]}
 """
@@ -63,6 +63,7 @@ from .const import (
 )
 from .data import HiveConfigEntry
 from .room_manager import DATA_ROOMS, SIGNAL_ROOMS, RoomManager
+from .valve_sensor_controller import SIGNAL_VALVE_SENSORS
 from .settings import DATA_SETTINGS, HouseSettings, SettingsError
 from .schedule import ScheduleError, validate
 from .history import async_outdoor, async_samples, channel_entity_id
@@ -462,11 +463,13 @@ def ws_rooms_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> 
         _send()
 
     unsub_rooms = async_dispatcher_connect(hass, SIGNAL_ROOMS, _rooms_changed)
+    unsub_valve_sensors = async_dispatcher_connect(hass, SIGNAL_VALVE_SENSORS, _send)
     _track()
 
     @callback
     def _unsubscribe() -> None:
         unsub_rooms()
+        unsub_valve_sensors()
         if unsub_states:
             unsub_states()
 
@@ -512,13 +515,14 @@ async def ws_rooms_valves(hass, connection, msg: dict[str, Any], rooms: RoomMana
         vol.Required("valves"): [str],
         vol.Optional("sensor"): vol.Any(str, None),
         vol.Optional("receiver"): vol.Any(str, None),
+        vol.Optional("sensor_on_valves"): bool,
     }
 )
 @websocket_api.async_response
 @_rooms_handler
 async def ws_rooms_save(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
     room = await rooms.async_save_room(
-        {k: msg.get(k) for k in ("name", "valves", "sensor", "receiver")}, msg.get("room_id")
+        {k: msg.get(k) for k in ("name", "valves", "sensor", "receiver", "sensor_on_valves")}, msg.get("room_id")
     )
     connection.send_result(msg["id"], {"room": room})
 

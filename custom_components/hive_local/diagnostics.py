@@ -12,6 +12,7 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 from .const import CONF_DEVICE_ID, DOMAIN
 from .data import HiveConfigEntry
 from .room_manager import DATA_ROOMS
+from .valve_sensor_controller import DATA_VALVE_SENSORS
 
 TO_REDACT = {CONF_DEVICE_ID, "unique_id", "ieee", "identifiers", "connections", "serial_number"}
 
@@ -52,6 +53,8 @@ async def async_get_config_entry_diagnostics(
         "health": data.health.diagnostics() if data.health else None,
         "entities": entities,
         "rooms": [r for r in rooms.rooms if r.get("receiver") in (None, entry.entry_id)] if rooms else None,
+        # House-wide: what each room valve was given from its room's sensor (issue #3).
+        "valve_sensors": vs.diagnostics() if (vs := hass.data.get(DATA_VALVE_SENSORS)) else None,
     }
 
 

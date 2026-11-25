@@ -243,6 +243,12 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .room-sheet .sheet-live .heating { color: var(--hl-heat); }
 .room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
 .room-sheet-actions .sheet-cancel { align-self: auto; }
+.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }
+.room-sensor-note.warn { color: var(--warning-color, #ffa600); }
+.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }
+.sensor-toggle-main:hover:not(:disabled) { background: transparent; }
+.sensor-toggle .warn { color: var(--warning-color, #ffa600); }
 .valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }
 .valve-picker { display: flex; flex-direction: column; gap: 8px; }
 .valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }

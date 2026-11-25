@@ -35,7 +35,10 @@ def test_clean_room():
     room = r.clean_room({"name": "  Front   room ", "valves": ["climate.a", "climate.a", "climate.b"], "sensor": ""},
                         known_valves=known, known_sensors=set(), receivers=["e1"])
     # One receiver: the room is heated by it without asking.
-    assert room == {"name": "Front room", "valves": ["climate.a", "climate.b"], "sensor": None, "receiver": "e1"}
+    assert room == {"name": "Front room", "valves": ["climate.a", "climate.b"], "sensor": None, "receiver": "e1",
+                    "sensor_on_valves": True}
+    assert r.clean_room({"name": "X", "valves": ["climate.a"], "sensor_on_valves": False}, known_valves=known,
+                        known_sensors=set(), receivers=["e1"])["sensor_on_valves"] is False
     for bad in ({"name": "", "valves": ["climate.a"]}, {"name": "X", "valves": []},
                 {"name": "X", "valves": ["climate.nope"]}, {"name": "X", "valves": ["climate.a"], "sensor": "sensor.nope"}):
         with pytest.raises(r.RoomError):

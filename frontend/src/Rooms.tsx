@@ -28,6 +28,23 @@ function ValveRow({ valve, heating }: { valve: ValveState; heating: boolean }) {
   );
 }
 
+/** Whether the room's valves heat to its sensor's reading (null when it has no sensor). */
+function sensorNote(room: Room): { text: string; warn: boolean } | null {
+  if (!room.sensor || !room.external_sensor) return null;
+  const n = room.valve_states.length;
+  const names = (s: string) => room.valve_states.filter((v) => v.external_sensor === s).map((v) => v.name);
+  if (room.external_sensor === "off") return { text: n === 1 ? "The valve uses its own sensor" : "The valves use their own sensors", warn: false };
+  if (room.external_sensor === "using") return { text: n === 1 ? "The valve uses the room sensor" : "The valves use the room sensor", warn: false };
+  if (room.external_sensor === "unsupported") return { text: n === 1 ? "This valve can't use the room sensor" : "These valves can't use the room sensor", warn: false };
+  if (room.temperature_source !== "sensor") return { text: "Room sensor not responding: the valves use their own", warn: true };
+  if (room.external_sensor === "partly") {
+    const cant = names("unsupported");
+    const using = names("using").length;
+    return { text: `${using} of ${n} valves use the room sensor${cant.length ? `; ${cant.join(", ")} can't` : ""}`, warn: false };
+  }
+  return { text: "Giving the valves the room temperature…", warn: false };
+}
+
 interface EditorProps {
   getHass: () => Hass;
   room?: Room;
@@ -172,6 +189,7 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
   const [name, setName] = useState(room?.name ?? "");
   const [valves, setValves] = useState<Set<string>>(new Set(room?.valves ?? []));
   const [sensor, setSensor] = useState(room?.sensor ?? "");
+  const [onValves, setOnValves] = useState(room?.sensor_on_valves ?? true);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
@@ -189,6 +207,8 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
       .catch(() => {});
   }, [getHass]);
   const manyReceivers = (candidates?.receivers.length ?? 0) > 1;
+  // How the valves are doing with the saved sensor (not shown for unsaved changes).
+  const editorNote = room && room.sensor === sensor && onValves && (room.sensor_on_valves ?? true) ? sensorNote(room) : null;
 
   const run = async (msg: Record<string, unknown>) => {
     setBusy(true);
@@ -224,6 +244,7 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
             valves: [...valves],
             sensor: sensor || null,
             receiver: receiver || null,
+            sensor_on_valves: onValves,
           });
         }}
       >
@@ -256,6 +277,19 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
             ))}
           </select>
         </label>
+
+        {sensor && (
+          <div className="sensor-toggle">
+            <button type="button" role="checkbox" aria-checked={onValves} className="sensor-toggle-main" onClick={() => setOnValves((v) => !v)}>
+              <span className={`valve-check ${onValves ? "on" : ""}`} aria-hidden="true">{onValves && <Icon name="check" />}</span>
+              <span className="valve-pick-text">
+                <span>Use the room sensor on the valves</span>
+                <span className="muted small">The valves heat to this reading instead of their own, taken beside the radiator.</span>
+              </span>
+            </button>
+            {editorNote && <span className={`small ${editorNote.warn ? "warn" : "muted"}`}>{editorNote.text}.</span>}
+          </div>
+        )}
 
         {manyReceivers && (
           <label className="field">
@@ -356,6 +390,7 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
   };
   const valves = `${room.valves.length} valve${room.valves.length === 1 ? "" : "s"}`;
   const source = room.temperature_source === "sensor" ? room.sensor_name : room.temperature_source === "valves" ? "Average of the valves" : "No reading";
+  const note = sensorNote(room);
 
   return (
     <div className="sheet-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }}>
@@ -371,6 +406,11 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
             <b>{room.current_temperature == null ? "–" : `${room.current_temperature.toFixed(1)}°`}</b> <span className="muted">{source}</span>
           </span>
         </div>
+        {note && (
+          <div className={`room-sensor-note small ${note.warn ? "warn" : "muted"}`}>
+            <Icon name={note.warn ? "thermometer-alert" : "thermometer-check"} /> {note.text}
+          </div>
+        )}
         <div className="sheet-field">
           <span className="sheet-label">
             {room.target_range && pending == null ? `Target (valves set to ${fmt(room.target_range[0])}–${fmt(room.target_range[1])})` : "Target"}
