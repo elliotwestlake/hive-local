@@ -124,6 +124,11 @@ export interface ValveState {
   hvac_action: string | null;
   battery: string | null; // the battery sensor's state, e.g. "85"
   identify?: boolean; // HA has an Identify button for it (Find flashes its light)
+  /** Whether it heats to the room sensor's reading (issue #3). */
+  external_sensor?: "using" | "waiting" | "unsupported" | "off";
+  external_sensor_sent?: number | null; // °C last given to it
+  external_sensor_reported?: number | null; // °C it reports holding (-80: its own sensor)
+  radiator_covered?: boolean | null;
 }
 
 /** hive_local/rooms/valves: any Hive valve, for the Devices tab. */
@@ -150,6 +155,8 @@ export interface Room {
   unavailable: string[];
   lowest_battery: number | null;
   battery_low: boolean;
+  sensor_on_valves?: boolean; // push the sensor's reading into the valves (default on)
+  external_sensor?: "using" | "partly" | "waiting" | "unsupported" | "off" | null;
 }
 
 export interface Candidate {

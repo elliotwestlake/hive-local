@@ -5,7 +5,10 @@ entities, on ZHA or Zigbee2MQTT), an optional temperature sensor, and the receiv
 (config entry) whose zone heats it:
 
     {"id": "a1b2c3", "name": "Lounge", "valves": ["climate.lounge_trv"],
-     "sensor": "sensor.lounge_temp", "receiver": "<entry_id>"}
+     "sensor": "sensor.lounge_temp", "receiver": "<entry_id>", "sensor_on_valves": true}
+
+sensor_on_valves (default true; missing in rooms saved before it) pushes the sensor's
+reading into each valve (valve_sensor.py).
 
 Each valve's live state comes in as:
 
@@ -68,7 +71,14 @@ def clean_room(
         raise RoomError("Choose which receiver heats this room")
     if receiver not in receivers:
         raise RoomError("That receiver isn't set up in Hive Local")
-    return {"name": name, "valves": valves, "sensor": sensor, "receiver": receiver}
+    sensor_on_valves = raw.get("sensor_on_valves")
+    return {
+        "name": name,
+        "valves": valves,
+        "sensor": sensor,
+        "receiver": receiver,
+        "sensor_on_valves": True if sensor_on_valves is None else bool(sensor_on_valves),
+    }
 
 
 def suggest_rooms(

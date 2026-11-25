@@ -20,6 +20,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
+from . import valve_sensor
 from .const import DOMAIN
 from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, suggest_rooms, summarise
 
@@ -34,6 +35,8 @@ class RoomManager:
         self.hass = hass
         self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.rooms")
         self.rooms: list[dict[str, Any]] = []
+        # valve_sensor_controller.ValveSensors, set in async_setup: each valve's use of the room sensor.
+        self.valve_sensors: Any = None
 
     async def async_load(self) -> None:
         data = await self._store.async_load()
@@ -165,7 +168,7 @@ class RoomManager:
             "battery": battery.state if battery else None,
             "battery_entity": battery_id,
             "identify": self._identify_button(entity_id) is not None,
-        }
+        } | (self.valve_sensors.valve_status(entity_id) if self.valve_sensors else {})
 
     @callback
     def status(self) -> dict[str, Any]:
@@ -181,6 +184,10 @@ class RoomManager:
                     "sensor_name": sensor.name if sensor else None,
                     "receiver_name": names.get(room.get("receiver")),
                     "valve_states": valves,
+                    "sensor_on_valves": room.get("sensor_on_valves", True),
+                    "external_sensor": valve_sensor.room_status(
+                        [v["external_sensor"] for v in valves if "external_sensor" in v]
+                    ),
                 }
                 | summarise(valves, sensor.state if sensor else None)
             )
@@ -210,6 +217,9 @@ class RoomManager:
 
     async def async_save_room(self, raw: dict[str, Any], room_id: str | None = None) -> dict[str, Any]:
         found = self.candidates()
+        if raw.get("sensor_on_valves") is None and room_id is not None:
+            # Not given (an older panel): keep the room's setting.
+            raw = raw | {"sensor_on_valves": self._room(room_id).get("sensor_on_valves", True)}
         room = clean_room(
             raw,
             known_valves={v["entity_id"] for v in found["valves"]},
