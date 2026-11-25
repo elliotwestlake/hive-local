@@ -88,6 +88,18 @@
       },
       "heat_preheat_max_lead": {
         "name": "Pre-heat starts at most"
+      },
+      "heat_room_demand_start": {
+        "name": "Rooms call for heat below target by"
+      },
+      "heat_room_demand_stop": {
+        "name": "Rooms are warm within"
+      },
+      "heat_room_demand_min_on": {
+        "name": "Rooms' heat stays on at least"
+      },
+      "heat_room_demand_min_off": {
+        "name": "Rooms' heat stays off at least"
       }
     },
     "button": {
@@ -123,6 +135,12 @@
     "switch": {
       "heat_preheat": {
         "name": "Pre-heat"
+      },
+      "heat_room_demand": {
+        "name": "Rooms call for heat"
+      },
+      "heat_room_demand_outside_schedule": {
+        "name": "Rooms can heat outside the schedule"
       }
     }
   },

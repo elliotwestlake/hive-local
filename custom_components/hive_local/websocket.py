@@ -9,6 +9,7 @@ hive_local/boost {entry_id, channel, minutes?, temperature?}
 hive_local/cancel_boost {entry_id, channel}
 hive_local/target {entry_id, temperature}  like turning the thermostat dial (heating)
 hive_local/preheat {entry_id, channel?, enabled?, max_lead?}  pre-heat settings (heating only)
+hive_local/demand {entry_id, channel?, enabled?, outside_schedule?}  rooms call for heat (heating only, through its switches)
 hive_local/defaults {entry_id, channel, boost_minutes?, boost_temperature?, frost_temperature?} (through the number entities)
 hive_local/settings                                -> {"outdoor_entity", "outdoor_candidates", "gas_meter", "gas_meter_candidates", "fit", "output_kw", "output_basis", "boiler_kw", "price_source", "fixed_price", "price_candidates", "energy_price", "price", "currency"} (house-wide)
 hive_local/settings/set {outdoor_entity?, gas_meter?, boiler_kw?, price_source?: "energy"|"fixed"|entity_id|null, fixed_price?}
@@ -86,6 +87,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_cancel_boost,
         ws_target,
         ws_preheat,
+        ws_demand,
         ws_defaults,
         ws_settings,
         ws_settings_set,
@@ -137,7 +139,7 @@ def _status(hass: HomeAssistant) -> dict[str, Any]:
                 "boost_minutes": data.boost_defaults(channel).minutes,
                 "boost_temperature": data.boost_defaults(channel).temperature,
                 "frost_temperature": data.boost_defaults(channel).frost,
-                **({"preheat": data.preheat.as_dict()} if channel == CHANNEL_HEAT else {}),
+                **({"preheat": data.preheat.as_dict(), "demand": data.demand.as_dict()} if channel == CHANNEL_HEAT else {}),
                 "holiday": data.holiday.as_dict(channel),
             }
             for channel in data.transport.channels
@@ -300,6 +302,37 @@ async def ws_preheat(hass: HomeAssistant, connection, msg: dict[str, Any], entry
             "number", "set_value", {"entity_id": entity_id, "value": msg["max_lead"]}, blocking=True
         )
     connection.send_result(msg["id"], entry.runtime_data.preheat.as_dict())
+
+
+DEMAND_SWITCHES = {"enabled": "room_demand", "outside_schedule": "room_demand_outside_schedule"}
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/demand",
+        vol.Optional("enabled"): bool,
+        vol.Optional("outside_schedule"): bool,
+    }
+    | ENTRY
+    | CHANNEL
+)
+@websocket_api.async_response
+@_with_entry
+async def ws_demand(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    """Rooms call for heat: change its switches, so the settings are restored after a restart."""
+    if msg["channel"] != CHANNEL_HEAT or not entry.runtime_data.demand.available:
+        raise ScheduleError("This receiver has no heating")
+    registry = er.async_get(hass)
+    for field, key in DEMAND_SWITCHES.items():
+        if field not in msg:
+            continue
+        entity_id = registry.async_get_entity_id("switch", DOMAIN, f"{entry.entry_id}_{CHANNEL_HEAT}_{key}")
+        if entity_id is None:
+            raise ScheduleError("The rooms' switch is missing")
+        await hass.services.async_call(
+            "switch", "turn_on" if msg[field] else "turn_off", {"entity_id": entity_id}, blocking=True
+        )
+    connection.send_result(msg["id"], entry.runtime_data.demand.as_dict())
 
 
 # The Settings tab's boost and frost fields -> our number entities (so they're restored).

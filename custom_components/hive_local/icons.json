@@ -13,10 +13,16 @@
       "water_boost_minutes": { "default": "mdi:timer-cog-outline" },
       "heat_boost_temperature": { "default": "mdi:thermometer-chevron-up" },
       "heat_frost_temperature": { "default": "mdi:snowflake-thermometer" },
-      "heat_preheat_max_lead": { "default": "mdi:clock-start" }
+      "heat_preheat_max_lead": { "default": "mdi:clock-start" },
+      "heat_room_demand_start": { "default": "mdi:thermometer-chevron-down" },
+      "heat_room_demand_stop": { "default": "mdi:thermometer-check" },
+      "heat_room_demand_min_on": { "default": "mdi:timer-play-outline" },
+      "heat_room_demand_min_off": { "default": "mdi:timer-pause-outline" }
     },
     "switch": {
-      "heat_preheat": { "default": "mdi:sun-clock" }
+      "heat_preheat": { "default": "mdi:sun-clock" },
+      "heat_room_demand": { "default": "mdi:home-thermometer-outline" },
+      "heat_room_demand_outside_schedule": { "default": "mdi:calendar-remove-outline" }
     },
     "button": {
       "heat_boost": { "default": "mdi:fire" },

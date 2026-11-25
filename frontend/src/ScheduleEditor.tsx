@@ -30,6 +30,7 @@ export function ScheduleEditor({
   limits,
   mode,
   preheatFor,
+  demandFor,
 }: {
   getHass: () => Hass;
   device: Device;
@@ -38,6 +39,8 @@ export function ScheduleEditor({
   mode?: Mode | null;
   /** "06:30" while pre-heating for that change. */
   preheatFor?: string | null;
+  /** "Bedroom" while rooms are calling for heat. */
+  demandFor?: string | null;
 }) {
   const [schedule, setSchedule] = useState<Schedule>({});
   const [loaded, setLoaded] = useState<Schedule>({});
@@ -151,6 +154,7 @@ export function ScheduleEditor({
   else if (mode === "manual") statusLine = `Your schedule isn't being used: ${isWater ? "hot water is always on" : "heating is on Manual"}.`;
   else if (mode === "off") statusLine = `Your schedule isn't being used: ${isWater ? "hot water" : "heating"} is off.`;
   else if (mode === "boost" && preheatFor) statusLine = `Your schedule is running, starting early so it's warm by ${preheatFor}.`;
+  else if (mode === "boost" && demandFor) statusLine = `Your schedule is running, with extra heat for ${demandFor}.`;
   else if (mode === "boost") statusLine = "Boosting now. Your schedule carries on after the boost.";
 
   return (

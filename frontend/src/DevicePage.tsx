@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { formatUntil } from "./api";
+import { formatUntil, roomsLabel } from "./api";
 import { Icon } from "./Icon";
 import { ChannelCard } from "./Overview";
 import { PreheatCard } from "./Preheat";
@@ -49,7 +49,7 @@ export function DevicePage({
   const s = info?.status;
   const subtitle = [
     showDevice ? device.name : null,
-    !s ? "Waiting for the receiver" : info?.holiday && (s.mode !== "boost" || info.holiday.holding) ? `Away until ${formatUntil(info.holiday.until)}` : s.mode === "schedule" ? "On schedule" : s.mode === "boost" ? (info?.preheat?.active_for ? `Pre-heating for ${info.preheat.active_for}` : "Boosting") : s.mode === "off" ? "Off" : channel === "water" ? "Always on" : "Manual",
+    !s ? "Waiting for the receiver" : info?.holiday && (s.mode !== "boost" || info.holiday.holding) ? `Away until ${formatUntil(info.holiday.until)}` : s.mode === "schedule" ? "On schedule" : s.mode === "boost" ? (info?.preheat?.active_for ? `Pre-heating for ${info.preheat.active_for}` : info?.demand?.active ? `Heating for ${roomsLabel(info.demand.rooms)}` : "Boosting") : s.mode === "off" ? "Off" : channel === "water" ? "Always on" : "Manual",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -79,7 +79,7 @@ export function DevicePage({
       {tab === "control" && channel === "heat" && info?.preheat && <PreheatCard getHass={getHass} device={device} info={info.preheat} />}
       {scheduleOpened && (
         <div hidden={tab !== "schedule"}>
-          <ScheduleEditor getHass={getHass} device={device} channel={channel} limits={limits} mode={s?.mode ?? null} preheatFor={s?.mode === "boost" ? info?.preheat?.active_for ?? null : null} />
+          <ScheduleEditor getHass={getHass} device={device} channel={channel} limits={limits} mode={s?.mode ?? null} preheatFor={s?.mode === "boost" ? info?.preheat?.active_for ?? null : null} demandFor={s?.mode === "boost" && info?.demand?.active ? roomsLabel(info.demand.rooms) : null} />
         </div>
       )}
       {tab === "history" && <Stats getHass={getHass} devices={[device]} channel={channel} />}

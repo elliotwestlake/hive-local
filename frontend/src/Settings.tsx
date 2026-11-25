@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 
 import { Icon } from "./Icon";
 import { RoomEditorDialog, RoomSetupDialog } from "./Rooms";
 import { unitPrice } from "./Stats";
-import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
+import { roomsLabel, useSender } from "./api";
+import { errorText, type Candidate, type Channel, type DemandInfo, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
 
 /**
  * Settings: the outside temperature and heating cost (house-wide), rooms (setting them up; using them is on
@@ -94,6 +95,7 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
             {d.channels.map((ch) => (
               <BoostRows key={ch} getHass={getHass} device={d} channel={ch} info={status[d.entry_id]?.[ch]} />
             ))}
+            {status[d.entry_id]?.heat?.demand && <DemandRows getHass={getHass} device={d} info={status[d.entry_id]!.heat!.demand!} />}
           </div>
         </section>
       ))}
@@ -373,6 +375,67 @@ function BoostRows({ getHass, device, channel, info }: { getHass: () => Hass; de
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+const DEMAND_REASON: Record<string, string> = {
+  warm: "On. The rooms are warm.",
+  no_rooms: "On, but no room has recent valve readings.",
+  stopped: "Stopped for now: it starts again once the rooms are warm.",
+  mode: "On. It only acts while the heating is on Schedule.",
+  schedule_off: "On. The schedule has the heating off now.",
+  heating: "On. The receiver is already heating.",
+  holiday: "On, but not while you're away.",
+  preheat: "On. Pre-heating comes first.",
+  waiting: "On. The boiler rests a few minutes between requests.",
+};
+
+/** Rooms call for heat (per receiver): when a room is cold or a valve is heating, the heating comes on for it. */
+function DemandRows({ getHass, device, info }: { getHass: () => Hass; device: Device; info: DemandInfo }) {
+  const { busy, result, send } = useSender(getHass, device.entry_id, "heat");
+  const note = !info.enabled
+    ? "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does."
+    : info.active
+      ? `On. Heating for ${roomsLabel(info.rooms)} now.`
+      : DEMAND_REASON[info.reason ?? ""] ?? "On.";
+  const onOff = (value: boolean, field: "enabled" | "outside_schedule", label: string) => (
+    <div className="segmented" role="radiogroup" aria-label={label}>
+      {[true, false].map((on) => (
+        <button
+          key={String(on)}
+          role="radio"
+          aria-checked={value === on}
+          className={value === on ? "on" : ""}
+          disabled={busy}
+          onClick={() => send({ type: "hive_local/demand", [field]: on }, on ? `${label}: on` : `${label}: off`)}
+        >
+          {on ? "On" : "Off"}
+        </button>
+      ))}
+    </div>
+  );
+  return (
+    <>
+      <div className="settings-row">
+        <span className="device-icon"><Icon name="home-thermometer-outline" /></span>
+        <div className="settings-text">
+          <span>Rooms call for heat</span>
+          <span className="muted small">{note}</span>
+        </div>
+        <div className="settings-controls">{onOff(info.enabled, "enabled", "Rooms call for heat")}</div>
+      </div>
+      {info.enabled && (
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="calendar-remove-outline" /></span>
+          <div className="settings-text">
+            <span>Outside the schedule</span>
+            <span className="muted small">Rooms can heat while the schedule has the heating off. Never while the heating is Off.</span>
+          </div>
+          <div className="settings-controls">{onOff(info.outside_schedule, "outside_schedule", "Outside the schedule")}</div>
+        </div>
+      )}
+      {result?.kind === "error" && <div className="status error">{result.text}</div>}
     </>
   );
 }

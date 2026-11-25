@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { formatMinutes, formatUntil, useSender } from "./api";
+import { formatMinutes, formatUntil, roomsLabel, useSender } from "./api";
 import { HolidaySheet } from "./Holiday";
 import { Icon } from "./Icon";
 import { errorText, type Room } from "./types";
@@ -151,7 +151,8 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
     }
   const offSchedule = devices.flatMap((d) =>
     // Channels on holiday are left to "End holiday".
-    d.channels.filter((c) => { const m = status[d.entry_id]?.[c]?.status?.mode; return m && m !== "schedule" && !status[d.entry_id]?.[c]?.holiday; }).map((c) => ({ d, c })),
+    // Rooms calling for heat is the schedule topped up, so it's left alone too.
+    d.channels.filter((c) => { const i = status[d.entry_id]?.[c]; const m = i?.status?.mode; return m && m !== "schedule" && !i?.holiday && !i?.demand?.active; }).map((c) => ({ d, c })),
   );
   if (offSchedule.length)
     actions.push({
@@ -312,6 +313,8 @@ export function ChannelCard({
   // A pre-heat is a boost underneath (it ends at the scheduled time), but it's the schedule starting early.
   const preheatFor = boosting ? info?.preheat?.active_for ?? null : null;
   const preheating = preheatFor != null;
+  // Rooms calling for heat: a short boost underneath, renewed while a room is cold; still the schedule.
+  const demandFor = boosting && !preheating && info?.demand?.active ? roomsLabel(info.demand.rooms) : null;
   let status: ReactNode = "Waiting for the receiver…";
   if (s) {
     if (s.mode === "off") status = "Off";
@@ -323,12 +326,13 @@ export function ChannelCard({
     else status = target != null ? <>Target <b>{target}°</b> <Icon name="check-circle-outline" className="status-icon done" /></> : "Idle";
   }
   if (s && preheating) status = <>Pre-heating to <b>{s.setpoint}°</b> <Icon name="sun-clock" className="status-icon" /></>;
+  if (s && demandFor) status = <>Heating for rooms <Icon name="home-thermometer-outline" className="status-icon" /></>;
   // Away: heating holds a low temperature, hot water is off (a boost on top shows as a boost).
   const holiday = info?.holiday ?? null;
   const awayUntil = holiday ? `Away until ${formatUntil(holiday.until)}` : null;
   if (s && holiday && !boosting && !active)
     status = water ? <>Off while away <Icon name="bag-suitcase" className="status-icon away" /></> : <>Away <b>{s.setpoint}°</b> <Icon name="bag-suitcase" className="status-icon away" /></>;
-  const modeName = !s ? "" : awayUntil && !boosting ? awayUntil : preheating ? `Pre-heating for ${info?.preheat?.active_for}` : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
+  const modeName = !s ? "" : awayUntil && !boosting ? awayUntil : preheating ? `Pre-heating for ${info?.preheat?.active_for}` : demandFor ? `Heating for ${demandFor}` : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
   const open = page;
 
   return (
@@ -356,7 +360,7 @@ export function ChannelCard({
             disabled={busy || !s}
             onClick={(e) => { e.stopPropagation(); setSheet(true); }}
           >
-            <Icon name={preheating ? "sun-clock" : "rocket-launch"} /> {preheating ? "Pre-heating" : boosting ? "Boosting" : "Boost"}
+            <Icon name={preheating ? "sun-clock" : demandFor ? "home-thermometer-outline" : "rocket-launch"} /> {preheating ? "Pre-heating" : demandFor ? "For rooms" : boosting ? "Boosting" : "Boost"}
           </button>
         </div>
       </div>
@@ -398,7 +402,7 @@ export function ChannelCard({
         {modes.map((m) => (
           <button
             key={m.id}
-            className={s?.mode === m.id || (preheating && m.id === "schedule") ? "on" : ""}
+            className={s?.mode === m.id || ((preheating || demandFor) && m.id === "schedule") ? "on" : ""}
             disabled={busy || !s}
             onClick={() =>
               send({ type: "hive_local/mode", mode: m.id }, m.id === "schedule" ? "Following the schedule" : m.label)
@@ -416,11 +420,12 @@ export function ChannelCard({
 
       {sheet && (
         <BoostSheet
-          title={preheating ? "Pre-heating" : boosting ? "Boosting" : "Boost"}
+          title={preheating ? "Pre-heating" : demandFor ? "Heating for rooms" : boosting ? "Boosting" : "Boost"}
           subtitle={showDevice ? `${device.name} · ${CHANNEL_LABEL[channel]}` : CHANNEL_LABEL[channel]}
           water={water}
           boosting={boosting}
           preheatFor={preheatFor}
+          demandFor={demandFor}
           remaining={s?.boost_remaining ?? null}
           boostTarget={boosting ? s?.setpoint ?? null : null}
           defaultMinutes={defaultMinutes}
@@ -429,7 +434,7 @@ export function ChannelCard({
           clampTemp={clampTemp}
           busy={busy}
           onBoost={boost}
-          onStop={() => send({ type: "hive_local/cancel_boost" }, "Boost cancelled").then(() => setSheet(false))}
+          onStop={() => send({ type: "hive_local/cancel_boost" }, demandFor ? "Back to the schedule" : "Boost cancelled").then(() => setSheet(false))}
           onClose={() => setSheet(false)}
         />
       )}
@@ -444,6 +449,7 @@ function BoostSheet({
   water,
   boosting,
   preheatFor,
+  demandFor,
   remaining,
   boostTarget,
   defaultMinutes,
@@ -461,6 +467,8 @@ function BoostSheet({
   boosting: boolean;
   /** "06:30" while this boost is a pre-heat. */
   preheatFor: string | null;
+  /** "Bedroom" while this boost is rooms calling for heat. */
+  demandFor?: string | null;
   remaining: number | null;
   boostTarget: number | null;
   defaultMinutes: number;
@@ -495,6 +503,8 @@ function BoostSheet({
             <span>
               {preheatFor
                 ? `Warming up${boostTarget != null ? ` to ${boostTarget}°` : ""} for ${preheatFor}, when your schedule changes`
+                : demandFor
+                ? `Heating for ${demandFor} until warm, then back to your schedule`
                 : <>
                     {remaining != null ? `${formatMinutes(remaining)} left` : "Boosting"}
                     {!water && boostTarget != null ? ` · to ${boostTarget}°` : ""}
@@ -528,7 +538,7 @@ function BoostSheet({
 
         {boosting ? (
           <button className="sheet-go stop" disabled={busy} onClick={onStop}>
-            <span className="stop-square" /> {preheatFor ? "Stop pre-heating" : "Stop boost"}
+            <span className="stop-square" /> {preheatFor ? "Stop pre-heating" : demandFor ? "Stop for now" : "Stop boost"}
           </button>
         ) : (
           <button className="sheet-go" disabled={busy} onClick={() => onBoost(minutes, temp)}>

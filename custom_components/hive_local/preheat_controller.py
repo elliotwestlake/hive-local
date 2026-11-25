@@ -84,6 +84,8 @@ class Preheat:
         self._unsubs: list[Callable[[], None]] = []
         # Set by the holiday: no pre-heating while away.
         self.blocked: Callable[[], bool] = lambda: False
+        # Set by rooms calling for heat: the boost running now is theirs, so we may start over it.
+        self.overridable: Callable[[], bool] = lambda: False
 
     @property
     def available(self) -> bool:
@@ -333,7 +335,8 @@ class Preheat:
             or new_at is None
             or new_plan.start_in > 0
             or self.active_for is not None
-            or mode != MODE_SCHEDULE  # only from the schedule, not over someone's boost
+            # Only from the schedule, not over someone's boost (the rooms' boost is fine: pre-heat wins).
+            or (mode != MODE_SCHEDULE and not (mode == MODE_BOOST and self.overridable()))
             or new_at in self._skipped
         ):
             return
