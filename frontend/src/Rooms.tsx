@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
+import { RoomScheduleDialog } from "./RoomSchedule";
 import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveInfo, type ValveState } from "./types";
 
 const LOW_BATTERY = 20;
@@ -346,6 +347,7 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
 export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () => Hass; roomId: string; several: boolean; onClose: () => void }) {
   const [room, setRoom] = useState<Room | null>(null);
   const [editing, setEditing] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
   const [pending, setPending] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const timer = useRef<number>();
@@ -359,14 +361,16 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
     };
   }, [getHass, roomId]);
   useEffect(() => {
-    if (editing) return;
+    if (editing || scheduling) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, editing]);
+  }, [onClose, editing, scheduling]);
   if (!room) return null;
   // Editing replaces this sheet with the editor's; done returns here.
   if (editing) return <RoomEditor getHass={getHass} room={room} onDone={() => setEditing(false)} dialog />;
+  // The valves' own schedule (experimental, #5), in place of this sheet; back returns here.
+  if (scheduling) return <RoomScheduleDialog getHass={getHass} room={room} onClose={() => setScheduling(false)} />;
 
   const shown = pending ?? room.target ?? room.target_range?.[1] ?? 20;
   const change = (value: number) => {
@@ -430,6 +434,12 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
           </ul>
         </div>
         {message && <div className="status error">{message}</div>}
+        <button className="room-sheet-row" onClick={() => setScheduling(true)}>
+          <Icon name="calendar-clock-outline" />
+          <span>Schedule on the valves</span>
+          <span className="chip unsaved">Experimental</span>
+          <Icon name="chevron-right" className="slot-chev" />
+        </button>
         <div className="room-sheet-actions">
           <button className="ghost" onClick={() => setEditing(true)}><Icon name="pencil-outline" /> Edit room</button>
           <button className="ghost sheet-cancel" onClick={onClose}>Close</button>

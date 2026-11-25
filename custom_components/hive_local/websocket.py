@@ -25,6 +25,10 @@ hive_local/rooms/identify {entity_id}              -> presses the valve's Identi
 hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?, sensor_on_valves?}
 hive_local/rooms/delete {room_id}
 hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]}
+Schedules on the room's valves (#5, experimental; valve_schedule.py):
+hive_local/rooms/schedule/get {room_id}            -> {"schedule", "complete", "differs": [days the valves disagree on], "valves": [per valve: days, error, clock, schedule_mode], "limits"}
+hive_local/rooms/schedule/set {room_id, schedule}  -> {"schedule", "commands", "valves": [per valve: commands, clock, error], "failed"}  (every valve, one command per day)
+hive_local/rooms/schedule/mode {room_id, enabled}  -> {"failed"}  make the valves follow their schedule (or not)
 """
 
 from __future__ import annotations
@@ -63,6 +67,7 @@ from .const import (
     WATER_ON,
 )
 from .data import HiveConfigEntry
+from . import valve_schedule
 from .room_manager import DATA_ROOMS, SIGNAL_ROOMS, RoomManager
 from .valve_sensor_controller import SIGNAL_VALVE_SENSORS
 from .settings import DATA_SETTINGS, HouseSettings, SettingsError
@@ -102,6 +107,9 @@ def async_register(hass: HomeAssistant) -> None:
         ws_rooms_save,
         ws_rooms_delete,
         ws_rooms_set_target,
+        ws_rooms_schedule_get,
+        ws_rooms_schedule_set,
+        ws_rooms_schedule_mode,
     ):
         websocket_api.async_register_command(hass, command)
 
@@ -580,6 +588,35 @@ async def ws_rooms_delete(hass, connection, msg: dict[str, Any], rooms: RoomMana
 async def ws_rooms_set_target(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
     failed = await rooms.async_set_target(msg["room_id"], msg["temperature"])
     connection.send_result(msg["id"], {"failed": failed})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/schedule/get"} | ROOM)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_schedule_get(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(msg["id"], await valve_schedule.async_read_room(hass, rooms, msg["room_id"]))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "hive_local/rooms/schedule/set", vol.Required("schedule"): dict} | ROOM
+)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_schedule_set(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(
+        msg["id"], await valve_schedule.async_write_room(hass, rooms, msg["room_id"], msg["schedule"])
+    )
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "hive_local/rooms/schedule/mode", vol.Required("enabled"): bool} | ROOM
+)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_schedule_mode(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(
+        msg["id"], await valve_schedule.async_set_room_schedule_mode(hass, rooms, msg["room_id"], msg["enabled"])
+    )
 
 
 # Chart bucket length for each period: 15 min over a day, 1 h over a week, 6 h over a month.
