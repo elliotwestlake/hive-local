@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -14,6 +15,9 @@ from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .transports import Transport
 from .z2m import MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
+
+if TYPE_CHECKING:
+    from .health import ReceiverHealth
 
 
 @dataclass
@@ -35,6 +39,7 @@ class HiveData:
     preheat: Preheat
     holiday: Holiday
     boost: dict[str, BoostDefaults] = field(default_factory=dict)
+    health: ReceiverHealth | None = None
 
     def boost_defaults(self, channel: str) -> BoostDefaults:
         return self.boost.setdefault(channel, BoostDefaults())

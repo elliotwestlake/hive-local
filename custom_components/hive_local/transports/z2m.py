@@ -79,10 +79,16 @@ class Z2MTransport(Transport):
             payload = json.loads(message.payload)
         except (ValueError, TypeError):
             return
+        if isinstance(payload, dict):
+            self.mark_seen()
         for channel in self.channels:
             if (status := channel_status(payload, self._ep(channel))) is not None:
                 self._last_payload = payload
                 self._update_status(channel, status)
+
+    async def async_ping(self) -> None:
+        for channel in self.channels:
+            await self._publish("get", refresh_payload(self._ep(channel)))
 
     async def _poll_boost(self, _now: datetime) -> None:
         for channel in self.channels:

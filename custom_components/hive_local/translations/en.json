@@ -207,5 +207,38 @@
         }
       }
     }
+  },
+  "issues": {
+    "receiver_silent": {
+      "title": "{name} isn't responding",
+      "description": "Hive Local hasn't heard from the receiver **{name}** for over 30 minutes, even when asking it for its state. Check that it has power and that Zigbee2MQTT or ZHA can reach it (its light should be steady, not flashing). Its schedule keeps running on the receiver itself, but Home Assistant can't change it or show its state until it's back.\n\nThis goes away by itself once the receiver reports again."
+    },
+    "z2m_no_state": {
+      "title": "{name} hasn't reported through Zigbee2MQTT",
+      "description": "Hive Local asked for the state of **{name}** on the MQTT topic `{topic}` and got nothing back in 5 minutes. This almost always means the receiver was renamed in Zigbee2MQTT, or Zigbee2MQTT's base topic changed. Check the receiver's friendly name and the base topic in Zigbee2MQTT; if either changed, remove this receiver from Hive Local and add it again.\n\nThis goes away by itself once the receiver reports."
+    },
+    "zha_device_lost": {
+      "title": "ZHA no longer has {name}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Reload {name}",
+            "description": "Hive Local can't find the receiver **{name}** in ZHA. ZHA may still be starting or reloading, or the receiver was removed from ZHA. Hive Local reconnects by itself when ZHA has it again.\n\nReload Hive Local's entry for **{name}** now, so it looks the receiver up in ZHA again?"
+          }
+        }
+      }
+    },
+    "thermostat_quiet": {
+      "title": "{name} has gone quiet",
+      "description": "The Hive thermostat **{name}** hasn't reported a temperature for a while. The receiver drops a thermostat it doesn't hear from, shows a red light and \"No signal\", and turns the boiler off. Check the thermostat's batteries and that it's in range of a Zigbee router. Hive Local asks it to report every 2 minutes once it's awake.\n\nThis goes away by itself once the thermostat reports again."
+    },
+    "valve_battery_low": {
+      "title": "{name}'s battery is low",
+      "description": "The Hive radiator valve **{name}** (`{entity_id}`) reports {battery}% battery. Replace its batteries soon: when they run out it stops responding and the radiator stays as it is.\n\nThis goes away by itself once the battery reads higher."
+    },
+    "valve_unavailable": {
+      "title": "{name} isn't responding",
+      "description": "The Hive radiator valve **{name}** (`{entity_id}`) has been unavailable in Home Assistant for over 30 minutes. Check its batteries and that it's in range of a Zigbee router. Its room can't be controlled through it until it's back.\n\nThis goes away by itself once the valve responds again."
+    }
   }
 }

@@ -36,6 +36,7 @@ from ..const import (
     ZHA_REFRESH_DELAY,
     ZHA_REFRESH_INTERVAL,
 )
+from ..problems import thermostat_quiet
 from ..schedule import DAYS
 from ..z2m import MODE_BOOST
 from ..zcl import (
@@ -74,7 +75,7 @@ def find_receiver(hass: HomeAssistant, device_id: str) -> tuple[Any, dict[str, C
     """Return (zha device, {channel: Thermostat cluster}). LookupError if ZHA doesn't have it."""
     try:
         device = async_get_zha_device_proxy(hass, device_id).device
-    except (KeyError, ValueError, StopIteration) as err:
+    except (KeyError, ValueError, StopIteration, AttributeError, HomeAssistantError) as err:
         raise LookupError(f"ZHA doesn't know device {device_id}") from err
     thermostats = {
         ep_id: ep.in_clusters[Thermostat.cluster_id]
@@ -157,6 +158,8 @@ class _ThermostatReporting:
         self._mine: set[str] = set()
         self._done: dict[str, datetime] = {}
         self._busy: set[str] = set()
+        # Each watched thermostat's last temperature report (or when we started watching).
+        self.last_report: dict[str, datetime] = {}
 
     @callback
     def start(self) -> None:
@@ -180,6 +183,7 @@ class _ThermostatReporting:
                 continue
             self._watched.add(ieee)
             self._mine.add(ieee)
+            self.last_report.setdefault(ieee, dt_util.utcnow())
             for event in (AttributeReportedEvent, AttributeUpdatedEvent):
                 self._unsubs.append(
                     cluster.on_event(event.event_type, partial(self._on_report, ieee, cluster))
@@ -187,8 +191,18 @@ class _ThermostatReporting:
             # It might be awake now (e.g. just paired); otherwise its next report will do.
             self._apply_soon(ieee, cluster)
 
+    @callback
+    def quiet(self, now: datetime) -> list[str]:
+        """The thermostats we watch that haven't reported temperature for too long."""
+        return [
+            ieee
+            for ieee in sorted(self._mine)
+            if thermostat_quiet(now, self.last_report[ieee], configured=ieee in self._done)
+        ]
+
     def diagnostics(self) -> dict[str, Any]:
         return {
+            "last_report": {f"…{ieee[-5:]}": at.isoformat() for ieee, at in self.last_report.items()},
             # Only the end of each IEEE address, enough to tell thermostats apart.
             "watching": sorted(f"…{ieee[-5:]}" for ieee in self._mine),
             "reporting_configured": {f"…{ieee[-5:]}": at.isoformat() for ieee, at in self._done.items()},
@@ -203,6 +217,7 @@ class _ThermostatReporting:
 
     @callback
     def _on_report(self, ieee: str, cluster: Cluster, event: Any) -> None:
+        self.last_report[ieee] = dt_util.utcnow()
         done = self._done.get(ieee)
         if done is None or dt_util.utcnow() - done >= THERMOSTAT_REPORTING_REFRESH:
             self._apply_soon(ieee, cluster)
@@ -236,11 +251,17 @@ class _ThermostatReporting:
 
 class ZHATransport(Transport):
     def __init__(
-        self, hass: HomeAssistant, entry_id: str, clusters: dict[str, Cluster]
+        self,
+        hass: HomeAssistant,
+        entry_id: str,
+        clusters: dict[str, Cluster],
+        device_id: str | None = None,
     ) -> None:
         super().__init__(hass, entry_id, tuple(clusters))
         self._clusters = clusters
+        self._device_id = device_id
         self._unsubs: list[CALLBACK_TYPE] = []
+        self._cluster_unsubs: list[CALLBACK_TYPE] = []
         self._pending_refresh: dict[str, CALLBACK_TYPE] = {}
         self._thermostats = _ThermostatReporting(hass)
 
@@ -248,14 +269,57 @@ class ZHATransport(Transport):
         self.check_channel(channel)
         return self._clusters[channel]
 
-    async def async_start(self) -> None:
+    @callback
+    def _bind(self) -> None:
         for channel, cluster in self._clusters.items():
             for event in CACHE_EVENTS:
-                self._unsubs.append(
+                self._cluster_unsubs.append(
                     cluster.on_event(event.event_type, partial(self._on_attribute, channel))
                 )
-            # ZHA may already have the reported attributes cached.
-            self._publish(channel)
+            # ZHA may already have the reported attributes cached (not news from the receiver).
+            self._publish(channel, seen=False)
+
+    @callback
+    def _unbind(self) -> None:
+        while self._cluster_unsubs:
+            self._cluster_unsubs.pop()()
+
+    @property
+    def thermostats(self) -> _ThermostatReporting:
+        return self._thermostats
+
+    @callback
+    def check_device(self) -> bool:
+        """Make sure we're talking to ZHA's current device. False if ZHA doesn't have it.
+
+        Reloading ZHA rebuilds its devices, so the clusters we hold go stale and nothing
+        reaches us. When ZHA has new ones, move over to them.
+        """
+        if self._device_id is None:
+            return True
+        try:
+            _device, clusters = find_receiver(self.hass, self._device_id)
+        except LookupError:
+            return False
+        if any(channel not in clusters for channel in self.channels):
+            return False
+        if all(clusters[channel] is self._clusters[channel] for channel in self.channels):
+            return True
+        _LOGGER.info("ZHA rebuilt the receiver's device (ZHA reloaded?); reconnecting to it")
+        self._unbind()
+        while self._pending_refresh:
+            self._pending_refresh.popitem()[1]()
+        self._clusters = {channel: clusters[channel] for channel in self.channels}
+        self._bind()
+        self._thermostats.stop()
+        self._thermostats.start()
+        self.hass.async_create_background_task(
+            self._refresh_all(), f"hive_local refresh {self.entry_id}"
+        )
+        return True
+
+    async def async_start(self) -> None:
+        self._bind()
         self._unsubs.append(
             async_track_time_interval(self.hass, self._poll_boost, BOOST_POLL_INTERVAL)
         )
@@ -271,17 +335,20 @@ class ZHATransport(Transport):
     async def async_stop(self) -> None:
         self._thermostats.stop()
         self._clear_deadlines()
+        self._unbind()
         while self._unsubs:
             self._unsubs.pop()()
         while self._pending_refresh:
             self._pending_refresh.popitem()[1]()
 
     @callback
-    def _publish(self, channel: str) -> None:
+    def _publish(self, channel: str, *, seen: bool = True) -> None:
         cluster = self._clusters[channel]
         status = channel_status({name: cluster.get(name) for name in STATE_ATTRS})
+        if seen:
+            self.mark_seen()
         if status is not None:
-            self._update_status(channel, status)
+            self._update_status(channel, status, seen=seen)
 
     @callback
     def _on_attribute(self, channel: str, event: Any) -> None:

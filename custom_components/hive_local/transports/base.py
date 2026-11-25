@@ -55,6 +55,9 @@ class Transport(ABC):
         self._boost_store: Store[dict[str, Any]] = Store(
             hass, BOOST_STORE_VERSION, f"{DOMAIN}.boost.{entry_id}"
         )
+        # When we started and when the receiver last told us anything (health.py).
+        self.started = dt_util.utcnow()
+        self.last_seen: datetime | None = None
 
     async def async_load_boosts(self) -> None:
         """Load boosts saved before a restart. Call before async_start.
@@ -82,7 +85,20 @@ class Transport(ABC):
         return self._status.get(channel)
 
     @callback
-    def _update_status(self, channel: str, status: dict[str, Any]) -> None:
+    def mark_seen(self) -> None:
+        """The receiver just told us something (a report, or an answer to a read)."""
+        self.last_seen = dt_util.utcnow()
+
+    async def async_ping(self) -> None:
+        """Ask the receiver for its state, after it's been quiet (health.py).
+
+        Transports that already re-read it regularly (ZHA) needn't do anything.
+        """
+
+    @callback
+    def _update_status(self, channel: str, status: dict[str, Any], *, seen: bool = True) -> None:
+        if seen:
+            self.mark_seen()
         if status["mode"] != MODE_BOOST:
             self._resume[channel] = (status["mode"], status["setpoint"])
             self._clear_deadline(channel)
@@ -172,6 +188,8 @@ class Transport(ABC):
             "boost_timers": sorted(self._deadline_unsub),
             "resume": {c: list(r) for c, r in self._resume.items()},
             "last_read": self._last_read,
+            "started": self.started.isoformat(),
+            "last_seen": self.last_seen.isoformat() if self.last_seen else None,
         }
 
     def resume_mode(self, channel: str) -> str:
