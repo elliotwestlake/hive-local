@@ -61,6 +61,9 @@ const STATUS = {
       boost_minutes: 30,
       boost_temperature: 21,
       frost_temperature: 12,
+      // Pre-heat on, with a learned warm-up rate and the next rise planned.
+      preheat: { enabled: true, max_lead: 120, rate: 1.6, warmups: 9, warmups_needed: 3, rate_known: true, schedule_known: true, active_for: null,
+        next: { at: "16:30", setpoint: 20.5, start: "15:52", skipped: false } },
     },
     water: {
       status: { mode: "boost", boost_remaining: 42, current_temperature: null, setpoint: 22, heating: true },
