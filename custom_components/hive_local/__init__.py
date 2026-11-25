@@ -30,6 +30,7 @@ from .const import (
     TRANSPORT_ZHA,
 )
 from .data import HiveConfigEntry, HiveData
+from .health import DATA_VALVE_HEALTH, ReceiverHealth, ValveHealth
 from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .settings import DATA_SETTINGS, HouseSettings
@@ -67,6 +68,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await settings.async_load()
     hass.data[DATA_SETTINGS] = settings
     settings.async_start()
+    valves = ValveHealth(hass, rooms)
+    valves.start()
+    hass.data[DATA_VALVE_HEALTH] = valves
     return True
 
 
@@ -80,6 +84,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
     await holiday.async_start()
     preheat.blocked = lambda: CHANNEL_HEAT in holiday.away
     entry.runtime_data = HiveData(transport, preheat, holiday)
+    entry.runtime_data.health = ReceiverHealth(hass, entry)
+    entry.runtime_data.health.start()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if PANEL_URL not in hass.data.get(frontend.DATA_PANELS, {}):
@@ -106,7 +112,7 @@ async def _async_transport(hass: HomeAssistant, entry: HiveConfigEntry) -> Trans
             _device, clusters = find_receiver(hass, entry.data[CONF_DEVICE_ID])
         except LookupError as err:
             raise ConfigEntryNotReady(f"ZHA isn't ready: {err}") from err
-        return ZHATransport(hass, entry.entry_id, clusters)
+        return ZHATransport(hass, entry.entry_id, clusters, entry.data[CONF_DEVICE_ID])
 
     if not await mqtt.async_wait_for_mqtt_client(hass):
         raise ConfigEntryNotReady("MQTT is not connected")
@@ -122,6 +128,8 @@ async def _async_transport(hass: HomeAssistant, entry: HiveConfigEntry) -> Trans
 async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool:
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False
+    if entry.runtime_data.health:
+        entry.runtime_data.health.stop()
     await entry.runtime_data.preheat.async_stop()
     await entry.runtime_data.holiday.async_stop()
     await entry.runtime_data.transport.async_stop()
