@@ -284,6 +284,17 @@ const hass = {
         };
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
+      case "hive_local/rooms/schedule/get":
+        return {
+          schedule: SCHEDULES.heat,
+          complete: true,
+          differs: ["saturday"],
+          limits: { max_transitions: 6, heat_min: 5, heat_max: 32 },
+          valves: [
+            { entity_id: "climate.lounge_bay", name: "Lounge bay valve", transport: "zha", days: 7, complete: true, error: null, clock: { offset: -3600, ok: false, set: false }, schedule_mode: false },
+            { entity_id: "climate.lounge_door", name: "Lounge door valve", transport: "zha", days: 7, complete: true, error: null, clock: { offset: 12, ok: true, set: false }, schedule_mode: false },
+          ],
+        };
       default:
         return { ok: true };
     }

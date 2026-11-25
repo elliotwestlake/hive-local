@@ -57,6 +57,8 @@ WATER_OFF = 1.0
 
 # How long to collect getWeeklySchedule replies (one per day).
 READ_TIMEOUT = 4.0
+# The same for a Hive radiator valve, which sleeps between polls of its parent (#5).
+VALVE_READ_TIMEOUT = 15.0
 
 # How long the config flow waits for Z2M's retained bridge/devices list.
 DEVICES_TIMEOUT = 5.0
