@@ -58,7 +58,7 @@ class RoomManager:
 
     @callback
     def receivers(self) -> list[dict[str, str]]:
-        """Hive Local receivers (each one a heating zone), in setup order."""
+        """Snug receivers (each one a heating zone), in setup order."""
         return [
             {"entry_id": e.entry_id, "name": e.title}
             for e in self.hass.config_entries.async_entries(DOMAIN)

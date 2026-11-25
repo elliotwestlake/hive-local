@@ -1,23 +1,23 @@
 <h1>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/logo/logo-dark.png">
-    <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/logo/logo.png" alt="Hive Local" height="88">
+    <img src="https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/logo/logo.png" alt="Snug" height="88">
   </picture>
 </h1>
 
-Local control of Hive heating and hot water from Home Assistant, with no Hive cloud and no Hive hub. It adds a **Hive** sidebar panel and entities for boost and mode. Schedules are written to the receiver itself, so they keep running if HA is down.
+**Snug** gives you local control of Hive heating and hot water from Home Assistant, with no Hive cloud and no Hive hub. It adds a **Snug** sidebar panel and entities for boost and mode. Schedules are written to the receiver itself, so they keep running if HA is down.
 
-![The Hive panel on a desktop and a phone: heating following its schedule, and hot water on a boost.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/hero.png)
+![The Snug panel on a desktop and a phone: heating following its schedule, and hot water on a boost.](https://raw.githubusercontent.com/elliotwestlake/hive-local/main/docs/screenshots/hero.png)
 
 Works with Hive receivers (SLR1, SLR1b/c/d, OTR1, SLR2, SLR2b/c/d) paired to **Zigbee2MQTT** or **ZHA**.
 
-Hive Local is an independent community project. It isn't affiliated with, endorsed by or supported by Hive or Centrica. "Hive" is used only to describe the hardware it works with.
+Snug is an independent community project. It isn't affiliated with, endorsed by or supported by Hive or Centrica. "Hive" is used only to describe the hardware it works with.
 
 > ⚠️ Early and experimental. Z2M includes the standard Zigbee `setWeeklySchedule` / `getWeeklySchedule` commands for these receivers but hides them from its UI. Reading works on a real SLR1-style receiver. Writing is still being tested, so read before you write, and check the change shows on the thermostat.
 
 ## Features
 
-- **A Hive panel** in the sidebar: Overview, Devices, Stats and Settings, with a bottom tab bar on phones.
+- **A Snug panel** in the sidebar: Overview, Devices, Stats and Settings, with a bottom tab bar on phones.
 - **Schedules** read from and written to the receiver, a day at a time, so they keep running without HA.
 - **Boost, Schedule / Manual / Off** and a target − / +, like the thermostat.
 - **Rooms** of Hive radiator valves, with one target per room and battery warnings.
@@ -31,12 +31,12 @@ Hive Local is an independent community project. It isn't affiliated with, endors
 ## Install
 
 <!-- ha-marketplace:exclude-start -->
-[![Open your Home Assistant instance and show Hive Local in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=elliotwestlake&repository=hive-local&category=integration)
+[![Open your Home Assistant instance and show Snug in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=elliotwestlake&repository=hive-local&category=integration)
 <!-- ha-marketplace:exclude-end -->
 
-1. Add this repo to the **Marketplace** (formerly HACS) as a custom *Integration* repository, install **Hive Local** and restart Home Assistant. (Or copy `custom_components/hive_local` into `config/custom_components/`.)
-2. [![Add Hive Local.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hive_local) and choose **Zigbee2MQTT** or **ZHA**, then your receiver (not the wall thermostat).
-3. Open **Hive** in the sidebar, then **Read** your schedule before changing it.
+1. Add this repo to the **Marketplace** (formerly HACS) as a custom *Integration* repository, install **Snug for Hive** and restart Home Assistant. (Or copy `custom_components/hive_local` into `config/custom_components/`.)
+2. [![Add Snug.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=hive_local) and choose **Zigbee2MQTT** or **ZHA**, then your receiver (not the wall thermostat).
+3. Open **Snug** in the sidebar, then **Read** your schedule before changing it.
 
 Once it works, disable Zigbee2MQTT's or ZHA's own climate entities for the receiver. Full steps: [Installation](https://github.com/elliotwestlake/hive-local/wiki/Installation).
 
@@ -62,8 +62,8 @@ The [wiki](https://github.com/elliotwestlake/hive-local/wiki) covers everything 
 
 ## Acknowledgements
 
-- **[Hive Local Thermostat](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat)** by Andrew Jackson showed how to drive Hive receivers locally through Zigbee2MQTT. Hive Local's boost, cancel-boost and mode entities, its actions and its frost protection setting were designed to match it, so moving across feels familiar.
-- **[HomeDash's fork](https://github.com/homedashHA/HA-Hive-Local-Thermostat)** of Hive Local Thermostat. Its fix for receivers that lose track of a boost inspired Hive Local's own boost deadline.
-- **mikestir**, who tracked the ZHA "receiver goes red" problem down to the thermostat's reporting interval in [zha-device-handlers#2776](https://github.com/zigpy/zha-device-handlers/issues/2776). Hive Local applies that fix automatically.
-- The **[Drayton Wiser integration](https://github.com/asantaga/wiserHomeAssistantPlatform)**, whose sidebar panel inspired the Hive panel.
+- **[Hive Local Thermostat](https://github.com/andrew-codechimp/HA-Hive-Local-Thermostat)** by Andrew Jackson showed how to drive Hive receivers locally through Zigbee2MQTT. Snug's boost, cancel-boost and mode entities, its actions and its frost protection setting were designed to match it, so moving across feels familiar.
+- **[HomeDash's fork](https://github.com/homedashHA/HA-Hive-Local-Thermostat)** of Hive Local Thermostat. Its fix for receivers that lose track of a boost inspired Snug's own boost deadline.
+- **mikestir**, who tracked the ZHA "receiver goes red" problem down to the thermostat's reporting interval in [zha-device-handlers#2776](https://github.com/zigpy/zha-device-handlers/issues/2776). Snug applies that fix automatically.
+- The **[Drayton Wiser integration](https://github.com/asantaga/wiserHomeAssistantPlatform)**, whose sidebar panel inspired the Snug panel.
 - **[Zigbee2MQTT](https://www.zigbee2mqtt.io/)** and **[zigpy](https://github.com/zigpy/zigpy)**, whose device definitions document the Hive receivers' schedule and hold attributes.

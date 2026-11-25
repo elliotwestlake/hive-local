@@ -12,7 +12,7 @@ interface Props {
   current?: "home" | "docs";
 }
 const { title, description, current } = Astro.props;
-const full = title === "Hive Local" ? title : `${title} · Hive Local`;
+const full = title === "Snug" ? title : `${title} · Snug`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const image = new URL("/logo/social-preview.png", Astro.site);
 ---
@@ -49,13 +49,13 @@ const image = new URL("/logo/social-preview.png", Astro.site);
     <a class="skip" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="wrap">
-        <a class="logo" href="/" aria-label="Hive Local home">
+        <a class="logo" href="/" aria-label="Snug home">
           <img src="/logo/icon.svg" alt="" width="30" height="30" />
-          <span><b>Hive</b> Local</span>
+          <span><b>Snug</b></span>
         </a>
         <a class:list={["nav-link", { on: current === "docs" }]} href="/docs/">Docs</a>
         <Search />
-        <a class="nav-link" href={REPO} aria-label="Hive Local on GitHub"><Icon path={mdiGithub} /><span class="hide-sm">GitHub</span></a>
+        <a class="nav-link" href={REPO} aria-label="Snug on GitHub"><Icon path={mdiGithub} /><span class="hide-sm">GitHub</span></a>
         <button class="nav-link" type="button" data-theme-toggle aria-label="Switch between light and dark"><Icon path={mdiThemeLightDark} /></button>
       </div>
     </header>
@@ -70,7 +70,7 @@ const image = new URL("/logo/social-preview.png", Astro.site);
           <a href={`${REPO}/issues`}>Report a problem</a>
           <a href={`${REPO}/releases`}>Releases</a>
         </nav>
-        <p>Hive Local is an independent community project, free and open source. It isn't affiliated with, endorsed by or supported by Hive or Centrica. “Hive” is used only to describe the hardware it works with.</p>
+        <p>Snug is an independent community project, free and open source. It isn't affiliated with, endorsed by or supported by Hive or Centrica. “Hive” is used only to describe the hardware it works with.</p>
       </div>
     </footer>
     <script>

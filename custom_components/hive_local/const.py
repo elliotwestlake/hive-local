@@ -1,4 +1,4 @@
-"""Constants for Hive Local."""
+"""Constants for Snug."""
 
 from datetime import timedelta
 

@@ -7832,7 +7832,7 @@ function Re({ onClose: e }) {
 								className: "add-text",
 								children: [/* @__PURE__ */ (0, f.jsx)("b", { children: "Hive receiver" }), /* @__PURE__ */ (0, f.jsx)("span", {
 									className: "muted small",
-									children: "A boiler receiver (another heating zone). Opens Home Assistant's setup for Hive Local."
+									children: "A boiler receiver (another heating zone). Opens Home Assistant's setup for Snug."
 								})]
 							}),
 							/* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-right" })
@@ -9038,7 +9038,7 @@ function st({ getHass: e, narrow: t, onToggleMenu: n }) {
 				}),
 				/* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "brand",
-					children: [/* @__PURE__ */ (0, f.jsx)(h, {}), /* @__PURE__ */ (0, f.jsx)("h1", { children: "Hive Local" })]
+					children: [/* @__PURE__ */ (0, f.jsx)(h, {}), /* @__PURE__ */ (0, f.jsx)("h1", { children: "Snug" })]
 				}),
 				/* @__PURE__ */ (0, f.jsx)("nav", {
 					className: "tabs",
@@ -9059,7 +9059,7 @@ function st({ getHass: e, narrow: t, onToggleMenu: n }) {
 			}),
 			!r.length && !S && /* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "empty-state",
-				children: [/* @__PURE__ */ (0, f.jsx)(h, { size: 56 }), /* @__PURE__ */ (0, f.jsx)("p", { children: "No receivers yet. Add one under Settings → Devices & services → Add integration → Hive Local." })]
+				children: [/* @__PURE__ */ (0, f.jsx)(h, { size: 56 }), /* @__PURE__ */ (0, f.jsx)("p", { children: "No receivers yet. Add one under Settings → Devices & services → Add integration → Snug for Hive." })]
 			}),
 			E && a ? /* @__PURE__ */ (0, f.jsx)(ke, {
 				getHass: e,

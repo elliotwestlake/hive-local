@@ -1,7 +1,7 @@
 ---
 title: Pre-heat
 description: Start the heating early, so the house is warm by the time the schedule says.
-section: Using Hive Local
+section: Using Snug
 order: 5
 ---
 

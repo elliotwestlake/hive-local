@@ -1,11 +1,11 @@
 ---
-title: The Hive panel
+title: The Snug panel
 description: The Overview, Devices, Stats and Settings tabs, and each channel's own page.
-section: Using Hive Local
+section: Using Snug
 order: 1
 ---
 
-Hive Local adds **Hive** to Home Assistant's sidebar. Its tabs are **Overview**, **Devices**, **Stats** and **Settings**. On a phone they move to a tab bar along the bottom.
+Snug adds a **Snug** panel to Home Assistant's sidebar. Its tabs are **Overview**, **Devices**, **Stats** and **Settings**. On a phone they move to a tab bar along the bottom.
 
 The panel follows your Home Assistant theme, light or dark.
 

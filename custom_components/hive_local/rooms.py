@@ -67,7 +67,7 @@ def clean_room(
     if receiver is None:
         raise RoomError("Choose which receiver heats this room")
     if receiver not in receivers:
-        raise RoomError("That receiver isn't set up in Hive Local")
+        raise RoomError("That receiver isn't set up in Snug")
     return {"name": name, "valves": valves, "sensor": sensor, "receiver": receiver}
 
 

@@ -1,8 +1,8 @@
-"""Generate the Hive Local logo SVGs (icon, logo, logo-dark).
+"""Generate the Snug logo SVGs (icon, logo, logo-dark).
 
 The mark is a house with a flame inside (local heating). The wordmark is Figtree
-(SIL Open Font License), "Hive" bold and "Local" regular, converted to outlines so
-the SVGs don't depend on fonts:
+(SIL Open Font License), "Snug" in bold, converted to outlines so the SVGs don't
+depend on fonts (Snug was called Hive Local until 2026-11; the mark is unchanged):
 
     pip install fonttools
     curl -L -o Figtree.ttf "https://github.com/google/fonts/raw/main/ofl/figtree/Figtree%5Bwght%5D.ttf"
@@ -76,11 +76,11 @@ def text_path(runs: list[tuple[str, int]], size: float, tracking: float) -> tupl
 
 
 def logo(text_colour: str, prefix: str) -> str:
-    """Icon + wordmark, 1514 x 512."""
-    d, width = text_path([("Hive", 700), (" Local", 400)], 200, -4)
+    """Icon + wordmark, 512 high."""
+    d, width = text_path([("Snug", 700)], 200, -4)
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {int(560 + width + 24)} 512">'
-        f"<title>Hive Local</title>"
+        f"<title>Snug</title>"
         f'<g transform="translate(16 16) scale(0.9375)">{mark(prefix)}</g>'
         f'<path d="{d}" fill="{text_colour}" transform="translate(560 330)"/>'
         f"</svg>\n"
@@ -89,7 +89,7 @@ def logo(text_colour: str, prefix: str) -> str:
 
 def main() -> None:
     (HERE / "icon.svg").write_text(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>Hive Local</title>{mark()}</svg>\n'
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>Snug</title>{mark()}</svg>\n'
     )
     (HERE / "logo.svg").write_text(logo(INK, "hll"))
     (HERE / "logo-dark.svg").write_text(logo(PAPER, "hld"))

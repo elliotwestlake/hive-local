@@ -2,7 +2,7 @@ import { getCollection, type CollectionEntry } from "astro:content";
 
 export type Doc = CollectionEntry<"docs">;
 
-export const SECTIONS = ["Start here", "Using Hive Local", "Reference", "Help"] as const;
+export const SECTIONS = ["Start here", "Using Snug", "Reference", "Help"] as const;
 
 export const REPO = "https://github.com/elliotwestlake/hive-local";
 export const MARKETPLACE =

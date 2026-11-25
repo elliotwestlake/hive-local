@@ -1,19 +1,19 @@
 ---
 title: Rooms
 description: Group Hive radiator valves into rooms with one target, a room temperature and battery warnings.
-section: Using Hive Local
+section: Using Snug
 order: 3
 ---
 
 A room is a set of **Hive radiator valves**, an optional temperature sensor, and the receiver whose zone heats it. Rooms appear as cards on the Overview.
 
-Rooms work with Hive radiator valves (UK7004240) on either Zigbee2MQTT or ZHA. Hive Local uses the valves' own Home Assistant climate entities, so pair them as you would any Zigbee device first.
+Rooms work with Hive radiator valves (UK7004240) on either Zigbee2MQTT or ZHA. Snug uses the valves' own Home Assistant climate entities, so pair them as you would any Zigbee device first.
 
 ## Setting up rooms
 
 Go to **Settings → Rooms**.
 
-- **Set up rooms from your areas:** Hive Local suggests a room for each Home Assistant area that has Hive valves not yet in a room, with the area's temperature sensor if it has one. Tick the ones you want. With several receivers, choose which one heats each room.
+- **Set up rooms from your areas:** Snug suggests a room for each Home Assistant area that has Hive valves not yet in a room, with the area's temperature sensor if it has one. Tick the ones you want. With several receivers, choose which one heats each room.
 - **Add a room:** name it, tick its valves, and optionally pick a sensor.
 
 In the valve list, **Find** makes a valve flash its light, to tell which is which (if Home Assistant has an Identify button for it). Valves are listed with the ones in the matching area first, then valves in no room, then valves already in another room. With more than eight, there's a search box.

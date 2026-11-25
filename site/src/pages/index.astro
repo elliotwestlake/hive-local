@@ -34,14 +34,14 @@ const features = [
   {
     icon: mdiRadiator, kicker: "Rooms",
     title: "Rooms of Hive radiator valves",
-    text: "Group your Hive radiator valves into rooms, set one target for the room, and see each valve's temperature and battery. Hive Local can suggest rooms from your Home Assistant areas.",
+    text: "Group your Hive radiator valves into rooms, set one target for the room, and see each valve's temperature and battery. Snug can suggest rooms from your Home Assistant areas.",
     points: ["One target for every valve in a room", "A room sensor, or the valves' own readings", "Low batteries and unresponsive valves flagged"],
     image: rooms, alt: "A room with its temperature, target and radiator valves.", href: "/docs/rooms/",
   },
   {
     icon: mdiChartBar, kicker: "Stats",
     title: "See how long the boiler ran, and what it cost",
-    text: "Day, week and month views of boiler time, against the period before and the weather. Link your gas meter and Hive Local learns what your boiler really uses, for an honest cost estimate.",
+    text: "Day, week and month views of boiler time, against the period before and the weather. Link your gas meter and Snug learns what your boiler really uses, for an honest cost estimate.",
     points: ["Learns your boiler's real output from the gas meter", "Uses your Energy dashboard's gas price, or your own", "Outside temperature from any weather entity"],
     image: statsCost, alt: "A week of boiler time with its estimated cost.", href: "/docs/stats/",
   },
@@ -55,9 +55,9 @@ const more = [
 ];
 
 const steps = [
-  { title: "Install", text: "Add Hive Local from the Marketplace (formerly HACS) and restart Home Assistant." },
+  { title: "Install", text: "Add Snug from the Marketplace (formerly HACS) and restart Home Assistant." },
   { title: "Add your receiver", text: "Choose Zigbee2MQTT or ZHA, then pick the receiver, not the wall thermostat." },
-  { title: "Open Hive", text: "Find Hive in the sidebar, and read your schedule from the receiver." },
+  { title: "Open Snug", text: "Find Snug in the sidebar, and read your schedule from the receiver." },
 ];
 
 const hardware = ["SLR1 / SLR1b–d", "OTR1", "SLR2 / SLR2b–d", "Hive radiator valves", "Hive thermostats"];
@@ -65,7 +65,7 @@ const hardware = ["SLR1 / SLR1b–d", "OTR1", "SLR2 / SLR2b–d", "Hive radiator
 const faqs = [
   {
     q: "Do I still need the Hive hub or app?",
-    a: "No. The receiver is paired to your own Zigbee network (Zigbee2MQTT or ZHA) instead of the Hive hub, and Hive Local controls it from there. The Hive app can't see a receiver that isn't on the Hive hub.",
+    a: "No. The receiver is paired to your own Zigbee network (Zigbee2MQTT or ZHA) instead of the Hive hub, and Snug controls it from there. The Hive app can't see a receiver that isn't on the Hive hub.",
   },
   {
     q: "What happens if Home Assistant goes down?",
@@ -73,22 +73,22 @@ const faqs = [
   },
   {
     q: "How is this different from Hive Local Thermostat?",
-    a: "Both control Hive receivers locally. Hive Local's boost, cancel and mode entities and actions were designed to match Hive Local Thermostat's, so moving across feels familiar, and it adds the Hive panel, schedules, rooms, stats, pre-heat and holiday mode.",
+    a: "Both control Hive receivers locally. Snug's boost, cancel and mode entities and actions were designed to match Hive Local Thermostat's, so moving across feels familiar, and it adds the Snug panel, schedules, rooms, stats, pre-heat and holiday mode.",
   },
 ];
 ---
-<Base title="Hive Local" description="Local control of Hive heating and hot water from Home Assistant, with no Hive cloud and no Hive hub. Schedules, boost, rooms, stats and holiday mode.">
+<Base title="Snug" description="Local control of Hive heating and hot water from Home Assistant, with no Hive cloud and no Hive hub. Schedules, boost, rooms, stats and holiday mode.">
   <main>
     <section class="hero wrap">
       <span class="pill rise" style="--d: 0ms"><Icon path={mdiZigbee} /> For Home Assistant, on Zigbee2MQTT or ZHA</span>
       <h1 class="rise" style="--d: 80ms">Your Hive heating, without the cloud.</h1>
-      <p class="lede rise" style="--d: 180ms">Hive Local runs your Hive receiver straight from Home Assistant over Zigbee. Change the schedule, boost the heating and see what the boiler's doing, with no hub, no account and nothing in the cloud.</p>
+      <p class="lede rise" style="--d: 180ms">Snug runs your Hive receiver straight from Home Assistant over Zigbee. Change the schedule, boost the heating and see what the boiler's doing, with no hub, no account and nothing in the cloud.</p>
       <div class="cta rise" style="--d: 260ms">
         <a class="btn primary" href={MARKETPLACE}>Add to Home Assistant <Icon path={mdiArrowRight} /></a>
         <a class="btn" href="/docs/">Read the docs</a>
       </div>
       <div class="hero-shot rise-shot" style="--d: 380ms">
-        <Image src={hero} alt="The Hive panel on a desktop and a phone: heating following its schedule, and hot water on a boost." widths={[700, 1400, 2100, 2800]} sizes="(max-width: 1120px) 100vw, 1088px" loading="eager" />
+        <Image src={hero} alt="The Snug panel on a desktop and a phone: heating following its schedule, and hot water on a boost." widths={[700, 1400, 2100, 2800]} sizes="(max-width: 1120px) 100vw, 1088px" loading="eager" />
       </div>
     </section>
 

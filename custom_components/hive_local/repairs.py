@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 
 
 class ReloadFlow(RepairsFlow):
-    """Reload Hive Local's entry for a receiver, to pick up ZHA's device again."""
+    """Reload Snug's entry for a receiver, to pick up ZHA's device again."""
 
     def __init__(self, entry_id: str) -> None:
         self.entry_id = entry_id

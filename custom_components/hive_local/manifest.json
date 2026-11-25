@@ -1,6 +1,6 @@
 {
   "domain": "hive_local",
-  "name": "Hive Local",
+  "name": "Snug for Hive",
   "after_dependencies": [
     "energy",
     "mqtt",

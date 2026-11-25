@@ -8,7 +8,7 @@ const docs = defineCollection({
     title: z.string(),
     description: z.string(),
     // Sidebar group and position within it (see src/lib/nav.ts).
-    section: z.enum(["Start here", "Using Hive Local", "Reference", "Help"]),
+    section: z.enum(["Start here", "Using Snug", "Reference", "Help"]),
     order: z.number(),
   }),
 });

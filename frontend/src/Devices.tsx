@@ -160,7 +160,7 @@ function AddDeviceSheet({ onClose }: { onClose: () => void }) {
             <span className="device-icon"><Icon name="radiator" /></span>
             <span className="add-text">
               <b>Hive receiver</b>
-              <span className="muted small">A boiler receiver (another heating zone). Opens Home Assistant's setup for Hive Local.</span>
+              <span className="muted small">A boiler receiver (another heating zone). Opens Home Assistant's setup for Snug.</span>
             </span>
             <Icon name="chevron-right" />
           </button>

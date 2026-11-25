@@ -53,9 +53,9 @@ def _entries(hass: HomeAssistant, call: ServiceCall) -> list[HiveConfigEntry]:
         entry_ids = {i[1] for i in device.identifiers if i[0] == DOMAIN} if device else set()
         entries = [e for e in entries if e.entry_id in entry_ids]
         if not entries:
-            raise ServiceValidationError(f"{device_id} is not a Hive Local receiver")
+            raise ServiceValidationError(f"{device_id} is not a Snug receiver")
     if not entries:
-        raise ServiceValidationError("No Hive Local receivers are loaded")
+        raise ServiceValidationError("No Snug receivers are loaded")
     return entries
 
 

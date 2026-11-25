@@ -1,6 +1,6 @@
 ---
 title: Entities and actions
-description: Every entity Hive Local creates, and the actions you can use in automations.
+description: Every entity Snug creates, and the actions you can use in automations.
 section: Reference
 order: 1
 ---

@@ -1,11 +1,11 @@
 ---
 title: Schedules
 description: Read the weekly schedule from the receiver, edit a day, and write back only what changed.
-section: Using Hive Local
+section: Using Snug
 order: 2
 ---
 
-The weekly schedule lives **on the receiver**, so it keeps running if Home Assistant or your network goes down. Hive Local reads it from the receiver and writes changes back. Heating and hot water each have their own schedule.
+The weekly schedule lives **on the receiver**, so it keeps running if Home Assistant or your network goes down. Snug reads it from the receiver and writes changes back. Heating and hot water each have their own schedule.
 
 Open it from the heating or hot water card: **Schedule** tab.
 
@@ -31,7 +31,7 @@ On hot water, each time is on or off.
 
 While anything's unsaved, a bar along the bottom says **Unsaved changes**, with **Undo** and **Save**. Save writes to the receiver.
 
-Hive Local only writes **the days you changed**, one day at a time. Each day is padded to the receiver's six slots (by repeating the last change, as the receiver does itself), because a shorter write leaves old entries behind.
+Snug only writes **the days you changed**, one day at a time. Each day is padded to the receiver's six slots (by repeating the last change, as the receiver does itself), because a shorter write leaves old entries behind.
 
 Edits survive switching tabs, so you can check something on Control and come back.
 
@@ -43,4 +43,4 @@ The schedule only runs when the channel is on **Schedule**. The top of the Sched
 
 ## Frost protection
 
-During a scheduled "off" stretch the receiver reports 1 °C, not the frost protection temperature it really uses, and doesn't say what that is. So Hive Local shows your **Frost protection** setting instead (12 °C unless you change it in Settings). Set it to match your thermostat. It's only for display and is never sent to the receiver.
+During a scheduled "off" stretch the receiver reports 1 °C, not the frost protection temperature it really uses, and doesn't say what that is. So Snug shows your **Frost protection** setting instead (12 °C unless you change it in Settings). Set it to match your thermostat. It's only for display and is never sent to the receiver.

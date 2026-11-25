@@ -1,4 +1,4 @@
-"""Config flow for Hive Local."""
+"""Config flow for Snug."""
 
 from __future__ import annotations
 

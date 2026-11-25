@@ -77,7 +77,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
           )}
           <div className="brand">
             <Logo />
-            <h1>Hive Local</h1>
+            <h1>Snug</h1>
           </div>
           <nav className="tabs" role="tablist">
             {tabs.map((t) => (
@@ -95,7 +95,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
         {!devices.length && !error && (
           <div className="empty-state">
             <Logo size={56} />
-            <p>No receivers yet. Add one under Settings → Devices & services → Add integration → Hive Local.</p>
+            <p>No receivers yet. Add one under Settings → Devices & services → Add integration → Snug for Hive.</p>
           </div>
         )}
 

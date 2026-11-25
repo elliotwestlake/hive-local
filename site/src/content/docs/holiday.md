@@ -1,7 +1,7 @@
 ---
 title: Holiday
 description: Hold frost protection and turn off the hot water until you're back, then put everything back as it was.
-section: Using Hive Local
+section: Using Snug
 order: 6
 ---
 

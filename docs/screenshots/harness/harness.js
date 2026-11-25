@@ -1,4 +1,4 @@
-// Mounts the real Hive Local panel bundle with a fake `hass` and sample data,
+// Mounts the real Snug panel bundle with a fake `hass` and sample data,
 // then switches to the tab named in ?tab= so headless Chrome can screenshot it.
 const params = new URLSearchParams(location.search);
 if (params.get("theme") === "dark") document.documentElement.classList.add("dark");
