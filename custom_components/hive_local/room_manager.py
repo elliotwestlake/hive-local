@@ -34,8 +34,9 @@ ROOM_SCHEDULE = "schedule"
 ROOM_MANUAL = "manual"
 ROOM_OFF = "off"
 ROOM_MODES = (ROOM_SCHEDULE, ROOM_MANUAL, ROOM_OFF)
-# A Hive valve can't switch off: "off" is its lowest setpoint.
-ROOM_OFF_TEMPERATURE = 5.0
+# A Hive valve can't switch off: "off" holds the room at frost protection, the same number the
+# heating shows in its schedule's off periods (Settings → Frost protection, default 12 °C).
+ROOM_OFF_TEMPERATURE = 12.0
 
 
 class RoomManager:
@@ -198,6 +199,7 @@ class RoomManager:
                         [v["external_sensor"] for v in valves if "external_sensor" in v]
                     ),
                     "boost": boosts.as_dict(room["id"]) if boosts else None,
+                    "frost": self.frost(room["id"]),
                 }
                 | summarise(valves, sensor.state if sensor else None)
             )
@@ -248,6 +250,16 @@ class RoomManager:
 
     # --- the room's mode (its climate entity: auto / heat / off) ---------------------
 
+    def frost(self, room_id: str) -> float:
+        """The frost protection temperature of the receiver that heats the room: what "off" means
+        for its valves, which can't switch off."""
+        room = self._room(room_id)
+        entries = self.hass.config_entries.async_loaded_entries(DOMAIN)
+        entry = next((e for e in entries if e.entry_id == room.get("receiver")), entries[0] if entries else None)
+        if entry is None:
+            return ROOM_OFF_TEMPERATURE
+        return float(entry.runtime_data.boost_defaults("heat").frost)
+
     def mode(self, room_id: str) -> str:
         """"schedule" (the valves follow their own schedule), "manual" (they hold the target) or "off"."""
         return self._room(room_id).get("mode", ROOM_MANUAL)
@@ -271,7 +283,7 @@ class RoomManager:
             failed |= set((await valve_schedule.async_set_room_schedule_mode(self.hass, self, room_id, False))["failed"])
         if mode == ROOM_OFF:
             room["off_targets"] = {v: self._target(v) for v in room["valves"]}
-            failed |= set(await self.async_set_target(room_id, ROOM_OFF_TEMPERATURE))
+            failed |= set(await self.async_set_target(room_id, self.frost(room_id)))
         elif before == ROOM_OFF:
             for entity_id, target in (room.pop("off_targets", None) or {}).items():
                 if target is not None and entity_id in room["valves"]:

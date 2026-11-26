@@ -34,6 +34,8 @@ export interface Limits {
   boost_max_minutes: number;
   water_on: number;
   water_off: number;
+  /** Valves only: what "Off" writes (they can't switch off): the heating's frost protection. */
+  frost?: number;
 }
 
 export type Mode = "schedule" | "manual" | "off" | "boost";
@@ -174,6 +176,8 @@ export interface Room {
   boost?: { until: string; temperature: number; remaining: number } | null;
   /** Like the room's climate entity: schedule (the valves' own), manual (hold the target) or off (5 °C). */
   mode?: RoomMode;
+  /** What Off holds the valves at: the room's receiver's frost protection. */
+  frost?: number;
 }
 
 export interface Candidate {

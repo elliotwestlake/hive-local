@@ -92,7 +92,7 @@ async def test_room_climate_entity(hass, mqtt_mock, freezer, hass_ws_client):
     await hass.services.async_call("climate", "set_hvac_mode", {"entity_id": "climate.bedroom", "hvac_mode": "off"}, blocking=True)
     state = hass.states.get("climate.bedroom")
     assert state.state == "off" and state.attributes["temperature"] is None and state.attributes["hvac_action"] == "off"
-    assert targets(calls) == [(BED, 5.0), (BED2, 5.0)]
+    assert targets(calls) == [(BED, 12.0), (BED2, 12.0)]
     calls.clear()
     await hass.services.async_call("climate", "turn_on", {"entity_id": "climate.bedroom"}, blocking=True)
     assert hass.states.get("climate.bedroom").state == "heat"
@@ -139,14 +139,23 @@ async def test_room_climate_entity(hass, mqtt_mock, freezer, hass_ws_client):
     assert msg["success"] and msg["result"]["failed"] == [], msg
     await hass.async_block_till_done()
     assert hass.states.get("climate.bedroom").state == "off"
-    assert targets(calls) == [(BED, 5.0), (BED2, 5.0)]
+    assert targets(calls) == [(BED, 12.0), (BED2, 12.0)]
     await client.send_json({"id": 2, "type": "hive_local/rooms/mode", "room_id": room["id"], "mode": "manual"})
     assert (await client.receive_json())["success"]
     await hass.async_block_till_done()
     assert hass.states.get("climate.bedroom").state == "heat"
     assert rooms.status()["rooms"][0]["mode"] == "manual"
+    # Off is the heating's frost protection: change it in Settings and Off follows.
+    entry.runtime_data.boost_defaults("heat").frost = 10.0
+    calls.clear()
+    await client.send_json({"id": 4, "type": "hive_local/rooms/mode", "room_id": room["id"], "mode": "off"})
+    assert (await client.receive_json())["success"]
+    assert targets(calls) == [(BED, 10.0), (BED2, 10.0)]
+    assert rooms.status()["rooms"][0]["frost"] == 10.0
+    await client.send_json({"id": 5, "type": "hive_local/rooms/mode", "room_id": room["id"], "mode": "manual"})
+    assert (await client.receive_json())["success"]
     # A room's history needs the recorder (not loaded here), and says so.
-    await client.send_json({"id": 3, "type": "hive_local/rooms/stats", "room_id": room["id"]})
+    await client.send_json({"id": 6, "type": "hive_local/rooms/stats", "room_id": room["id"]})
     msg = await client.receive_json()
     assert not msg["success"] and msg["error"]["code"] == "no_recorder"
     await client.close()

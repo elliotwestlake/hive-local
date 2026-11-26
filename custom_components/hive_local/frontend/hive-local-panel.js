@@ -752,17 +752,17 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			};
 		}
 	}
-	function I(e) {
+	function me(e) {
 		e._valueTracker ||= pe(e);
 	}
-	function me(e) {
+	function he(e) {
 		if (!e) return !1;
 		var t = e._valueTracker;
 		if (!t) return !0;
 		var n = t.getValue(), r = "";
 		return e && (r = fe(e) ? e.checked ? "true" : "false" : e.value), e = r, e !== n && (t.setValue(e), !0);
 	}
-	function he(e) {
+	function I(e) {
 		if (e ||= typeof document < "u" ? document : void 0, e === void 0) return null;
 		try {
 			return e.activeElement || e.body;
@@ -809,7 +809,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		n = e.name, n !== "" && (e.name = ""), e.defaultChecked = !!e._wrapperState.initialChecked, n !== "" && (e.name = n);
 	}
 	function xe(e, t, n) {
-		(t !== "number" || he(e.ownerDocument) !== e) && (n == null ? e.defaultValue = "" + e._wrapperState.initialValue : e.defaultValue !== "" + n && (e.defaultValue = "" + n));
+		(t !== "number" || I(e.ownerDocument) !== e) && (n == null ? e.defaultValue = "" + e._wrapperState.initialValue : e.defaultValue !== "" + n && (e.defaultValue = "" + n));
 	}
 	var Se = Array.isArray;
 	function Ce(e, t, n, r) {
@@ -1825,7 +1825,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		li(e, 0);
 	}
 	function yr(e) {
-		if (me(Wi(e))) return e;
+		if (he(Wi(e))) return e;
 	}
 	function br(e, t) {
 		if (e === "change") return t;
@@ -1911,7 +1911,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		return e && t ? e === t ? !0 : e && e.nodeType === 3 ? !1 : t && t.nodeType === 3 ? Ir(e, t.parentNode) : "contains" in e ? e.contains(t) : e.compareDocumentPosition ? !!(e.compareDocumentPosition(t) & 16) : !1 : !1;
 	}
 	function Lr() {
-		for (var e = window, t = he(); t instanceof e.HTMLIFrameElement;) {
+		for (var e = window, t = I(); t instanceof e.HTMLIFrameElement;) {
 			try {
 				var n = typeof t.contentWindow.location.href == "string";
 			} catch {
@@ -1919,7 +1919,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			}
 			if (n) e = t.contentWindow;
 			else break;
-			t = he(e.document);
+			t = I(e.document);
 		}
 		return t;
 	}
@@ -1951,7 +1951,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 	var Br = u && "documentMode" in document && 11 >= document.documentMode, Vr = null, Hr = null, Ur = null, Wr = !1;
 	function Gr(e, t, n) {
 		var r = n.window === n ? n.document : n.nodeType === 9 ? n : n.ownerDocument;
-		Wr || Vr == null || Vr !== he(r) || (r = Vr, "selectionStart" in r && Rr(r) ? r = {
+		Wr || Vr == null || Vr !== I(r) || (r = Vr, "selectionStart" in r && Rr(r) ? r = {
 			start: r.selectionStart,
 			end: r.selectionEnd
 		} : (r = (r.ownerDocument && r.ownerDocument.defaultView || window).getSelection(), r = {
@@ -4018,10 +4018,10 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 						}
 						switch (n) {
 							case "input":
-								I(r), be(r, o, !0);
+								me(r), be(r, o, !0);
 								break;
 							case "textarea":
-								I(r), De(r);
+								me(r), De(r);
 								break;
 							case "select":
 							case "option": break;
@@ -4076,10 +4076,10 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 							}
 							switch (n) {
 								case "input":
-									I(e), be(e, r, !1);
+									me(e), be(e, r, !1);
 									break;
 								case "textarea":
-									I(e), De(e);
+									me(e), De(e);
 									break;
 								case "option":
 									r.value != null && e.setAttribute("value", "" + de(r.value));
@@ -5786,7 +5786,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 						if (r !== e && r.form === e.form) {
 							var i = Gi(r);
 							if (!i) throw Error(a(90));
-							me(r), ye(r, i);
+							he(r), ye(r, i);
 						}
 					}
 				}
@@ -6498,8 +6498,8 @@ function te({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 		name: "home-thermometer-outline",
 		className: "status-icon"
 	})] }));
-	let I = r?.holiday ?? null, me = I ? `Away until ${T(I.until)}` : null;
-	l && I && !le && !g && (pe = c ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Off while away ", /* @__PURE__ */ (0, f.jsx)(p, {
+	let me = r?.holiday ?? null, he = me ? `Away until ${T(me.until)}` : null;
+	l && me && !le && !g && (pe = c ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Off while away ", /* @__PURE__ */ (0, f.jsx)(p, {
 		name: "bag-suitcase",
 		className: "status-icon away"
 	})] }) : /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
@@ -6511,7 +6511,7 @@ function te({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 			className: "status-icon away"
 		})
 	] }));
-	let he = l ? me && !le ? me : de ? `Pre-heating for ${r?.preheat?.active_for}` : fe ? `Heating for ${fe}` : l.mode === "boost" ? l.boost_remaining == null ? "Boost" : `Boost · ${D(l.boost_remaining)} left` : l.mode === "schedule" ? "On schedule" : S.find((e) => e.id === l.mode)?.label : "", ge = s;
+	let I = l ? he && !le ? he : de ? `Pre-heating for ${r?.preheat?.active_for}` : fe ? `Heating for ${fe}` : l.mode === "boost" ? l.boost_remaining == null ? "Boost" : `Boost · ${D(l.boost_remaining)} left` : l.mode === "schedule" ? "On schedule" : S.find((e) => e.id === l.mode)?.label : "", ge = s;
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: `card device ${n} ${v} ${s ? "page" : ""}`,
 		children: [
@@ -6534,7 +6534,7 @@ function te({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 							className: "device-name",
 							children: [/* @__PURE__ */ (0, f.jsx)("span", { children: _[n] }), /* @__PURE__ */ (0, f.jsx)("span", {
 								className: "muted small",
-								children: i ? `${t.name} · ${he}` : he
+								children: i ? `${t.name} · ${I}` : I
 							})]
 						}),
 						/* @__PURE__ */ (0, f.jsx)("span", {
@@ -6577,7 +6577,7 @@ function te({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 								children: ce || "Target"
 							}), /* @__PURE__ */ (0, f.jsx)("span", {
 								className: "muted small",
-								children: l ? se && I ? `While you're away, until ${T(I.until)}` : l.mode === "off" ? "Turn the heating on to set a target" : l.mode === "schedule" ? "Until the next scheduled change" : l.mode === "boost" ? "Keeps the boost time left" : "Held until you change it" : ""
+								children: l ? se && me ? `While you're away, until ${T(me.until)}` : l.mode === "off" ? "Turn the heating on to set a target" : l.mode === "schedule" ? "Until the next scheduled change" : l.mode === "boost" ? "Keeps the boost time left" : "Held until you change it" : ""
 							})]
 						}), /* @__PURE__ */ (0, f.jsxs)("div", {
 							className: "target-control",
@@ -6603,16 +6603,16 @@ function te({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 							]
 						})]
 					}),
-					I && /* @__PURE__ */ (0, f.jsxs)("div", {
+					me && /* @__PURE__ */ (0, f.jsxs)("div", {
 						className: "holiday-row",
 						children: [
 							/* @__PURE__ */ (0, f.jsx)(p, { name: "bag-suitcase" }),
 							/* @__PURE__ */ (0, f.jsxs)("span", {
 								className: "holiday-text",
 								children: [
-									me,
+									he,
 									", then back to ",
-									I.restore_mode === "schedule" ? "the schedule" : S.find((e) => e.id === I.restore_mode)?.label.toLowerCase()
+									me.restore_mode === "schedule" ? "the schedule" : S.find((e) => e.id === me.restore_mode)?.label.toLowerCase()
 								]
 							}),
 							/* @__PURE__ */ (0, f.jsx)("button", {
@@ -6941,13 +6941,13 @@ function ce({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 			lo: Math.min(15, ...e),
 			hi: Math.max(24, ...e)
 		};
-	}, [c, r.heat_min]), P = g[((/* @__PURE__ */ new Date()).getDay() + 6) % 7], [te, ne] = (0, u.useState)(null), [re, F] = (0, u.useState)(!1), ce = g.filter((e) => JSON.stringify(c[e]) !== JSON.stringify(d[e])), fe = g[(g.indexOf(h) + 1) % 7], pe = (c[fe] ?? [])[0]?.time, I = (e) => w ? e.setpoint < r.water_on : e.setpoint <= r.heat_min, me = "Stored on the receiver, so it keeps running without Home Assistant.";
-	return s?.statusLine ? me = s.statusLine : i === "schedule" ? me = "Your schedule is running." : i === "manual" ? me = `Your schedule isn't being used: ${w ? "hot water is always on" : "heating is on Manual"}.` : i === "off" ? me = `Your schedule isn't being used: ${w ? "hot water" : "heating"} is off.` : i === "boost" && a ? me = `Your schedule is running, starting early so it's warm by ${a}.` : i === "boost" && o ? me = `Your schedule is running, with extra heat for ${o}.` : i === "boost" && (me = "Boosting now. Your schedule carries on after the boost."), /* @__PURE__ */ (0, f.jsxs)("div", {
+	}, [c, r.heat_min]), P = g[((/* @__PURE__ */ new Date()).getDay() + 6) % 7], [te, ne] = (0, u.useState)(null), [re, F] = (0, u.useState)(!1), ce = g.filter((e) => JSON.stringify(c[e]) !== JSON.stringify(d[e])), pe = g[(g.indexOf(h) + 1) % 7], me = (c[pe] ?? [])[0]?.time, he = (e) => w ? e.setpoint < r.water_on : fe(e.setpoint, r), I = "Stored on the receiver, so it keeps running without Home Assistant.";
+	return s?.statusLine ? I = s.statusLine : i === "schedule" ? I = "Your schedule is running." : i === "manual" ? I = `Your schedule isn't being used: ${w ? "hot water is always on" : "heating is on Manual"}.` : i === "off" ? I = `Your schedule isn't being used: ${w ? "hot water" : "heating"} is off.` : i === "boost" && a ? I = `Your schedule is running, starting early so it's warm by ${a}.` : i === "boost" && o ? I = `Your schedule is running, with extra heat for ${o}.` : i === "boost" && (I = "Boosting now. Your schedule carries on after the boost."), /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: `sched ${s?.embedded ? "embedded" : ""}`,
 		children: [
 			/* @__PURE__ */ (0, f.jsx)("p", {
 				className: "sched-status muted",
-				children: me
+				children: I
 			}),
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "sched-days",
@@ -6983,7 +6983,7 @@ function ce({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 						]
 					}),
 					k.map((e, t) => {
-						let n = k[t + 1]?.time ?? (pe ? `${pe} (${oe(fe)})` : "00:00"), i = I(e);
+						let n = k[t + 1]?.time ?? (me ? `${me} (${oe(pe)})` : "00:00"), i = he(e);
 						return /* @__PURE__ */ (0, f.jsxs)("button", {
 							className: "slot",
 							onClick: () => ne(t),
@@ -7152,7 +7152,7 @@ function de({ slot: e, dayName: t, isWater: n, limits: r, canDelete: i, onChange
 		let e = (e) => e.key === "Escape" && s();
 		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
 	}, [s]);
-	let c = n ? e.setpoint < r.water_on : e.setpoint <= r.heat_min, l = (e) => Math.min(r.heat_max, Math.max(5, Math.round(e * 2) / 2)), d = c ? 20 : e.setpoint;
+	let c = n ? e.setpoint < r.water_on : fe(e.setpoint, r), l = (e) => Math.min(r.heat_max, Math.max(5, Math.round(e * 2) / 2)), d = c ? 20 : e.setpoint;
 	return /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: s,
@@ -7204,7 +7204,7 @@ function de({ slot: e, dayName: t, isWater: n, limits: r, canDelete: i, onChange
 							className: c ? "on" : "",
 							onClick: () => a({
 								...e,
-								setpoint: n ? r.water_off : r.heat_min
+								setpoint: n ? r.water_off : r.frost ?? r.heat_min
 							}),
 							children: "Off"
 						})]
@@ -7245,7 +7245,7 @@ function de({ slot: e, dayName: t, isWater: n, limits: r, canDelete: i, onChange
 				}),
 				!n && c && /* @__PURE__ */ (0, f.jsx)("p", {
 					className: "muted small sheet-note",
-					children: r.heat_min > 1 ? `Off sets the valves to ${r.heat_min}°, their lowest.` : "Off means the thermostat only keeps the house above its frost protection temperature."
+					children: r.frost == null ? "Off means the thermostat only keeps the house above its frost protection temperature." : `Off holds the room at frost protection, ${r.frost}° (a Hive valve can't switch off). Change it in Settings → Frost protection.`
 				}),
 				/* @__PURE__ */ (0, f.jsx)("button", {
 					className: "sheet-go",
@@ -7261,8 +7261,11 @@ function de({ slot: e, dayName: t, isWater: n, limits: r, canDelete: i, onChange
 		})
 	});
 }
+function fe(e, t) {
+	return e <= t.heat_min || t.frost != null && e === t.frost;
+}
 // src/Stats.tsx
-var fe = [
+var pe = [
 	{
 		id: 1,
 		label: "D",
@@ -7278,10 +7281,10 @@ var fe = [
 		label: "M",
 		name: "Month"
 	}
-], pe = 3e5, I = (e) => {
+], me = 3e5, he = (e) => {
 	let t = Math.round(e);
 	return t < 60 ? `${t}m` : t % 60 ? `${Math.floor(t / 60)}h ${t % 60}m` : `${t / 60}h`;
-}, me = (e, t, n = 2) => {
+}, I = (e, t, n = 2) => {
 	try {
 		return e.toLocaleString([], {
 			style: "currency",
@@ -7292,12 +7295,12 @@ var fe = [
 	} catch {
 		return `${e.toFixed(n)} ${t}`;
 	}
-}, he = (e, t) => me(e, t, 4), ge = (e, t) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleDateString([], t), _e = (e) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleTimeString([], {
+}, ge = (e, t) => I(e, t, 4), _e = (e, t) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleDateString([], t), ve = (e) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleTimeString([], {
 	hour: "2-digit",
 	minute: "2-digit"
 });
-function ve(e, t, n) {
-	if (n === 1) return ge(e, {
+function ye(e, t, n) {
+	if (n === 1) return _e(e, {
 		weekday: "short",
 		day: "numeric",
 		month: "short"
@@ -7305,17 +7308,17 @@ function ve(e, t, n) {
 	let r = t - 86400, i = /* @__PURE__ */ new Date(e * 1e3), a = /* @__PURE__ */ new Date(r * 1e3), o = (e) => e.toLocaleDateString([], { month: "short" });
 	return i.getMonth() === a.getMonth() ? `${i.getDate()}–${a.getDate()} ${o(a)}` : `${i.getDate()} ${o(i)} – ${a.getDate()} ${o(a)}`;
 }
-var ye = (e) => e.filter((e) => e != null);
-function be(e) {
+var be = (e) => e.filter((e) => e != null);
+function xe(e) {
 	if (e.period === 1) {
 		let t = [];
 		for (let n = 0; n < e.series.length; n += 4) {
 			let r = e.series.slice(n, n + 4).filter((e) => e.heating != null);
 			if (!r.length) continue;
-			let i = ye(r.map((e) => e.current)), a = ye(e.series.slice(n, n + 4).map((e) => e.outdoor));
+			let i = be(r.map((e) => e.current)), a = be(e.series.slice(n, n + 4).map((e) => e.outdoor));
 			t.push({
 				key: e.series[n].t,
-				label: [_e(e.series[n].t), ""],
+				label: [ve(e.series[n].t), ""],
 				minutes: r.reduce((e, t) => e + (t.heating ?? 0) * 15, 0),
 				avg: i.length ? i.reduce((e, t) => e + t, 0) / i.length : null,
 				min: i.length ? Math.min(...i) : null,
@@ -7328,7 +7331,7 @@ function be(e) {
 	}
 	return e.days.filter((e) => e.heating_minutes != null).map((e) => ({
 		key: e.start,
-		label: [ge(e.start, { weekday: "short" }), ge(e.start, { day: "numeric" })],
+		label: [_e(e.start, { weekday: "short" }), _e(e.start, { day: "numeric" })],
 		minutes: e.heating_minutes,
 		avg: e.temp_avg,
 		min: e.temp_min,
@@ -7337,7 +7340,7 @@ function be(e) {
 		outMax: e.outdoor_max
 	})).reverse();
 }
-function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
+function Se({ getHass: e, devices: t, channel: n, roomId: r }) {
 	let i = n ?? (r ? "heat" : void 0), [a, o] = (0, u.useState)(t[0]?.entry_id), s = t.find((e) => e.entry_id === a) ?? t[0], c = i ?? "heat", [l, d] = (0, u.useState)(7), [m, h] = (0, u.useState)("time"), [g, _] = (0, u.useState)(0), [v, x] = (0, u.useState)(null), [S, C] = (0, u.useState)(""), [w, T] = (0, u.useState)(!0), E = c === "water", D = (0, u.useCallback)(() => {
 		(s || r) && e().callWS(r ? {
 			type: "hive_local/rooms/stats",
@@ -7368,10 +7371,10 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 		return t.addEventListener?.("ready", D), () => t.removeEventListener?.("ready", D);
 	}, [e, D]), (0, u.useEffect)(() => {
 		if (T(!0), D(), g) return;
-		let e = setInterval(D, pe);
+		let e = setInterval(D, me);
 		return () => clearInterval(e);
 	}, [D, g]), !s && !r) return null;
-	let O = v && v.period === l && v.offset === g ? v : null, k = O ? be(O) : [], A = l === 1 ? "hour" : "day", ee = !E && !!O?.outdoor, j = E ? null : O?.cost ?? null, M = E || m === "cost" && !j && O ? "time" : m;
+	let O = v && v.period === l && v.offset === g ? v : null, k = O ? xe(O) : [], A = l === 1 ? "hour" : "day", ee = !E && !!O?.outdoor, j = E ? null : O?.cost ?? null, M = E || m === "cost" && !j && O ? "time" : m;
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "history",
 		children: [
@@ -7398,7 +7401,7 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 					className: "history-toggle",
 					role: "radiogroup",
 					"aria-label": "Period",
-					children: fe.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+					children: pe.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 						role: "radio",
 						"aria-checked": e.id === l,
 						"aria-label": e.name,
@@ -7458,7 +7461,7 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 						children: [
 							/* @__PURE__ */ (0, f.jsx)(p, { name: "calendar-blank-outline" }),
 							" ",
-							O ? ve(O.start, O.period_end, l) : "…"
+							O ? ye(O.start, O.period_end, l) : "…"
 						]
 					}),
 					/* @__PURE__ */ (0, f.jsx)("button", {
@@ -7482,7 +7485,7 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 				className: "muted history-empty",
 				children: [
 					"No history for this ",
-					fe.find((e) => e.id === l).name.toLowerCase(),
+					pe.find((e) => e.id === l).name.toLowerCase(),
 					". Home Assistant keeps 10 days unless",
 					" ",
 					/* @__PURE__ */ (0, f.jsx)("code", { children: "purge_keep_days" }),
@@ -7490,7 +7493,7 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 				]
 			}),
 			O?.has_data && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
-				/* @__PURE__ */ (0, f.jsx)(Ce, {
+				/* @__PURE__ */ (0, f.jsx)(we, {
 					data: O,
 					metric: M,
 					water: E,
@@ -7510,13 +7513,13 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 							title: "Lowest and highest room temperature",
 							children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "thermometer" }), " Low · high"]
 						})]
-					}), k.map((e) => /* @__PURE__ */ (0, f.jsx)(Ee, {
+					}), k.map((e) => /* @__PURE__ */ (0, f.jsx)(De, {
 						row: e,
 						metric: M,
 						water: E,
 						outdoor: ee,
 						cost: j,
-						scale: Se(k, M, l)
+						scale: Ce(k, M, l)
 					}, e.key))]
 				}),
 				M === "cost" && j && /* @__PURE__ */ (0, f.jsxs)("p", {
@@ -7525,7 +7528,7 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 						"An estimate: the boiler's time on × ",
 						j.kw.toFixed(1),
 						" kW × ",
-						he(j.price, j.currency),
+						ge(j.price, j.currency),
 						" per kWh, at today's price.",
 						" ",
 						j.basis === "meter" ? "The kW is the boiler's average while on, learned from your gas meter." : `The kW is 40% of the boiler's ${j.boiler_kw ?? "?"} kW rating, as a modulating boiler rarely runs flat out. Pick a gas meter in Settings for a closer figure.`
@@ -7539,7 +7542,7 @@ function xe({ getHass: e, devices: t, channel: n, roomId: r }) {
 		]
 	});
 }
-function Se(e, t, n) {
+function Ce(e, t, n) {
 	if (t === "time" || t === "cost") return {
 		lo: 0,
 		hi: Math.max(60, ...e.map((e) => e.minutes ?? 0))
@@ -7550,17 +7553,17 @@ function Se(e, t, n) {
 		hi: Math.max(a, i + 4)
 	};
 }
-function Ce({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o }) {
-	let s = Math.max(1, a.filter((e) => e.minutes != null).length), c = e.previous, l = !!c?.has_data && c.known_minutes >= .5 * e.known_minutes, u = l ? e.heating_minutes - c.heating_minutes : 0, d = e.temperature, p = (e) => o ? me(e / 60 * o.per_hour, o.currency) : "–", [m, h, g, _] = t === "cost" ? [
+function we({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o }) {
+	let s = Math.max(1, a.filter((e) => e.minutes != null).length), c = e.previous, l = !!c?.has_data && c.known_minutes >= .5 * e.known_minutes, u = l ? e.heating_minutes - c.heating_minutes : 0, d = e.temperature, p = (e) => o ? I(e / 60 * o.per_hour, o.currency) : "–", [m, h, g, _] = t === "cost" ? [
 		"Estimated cost",
 		p(e.heating_minutes),
 		`Average per ${i}`,
 		p(e.heating_minutes / s)
 	] : t === "time" ? [
 		n ? "Hot water on" : r ? "Valves heating" : "Boiler on",
-		I(e.heating_minutes),
+		he(e.heating_minutes),
 		`Average per ${i}`,
-		I(e.heating_minutes / s)
+		he(e.heating_minutes / s)
 	] : [
 		"Average",
 		d.avg == null ? "–" : `${d.avg.toFixed(1)}°`,
@@ -7583,7 +7586,7 @@ function Ce({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o 
 	}), /* @__PURE__ */ (0, f.jsxs)("p", {
 		className: "history-note muted small",
 		children: [
-			t === "time" && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${I(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
+			t === "time" && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${he(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
 			t === "cost" && o && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${p(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
 			r ? "Started heating" : "Fired up",
 			" ",
@@ -7592,23 +7595,23 @@ function Ce({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o 
 			e.cycles === 1 ? "" : "s",
 			e.boosts ? ` · ${e.boosts} boost${e.boosts === 1 ? "" : "s"}` : "",
 			t === "temp" && e.target_avg != null ? ` · average target ${e.target_avg.toFixed(1)}°` : "",
-			!n && we(e)
+			!n && Te(e)
 		]
 	})] });
 }
-function we(e) {
+function Te(e) {
 	let t = e.outdoor?.avg;
 	if (t == null) return "";
 	let n = e.previous?.outdoor_avg, r = n == null ? null : t - n, i = r == null ? "" : Math.abs(r) < .5 ? ", about the same as the period before" : `, ${Math.abs(r).toFixed(0)}° ${r < 0 ? "colder" : "milder"} than the period before`;
 	return ` · ${t.toFixed(0)}° outside${i}`;
 }
-function Te(e, t) {
+function Ee(e, t) {
 	if (e == null || t == null) return "–";
 	let [n, r] = [e.toFixed(0), t.toFixed(0)];
 	return n === r ? `${n}°` : `${n}–${r}°`;
 }
-function Ee({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
-	let o = t === "temp" ? e.avg : e.minutes, s = o == null ? "–" : t === "time" ? I(o) : t === "cost" && i ? me(o / 60 * i.per_hour, i.currency) : `${o.toFixed(1)}°`, c = o == null ? 0 : Math.max(.02, Math.min(1, (o - a.lo) / (a.hi - a.lo || 1)));
+function De({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
+	let o = t === "temp" ? e.avg : e.minutes, s = o == null ? "–" : t === "time" ? he(o) : t === "cost" && i ? I(o / 60 * i.per_hour, i.currency) : `${o.toFixed(1)}°`, c = o == null ? 0 : Math.max(.02, Math.min(1, (o - a.lo) / (a.hi - a.lo || 1)));
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: `history-row ${r ? "with-outdoor" : ""}`,
 		children: [
@@ -7630,7 +7633,7 @@ function Ee({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
 			r && /* @__PURE__ */ (0, f.jsx)("span", {
 				className: "history-outdoor",
 				title: "Lowest and highest outside temperature",
-				children: Te(e.outMin, e.outMax)
+				children: Ee(e.outMin, e.outMax)
 			}),
 			!n && /* @__PURE__ */ (0, f.jsxs)("span", {
 				className: "history-temps",
@@ -7641,7 +7644,7 @@ function Ee({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
 	});
 }
 // src/DevicePage.tsx
-var De = [
+var Oe = [
 	{
 		id: "control",
 		label: "Control"
@@ -7655,7 +7658,7 @@ var De = [
 		label: "History"
 	}
 ];
-function Oe({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice: a, tab: o, onTab: s, onBack: c }) {
+function ke({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice: a, tab: o, onTab: s, onBack: c }) {
 	let [l, d] = (0, u.useState)(o === "schedule");
 	(0, u.useEffect)(() => {
 		o === "schedule" && d(!0);
@@ -7682,7 +7685,7 @@ function Oe({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "page-tabs",
 				role: "tablist",
-				children: De.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+				children: Oe.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 					role: "tab",
 					"aria-selected": e.id === o,
 					className: e.id === o ? "on" : "",
@@ -7716,7 +7719,7 @@ function Oe({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 					demandFor: m?.mode === "boost" && r?.demand?.active ? E(r.demand.rooms) : null
 				})
 			}),
-			o === "history" && /* @__PURE__ */ (0, f.jsx)(xe, {
+			o === "history" && /* @__PURE__ */ (0, f.jsx)(Se, {
 				getHass: e,
 				devices: [t],
 				channel: n
@@ -7725,14 +7728,14 @@ function Oe({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 	});
 }
 // src/Devices.tsx
-var ke = 20, Ae = 6e4;
-function je({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
+var Ae = 20, je = 6e4;
+function Me({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
 	let [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)(""), [l, d] = (0, u.useState)(!1), m = (0, u.useCallback)(() => {
 		e().callWS({ type: "hive_local/rooms/valves" }).then((e) => o(e.valves)).catch((e) => c(b(e)));
 	}, [e]);
 	(0, u.useEffect)(() => {
 		m();
-		let e = setInterval(m, Ae);
+		let e = setInterval(m, je);
 		return () => clearInterval(e);
 	}, [m]);
 	let h = t.length > 1;
@@ -7749,11 +7752,11 @@ function je({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
 			}),
 			/* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "device-grid",
-				children: [t.map((e) => /* @__PURE__ */ (0, f.jsx)(Fe, {
+				children: [t.map((e) => /* @__PURE__ */ (0, f.jsx)(Ie, {
 					device: e,
 					status: n,
 					onOpen: (t) => i(e.entry_id, t)
-				}, e.entry_id)), a?.map((e) => /* @__PURE__ */ (0, f.jsx)(Ie, { valve: e }, e.entity_id))]
+				}, e.entry_id)), a?.map((e) => /* @__PURE__ */ (0, f.jsx)(Le, { valve: e }, e.entity_id))]
 			}),
 			a && !a.length && /* @__PURE__ */ (0, f.jsx)("p", {
 				className: "muted",
@@ -7772,15 +7775,15 @@ function je({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
 					children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
 				})
 			}),
-			l && /* @__PURE__ */ (0, f.jsx)(Le, { onClose: () => d(!1) })
+			l && /* @__PURE__ */ (0, f.jsx)(Re, { onClose: () => d(!1) })
 		]
 	});
 }
-var Me = {
+var Ne = {
 	z2m: "Zigbee2MQTT",
 	zha: "ZHA"
 };
-function Ne({ items: e }) {
+function Pe({ items: e }) {
 	return /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "facts",
 		children: e.map((e) => /* @__PURE__ */ (0, f.jsxs)("span", {
@@ -7793,13 +7796,13 @@ function Ne({ items: e }) {
 		}, e.text))
 	});
 }
-function Pe({ online: e, text: t }) {
+function Fe({ online: e, text: t }) {
 	return /* @__PURE__ */ (0, f.jsxs)("span", {
 		className: `online ${e ? "" : "no"}`,
 		children: [/* @__PURE__ */ (0, f.jsx)("i", {}), t ?? (e ? "Online" : "Not responding")]
 	});
 }
-function Fe({ device: e, status: t, onOpen: n }) {
+function Ie({ device: e, status: t, onOpen: n }) {
 	let r = e.channels.some((n) => t[e.entry_id]?.[n]?.status);
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "card hw",
@@ -7818,15 +7821,15 @@ function Fe({ device: e, status: t, onOpen: n }) {
 							children: ["Hive receiver", e.model ? ` · ${e.model}` : ""]
 						})]
 					}),
-					/* @__PURE__ */ (0, f.jsx)(Pe, {
+					/* @__PURE__ */ (0, f.jsx)(Fe, {
 						online: r,
 						text: r ? "Online" : "Waiting"
 					})
 				]
 			}),
-			/* @__PURE__ */ (0, f.jsx)(Ne, { items: [{
+			/* @__PURE__ */ (0, f.jsx)(Pe, { items: [{
 				icon: "zigbee",
-				text: Me[e.transport ?? "z2m"]
+				text: Ne[e.transport ?? "z2m"]
 			}, {
 				icon: "fire",
 				text: e.channels.includes("water") ? "Heating and hot water" : "Heating only"
@@ -7846,8 +7849,8 @@ function Fe({ device: e, status: t, onOpen: n }) {
 		]
 	});
 }
-function Ie({ valve: e }) {
-	let t = e.battery != null && !Number.isNaN(Number(e.battery)) ? Number(e.battery) : null, n = t != null && t < ke;
+function Le({ valve: e }) {
+	let t = e.battery != null && !Number.isNaN(Number(e.battery)) ? Number(e.battery) : null, n = t != null && t < Ae;
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: `card hw ${e.available ? "" : "off"}`,
 		children: [/* @__PURE__ */ (0, f.jsxs)("div", {
@@ -7864,9 +7867,9 @@ function Ie({ valve: e }) {
 						children: "Hive radiator valve"
 					})]
 				}),
-				/* @__PURE__ */ (0, f.jsx)(Pe, { online: e.available })
+				/* @__PURE__ */ (0, f.jsx)(Fe, { online: e.available })
 			]
-		}), /* @__PURE__ */ (0, f.jsx)(Ne, { items: [
+		}), /* @__PURE__ */ (0, f.jsx)(Pe, { items: [
 			{
 				icon: "home-outline",
 				text: e.room ?? "Not in a room"
@@ -7883,7 +7886,7 @@ function Ie({ valve: e }) {
 		] })]
 	});
 }
-function Le({ onClose: e }) {
+function Re({ onClose: e }) {
 	let [t, n] = (0, u.useState)(!1);
 	return (0, u.useEffect)(() => {
 		let t = (t) => t.key === "Escape" && e();
@@ -7953,9 +7956,9 @@ function Le({ onClose: e }) {
 	});
 }
 // src/Rooms.tsx
-var Re = 20, ze = (e) => e == null ? "–" : `${e.toFixed(1)}°`;
-function Be({ valve: e, heating: t }) {
-	let n = e.battery == null ? null : Number(e.battery), r = n != null && !Number.isNaN(n) && n <= Re;
+var ze = 20, Be = (e) => e == null ? "–" : `${e.toFixed(1)}°`;
+function Ve({ valve: e, heating: t }) {
+	let n = e.battery == null ? null : Number(e.battery), r = n != null && !Number.isNaN(n) && n <= ze;
 	return /* @__PURE__ */ (0, f.jsxs)("li", {
 		className: `valve ${e.available ? "" : "off"}`,
 		children: [
@@ -7970,11 +7973,11 @@ function Be({ valve: e, heating: t }) {
 			e.available ? /* @__PURE__ */ (0, f.jsxs)("span", {
 				className: "valve-temps",
 				children: [
-					ze(e.current_temperature),
+					Be(e.current_temperature),
 					" ",
 					/* @__PURE__ */ (0, f.jsxs)("span", {
 						className: "muted",
-						children: ["→ ", ze(e.target)]
+						children: ["→ ", Be(e.target)]
 					})
 				]
 			}) : /* @__PURE__ */ (0, f.jsx)("span", {
@@ -7994,7 +7997,7 @@ function Be({ valve: e, heating: t }) {
 		]
 	});
 }
-function Ve(e) {
+function He(e) {
 	if (!e.sensor || !e.external_sensor) return null;
 	let t = e.valve_states.length, n = (t) => e.valve_states.filter((e) => e.external_sensor === t).map((e) => e.name);
 	if (e.external_sensor === "off") return {
@@ -8025,11 +8028,11 @@ function Ve(e) {
 		warn: !1
 	};
 }
-var He = 8;
-function Ue({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: a, onToggle: o }) {
+var Ue = 8;
+function We({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: a, onToggle: o }) {
 	let [s, c] = (0, u.useState)(null), [l, d] = (0, u.useState)(null), m = (0, u.useRef)();
 	(0, u.useEffect)(() => () => window.clearTimeout(m.current), []);
-	let [h, g] = (0, u.useState)(""), _ = t.length > He, v = h.trim().toLowerCase(), y = r.trim().toLowerCase(), x = (e) => !!y && (e.area ?? "").toLowerCase() === y, S = (e) => {
+	let [h, g] = (0, u.useState)(""), _ = t.length > Ue, v = h.trim().toLowerCase(), y = r.trim().toLowerCase(), x = (e) => !!y && (e.area ?? "").toLowerCase() === y, S = (e) => {
 		let t = n.get(e.entity_id)?.room;
 		return t && t !== i ? t : null;
 	}, [C] = (0, u.useState)(() => new Set(a)), w = (e) => C.has(e.entity_id) ? 0 : x(e) ? 1 : S(e) ? 3 : 2, T = [...t].sort((e, t) => w(e) - w(t)), E = v ? T.filter((e) => e.name.toLowerCase().includes(v) || (e.area ?? "").toLowerCase().includes(v)) : T, D = async (t) => {
@@ -8085,7 +8088,7 @@ function Ue({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: 
 			E.length > 0 && /* @__PURE__ */ (0, f.jsx)("div", {
 				className: "valve-list",
 				children: E.map((e) => {
-					let t = n.get(e.entity_id), r = a.has(e.entity_id), i = t?.battery == null ? null : Number(t.battery), c = i != null && !Number.isNaN(i), l = c && i <= Re, u = S(e);
+					let t = n.get(e.entity_id), r = a.has(e.entity_id), i = t?.battery == null ? null : Number(t.battery), c = i != null && !Number.isNaN(i), l = c && i <= ze, u = S(e);
 					return /* @__PURE__ */ (0, f.jsxs)("div", {
 						className: `valve-pick ${r ? "on" : ""}`,
 						children: [/* @__PURE__ */ (0, f.jsxs)("button", {
@@ -8144,7 +8147,7 @@ function Ue({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: 
 		]
 	}) : null;
 }
-function We({ dialog: e, label: t, onClose: n, children: r }) {
+function Ge({ dialog: e, label: t, onClose: n, children: r }) {
 	return e ? /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: (e) => {
@@ -8163,13 +8166,13 @@ function We({ dialog: e, label: t, onClose: n, children: r }) {
 		children: r
 	});
 }
-function Ge(e) {
-	return /* @__PURE__ */ (0, f.jsx)(Ke, {
+function Ke(e) {
+	return /* @__PURE__ */ (0, f.jsx)(qe, {
 		...e,
 		dialog: !0
 	});
 }
-function Ke({ getHass: e, room: t, onDone: n, dialog: r }) {
+function qe({ getHass: e, room: t, onDone: n, dialog: r }) {
 	(0, u.useEffect)(() => {
 		if (!r) return;
 		let e = (e) => e.key === "Escape" && n();
@@ -8179,7 +8182,7 @@ function Ke({ getHass: e, room: t, onDone: n, dialog: r }) {
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/candidates" }).then(a).catch((e) => T(b(e))), e().callWS({ type: "hive_local/rooms/valves" }).then((e) => D(new Map(e.valves.map((e) => [e.entity_id, e])))).catch(() => {});
 	}, [e]);
-	let O = (i?.receivers.length ?? 0) > 1, k = t && t.sensor === h && _ && (t.sensor_on_valves ?? !0) ? Ve(t) : null, A = async (t) => {
+	let O = (i?.receivers.length ?? 0) > 1, k = t && t.sensor === h && _ && (t.sensor_on_valves ?? !0) ? He(t) : null, A = async (t) => {
 		x(!0), T("");
 		try {
 			await e().callWS(t), n();
@@ -8187,7 +8190,7 @@ function Ke({ getHass: e, room: t, onDone: n, dialog: r }) {
 			T(b(e)), x(!1);
 		}
 	};
-	return /* @__PURE__ */ (0, f.jsxs)(We, {
+	return /* @__PURE__ */ (0, f.jsxs)(Ge, {
 		dialog: !!r,
 		label: t ? `Edit ${t.name}` : "New room",
 		onClose: n,
@@ -8231,7 +8234,7 @@ function Ke({ getHass: e, room: t, onDone: n, dialog: r }) {
 							className: "muted small",
 							children: "No Hive radiator valves found. Pair them with ZHA or Zigbee2MQTT first."
 						}),
-						/* @__PURE__ */ (0, f.jsx)(Ue, {
+						/* @__PURE__ */ (0, f.jsx)(We, {
 							getHass: e,
 							valves: i?.valves ?? [],
 							info: E,
@@ -8359,7 +8362,7 @@ function Ke({ getHass: e, room: t, onDone: n, dialog: r }) {
 		})]
 	});
 }
-var qe = [
+var Je = [
 	{
 		id: "schedule",
 		label: "Schedule"
@@ -8373,10 +8376,10 @@ var qe = [
 		label: "Off"
 	}
 ];
-function Je(e) {
+function Ye(e) {
 	return e.boost ? `Boost · ${D(e.boost.remaining)} left` : e.mode === "schedule" ? "On the valves' schedule" : e.mode === "off" ? "Off" : "Manual";
 }
-function Ye({ getHass: e, room: t }) {
+function Xe({ getHass: e, room: t }) {
 	let [n, r] = (0, u.useState)(!1), [i, a] = (0, u.useState)(null), [o, s] = (0, u.useState)(!1), [c, l] = (0, u.useState)(""), d = (0, u.useRef)();
 	(0, u.useEffect)(() => () => window.clearTimeout(d.current), []);
 	let m = t.mode ?? "manual", h = (e) => `Didn't take on ${t.valve_states.filter((t) => e.includes(t.entity_id)).map((e) => e.name).join(", ")}. It may be asleep: press its dial to wake it and try again.`, g = i ?? t.boost?.temperature ?? t.target ?? t.target_range?.[1] ?? 20, _ = m !== "off" || !!t.boost, v = (n) => {
@@ -8409,7 +8412,7 @@ function Ye({ getHass: e, room: t }) {
 		} finally {
 			s(!1);
 		}
-	}, x = Ve(t), S = t.boost ? "Keeps the boost's time left" : m === "off" ? "Turn the room on to set a target" : m === "schedule" ? "Until the valves' next scheduled change" : t.target_range && i == null ? `The valves are set to ${ze(t.target_range[0])}–${ze(t.target_range[1])}` : "Held until you change it";
+	}, x = He(t), S = t.boost ? "Keeps the boost's time left" : m === "off" ? "Turn the room on to set a target" : m === "schedule" ? "Until the valves' next scheduled change" : t.target_range && i == null ? `The valves are set to ${Be(t.target_range[0])}–${Be(t.target_range[1])}` : "Held until you change it";
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "card room-control",
 		children: [
@@ -8460,7 +8463,7 @@ function Ye({ getHass: e, room: t }) {
 				className: "segmented full",
 				role: "radiogroup",
 				"aria-label": "Mode",
-				children: qe.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+				children: Je.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 					role: "radio",
 					"aria-checked": m === e.id,
 					className: m === e.id ? "on" : "",
@@ -8473,9 +8476,13 @@ function Ye({ getHass: e, room: t }) {
 				className: "muted small room-mode-note",
 				children: "The valves follow the schedule kept on them (the Schedule tab). Experimental."
 			}),
-			m === "off" && /* @__PURE__ */ (0, f.jsx)("p", {
+			m === "off" && /* @__PURE__ */ (0, f.jsxs)("p", {
 				className: "muted small room-mode-note",
-				children: "A Hive valve can't switch off, so they're at their lowest, 5°. Their targets come back when you turn the room on."
+				children: [
+					"A Hive valve can't switch off, so they hold the room at frost protection, ",
+					t.frost ?? 12,
+					"° (Settings → Frost protection). Their targets come back when you turn the room on."
+				]
 			}),
 			c && /* @__PURE__ */ (0, f.jsx)("div", {
 				className: "status error",
@@ -8488,7 +8495,7 @@ function Ye({ getHass: e, room: t }) {
 					children: "Valves"
 				}), /* @__PURE__ */ (0, f.jsx)("ul", {
 					className: "valves",
-					children: t.valve_states.map((e) => /* @__PURE__ */ (0, f.jsx)(Be, {
+					children: t.valve_states.map((e) => /* @__PURE__ */ (0, f.jsx)(Ve, {
 						valve: e,
 						heating: t.heating_valves.includes(e.entity_id)
 					}, e.entity_id))
@@ -8502,7 +8509,7 @@ function Ye({ getHass: e, room: t }) {
 					children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "pencil-outline" }), " Edit room"]
 				})
 			}),
-			n && /* @__PURE__ */ (0, f.jsx)(Ke, {
+			n && /* @__PURE__ */ (0, f.jsx)(qe, {
 				getHass: e,
 				room: t,
 				onDone: () => r(!1),
@@ -8511,11 +8518,11 @@ function Ye({ getHass: e, room: t }) {
 		]
 	});
 }
-function Xe(e) {
+function Ze(e) {
 	let t = e.toLowerCase();
 	return /lounge|living|sitting|family|snug/.test(t) ? "sofa-outline" : /bed|nursery|guest/.test(t) ? "bed-outline" : /kitchen|dining/.test(t) ? "silverware-fork-knife" : /landing|hall|stair/.test(t) ? "stairs" : /study|office/.test(t) ? "desk" : /bath|shower|en-?suite|wc|toilet/.test(t) ? "shower" : "home-thermometer-outline";
 }
-function Ze({ getHass: e, onDone: t }) {
+function Qe({ getHass: e, onDone: t }) {
 	let [n, r] = (0, u.useState)(null), [i, a] = (0, u.useState)(/* @__PURE__ */ new Map()), [o, s] = (0, u.useState)(/* @__PURE__ */ new Set()), [c, l] = (0, u.useState)({}), [d, m] = (0, u.useState)(!1), [h, g] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/suggest" }).then((e) => {
@@ -8540,7 +8547,7 @@ function Ze({ getHass: e, onDone: t }) {
 		let n = new Set(t);
 		return n.has(e) ? n.delete(e) : n.add(e), n;
 	});
-	return /* @__PURE__ */ (0, f.jsxs)(We, {
+	return /* @__PURE__ */ (0, f.jsxs)(Ge, {
 		dialog: !0,
 		label: "Set up your rooms",
 		onClose: t,
@@ -8601,7 +8608,7 @@ function Ze({ getHass: e, onDone: t }) {
 								}),
 								/* @__PURE__ */ (0, f.jsx)("span", {
 									className: "device-icon",
-									children: /* @__PURE__ */ (0, f.jsx)(p, { name: Xe(e.name) })
+									children: /* @__PURE__ */ (0, f.jsx)(p, { name: Ze(e.name) })
 								})
 							]
 						}), _ && r && /* @__PURE__ */ (0, f.jsxs)("select", {
@@ -8644,7 +8651,7 @@ function Ze({ getHass: e, onDone: t }) {
 	});
 }
 // src/Settings.tsx
-function Qe({ getHass: e, devices: t, status: n, onSetup: r }) {
+function $e({ getHass: e, devices: t, status: n, onSetup: r }) {
 	let [i, a] = (0, u.useState)(null), [o, s] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/settings" }).then(a).catch((e) => s(b(e)));
@@ -8706,28 +8713,28 @@ function Qe({ getHass: e, devices: t, status: n, onSetup: r }) {
 					})
 				})]
 			}),
-			i && /* @__PURE__ */ (0, f.jsx)(nt, {
+			i && /* @__PURE__ */ (0, f.jsx)(rt, {
 				data: i,
 				save: c
 			}),
-			/* @__PURE__ */ (0, f.jsx)(it, { getHass: e }),
+			/* @__PURE__ */ (0, f.jsx)(at, { getHass: e }),
 			t.map((r) => /* @__PURE__ */ (0, f.jsxs)("section", {
 				className: "settings-section",
 				children: [/* @__PURE__ */ (0, f.jsx)("h3", { children: t.length > 1 ? r.name : "Receiver" }), /* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "settings-group",
-					children: [r.channels.map((t) => /* @__PURE__ */ (0, f.jsx)(st, {
+					children: [r.channels.map((t) => /* @__PURE__ */ (0, f.jsx)(ct, {
 						getHass: e,
 						device: r,
 						channel: t,
 						info: n[r.entry_id]?.[t]
-					}, t)), n[r.entry_id]?.heat?.demand && /* @__PURE__ */ (0, f.jsx)(lt, {
+					}, t)), n[r.entry_id]?.heat?.demand && /* @__PURE__ */ (0, f.jsx)(ut, {
 						getHass: e,
 						device: r,
 						info: n[r.entry_id].heat.demand
 					})]
 				})]
 			}, r.entry_id)),
-			/* @__PURE__ */ (0, f.jsx)(et, { getHass: e }),
+			/* @__PURE__ */ (0, f.jsx)(tt, { getHass: e }),
 			r && /* @__PURE__ */ (0, f.jsxs)("section", {
 				className: "settings-section",
 				children: [/* @__PURE__ */ (0, f.jsx)("h3", { children: "Setup" }), /* @__PURE__ */ (0, f.jsx)("div", {
@@ -8758,8 +8765,8 @@ function Qe({ getHass: e, devices: t, status: n, onSetup: r }) {
 		]
 	});
 }
-var $e = (e, t, n = `${t}s`) => `${e} ${e === 1 ? t : n}`;
-function et({ getHass: e, bare: t, empty: n }) {
+var et = (e, t, n = `${t}s`) => `${e} ${e === 1 ? t : n}`;
+function tt({ getHass: e, bare: t, empty: n }) {
 	let [r, i] = (0, u.useState)(null), [a, o] = (0, u.useState)(!1), [s, c] = (0, u.useState)(""), l = (t) => {
 		o(!0), e().callWS({ type: t }).then((e) => {
 			i(e), c("");
@@ -8769,7 +8776,7 @@ function et({ getHass: e, bare: t, empty: n }) {
 		className: "muted",
 		children: n
 	}) : null;
-	let d = [r.receiver.length ? `${$e(r.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${r.receiver.length === 1 ? "is" : "are"} disabled` : null, r.valves.length ? `${$e(r.valves.length, "room valve")} ${r.valves.length === 1 ? "is" : "are"} hidden` : null].filter(Boolean), m = r.pending ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them." : `Done: ${d.join(", and ")}. Switch any back in their entity settings, or Undo.`, h = /* @__PURE__ */ (0, f.jsx)("div", {
+	let d = [r.receiver.length ? `${et(r.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${r.receiver.length === 1 ? "is" : "are"} disabled` : null, r.valves.length ? `${et(r.valves.length, "room valve")} ${r.valves.length === 1 ? "is" : "are"} hidden` : null].filter(Boolean), m = r.pending ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them." : `Done: ${d.join(", and ")}. Switch any back in their entity settings, or Undo.`, h = /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "settings-group",
 		children: /* @__PURE__ */ (0, f.jsxs)("div", {
 			className: "settings-row",
@@ -8817,7 +8824,7 @@ function et({ getHass: e, bare: t, empty: n }) {
 		]
 	});
 }
-var tt = [
+var nt = [
 	6,
 	9,
 	12,
@@ -8834,11 +8841,11 @@ var tt = [
 	45,
 	50
 ];
-function nt({ data: e, save: t }) {
+function rt({ data: e, save: t }) {
 	let [n, r] = (0, u.useState)(null), i = (0, u.useRef)(null), a = (0, u.useRef)(), o = e.boiler_kw, s = (e) => {
 		if (o == null) return t({ boiler_kw: 24 });
-		t({ boiler_kw: (e > 0 ? tt.find((e) => e > o) : [...tt].reverse().find((e) => e < o)) ?? o });
-	}, c = rt[e.currency], l = n ?? e.fixed_price, d = (n, o = 0) => {
+		t({ boiler_kw: (e > 0 ? nt.find((e) => e > o) : [...nt].reverse().find((e) => e < o)) ?? o });
+	}, c = it[e.currency], l = n ?? e.fixed_price, d = (n, o = 0) => {
 		let s = i.current ?? e.fixed_price ?? .06, c = o > 15 ? .001 : 1e-4, l = Math.max(0, Math.round((n > 0 ? Math.floor(s / c + 1e-6) + 1 : Math.ceil(s / c - 1e-6) - 1) * c * 1e4) / 1e4);
 		i.current = l, r(l), window.clearTimeout(a.current), a.current = window.setTimeout(() => {
 			t({
@@ -8849,7 +8856,7 @@ function nt({ data: e, save: t }) {
 	}, m = (n) => t(n === "fixed" && e.fixed_price == null ? {
 		price_source: n,
 		fixed_price: e.price ?? .06
-	} : { price_source: n || null }), h = e.fit, g = e.gas_meter ? h ? `Learned ${h.kw.toFixed(1)} kW while heating from ${h.days} days${h.baseline >= .5 ? ` (plus ${h.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.` : e.learned_at ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours." : "Learning from the last 14 days…" : "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for.", _ = e.price_source === "fixed" ? "Your unit rate, below." : e.price_source === "energy" && e.energy_price == null ? "The Energy dashboard has no gas price (or it can't be read)." : e.price_source && e.price_source !== "fixed" && e.price == null ? "That entity has no price right now." : ((t) => t == null ? null : `${he(t, e.currency)} per kWh`)(e.price) ?? "Pick where the price comes from.";
+	} : { price_source: n || null }), h = e.fit, g = e.gas_meter ? h ? `Learned ${h.kw.toFixed(1)} kW while heating from ${h.days} days${h.baseline >= .5 ? ` (plus ${h.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.` : e.learned_at ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours." : "Learning from the last 14 days…" : "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for.", _ = e.price_source === "fixed" ? "Your unit rate, below." : e.price_source === "energy" && e.energy_price == null ? "The Energy dashboard has no gas price (or it can't be read)." : e.price_source && e.price_source !== "fixed" && e.price == null ? "That entity has no price right now." : ((t) => t == null ? null : `${ge(t, e.currency)} per kWh`)(e.price) ?? "Pick where the price comes from.";
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "settings-section",
 		children: [
@@ -8905,7 +8912,7 @@ function nt({ data: e, save: t }) {
 							}),
 							/* @__PURE__ */ (0, f.jsxs)("div", {
 								className: "settings-controls",
-								children: [/* @__PURE__ */ (0, f.jsx)(ut, {
+								children: [/* @__PURE__ */ (0, f.jsx)(dt, {
 									value: o == null ? "Not set" : `${o.toLocaleString()} kW`,
 									onLower: () => s(-1),
 									onRaise: () => s(1)
@@ -8980,8 +8987,8 @@ function nt({ data: e, save: t }) {
 							}),
 							/* @__PURE__ */ (0, f.jsx)("div", {
 								className: "settings-controls",
-								children: /* @__PURE__ */ (0, f.jsx)(ut, {
-									value: l == null ? "–" : c ? `${(l * 100).toFixed(2)}${c}` : he(l, e.currency),
+								children: /* @__PURE__ */ (0, f.jsx)(dt, {
+									value: l == null ? "–" : c ? `${(l * 100).toFixed(2)}${c}` : ge(l, e.currency),
 									onLower: (e) => d(-1, e),
 									onRaise: (e) => d(1, e),
 									hold: !0
@@ -8994,7 +9001,7 @@ function nt({ data: e, save: t }) {
 		]
 	});
 }
-var rt = {
+var it = {
 	GBP: "p",
 	EUR: "c",
 	USD: "¢",
@@ -9003,7 +9010,7 @@ var rt = {
 	NZD: "c",
 	IEP: "p"
 };
-function it({ getHass: e }) {
+function at({ getHass: e }) {
 	let [t, n] = (0, u.useState)(null), [r, i] = (0, u.useState)([]), [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)(!1), [l, d] = (0, u.useState)(0);
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/suggest" }).then((e) => d(e.rooms.length)).catch(() => {});
@@ -9084,11 +9091,11 @@ function it({ getHass: e }) {
 					})
 				]
 			}),
-			s && /* @__PURE__ */ (0, f.jsx)(Ze, {
+			s && /* @__PURE__ */ (0, f.jsx)(Qe, {
 				getHass: e,
 				onDone: () => c(!1)
 			}),
-			a && /* @__PURE__ */ (0, f.jsx)(Ge, {
+			a && /* @__PURE__ */ (0, f.jsx)(Ke, {
 				getHass: e,
 				room: a === "new" ? void 0 : t?.find((e) => e.id === a),
 				onDone: () => o(null)
@@ -9096,7 +9103,7 @@ function it({ getHass: e }) {
 		]
 	});
 }
-var at = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, ot = [
+var ot = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, st = [
 	15,
 	30,
 	45,
@@ -9107,7 +9114,7 @@ var at = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60
 	240,
 	360
 ];
-function st({ getHass: e, device: t, channel: n, info: r }) {
+function ct({ getHass: e, device: t, channel: n, info: r }) {
 	let [i, a] = (0, u.useState)(null), o = (0, u.useRef)(), s = i ?? r;
 	if (!s) return null;
 	let c = (r, i) => {
@@ -9124,8 +9131,8 @@ function st({ getHass: e, device: t, channel: n, info: r }) {
 			}).finally(() => a(null));
 		}, 800);
 	}, l = (e) => {
-		let t = ot.findIndex((e) => e >= s.boost_minutes), n = t < 0 ? ot.length - 1 : t;
-		return ot[Math.min(ot.length - 1, Math.max(0, n + e))];
+		let t = st.findIndex((e) => e >= s.boost_minutes), n = t < 0 ? st.length - 1 : t;
+		return st[Math.min(st.length - 1, Math.max(0, n + e))];
 	}, d = n === "water";
 	return /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "settings-row",
@@ -9143,12 +9150,12 @@ function st({ getHass: e, device: t, channel: n, info: r }) {
 			}),
 			/* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "settings-controls",
-				children: [/* @__PURE__ */ (0, f.jsx)(ut, {
+				children: [/* @__PURE__ */ (0, f.jsx)(dt, {
 					label: "How long",
-					value: at(s.boost_minutes),
+					value: ot(s.boost_minutes),
 					onLower: () => c("boost_minutes", l(-1)),
 					onRaise: () => c("boost_minutes", l(1))
-				}), !d && /* @__PURE__ */ (0, f.jsx)(ut, {
+				}), !d && /* @__PURE__ */ (0, f.jsx)(dt, {
 					label: "Temperature",
 					value: `${s.boost_temperature.toFixed(1)}°`,
 					onLower: () => c("boost_temperature", Math.max(5, s.boost_temperature - .5)),
@@ -9172,7 +9179,7 @@ function st({ getHass: e, device: t, channel: n, info: r }) {
 			}),
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "settings-controls",
-				children: /* @__PURE__ */ (0, f.jsx)(ut, {
+				children: /* @__PURE__ */ (0, f.jsx)(dt, {
 					value: `${s.frost_temperature.toFixed(1)}°`,
 					onLower: () => c("frost_temperature", Math.max(5, s.frost_temperature - .5)),
 					onRaise: () => c("frost_temperature", Math.min(16, s.frost_temperature + .5))
@@ -9181,7 +9188,7 @@ function st({ getHass: e, device: t, channel: n, info: r }) {
 		]
 	})] });
 }
-var ct = {
+var lt = {
 	warm: "On. The rooms are warm.",
 	no_rooms: "On, but no room has recent valve readings.",
 	stopped: "Stopped for now: it starts again once the rooms are warm.",
@@ -9192,8 +9199,8 @@ var ct = {
 	preheat: "On. Pre-heating comes first.",
 	waiting: "On. The boiler rests a few minutes between requests."
 };
-function lt({ getHass: e, device: t, info: n }) {
-	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = n.enabled ? n.active ? `On. Heating for ${E(n.rooms)} now.` : ct[n.reason ?? ""] ?? "On." : "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does.", s = (e, t, n) => /* @__PURE__ */ (0, f.jsx)("div", {
+function ut({ getHass: e, device: t, info: n }) {
+	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = n.enabled ? n.active ? `On. Heating for ${E(n.rooms)} now.` : lt[n.reason ?? ""] ?? "On." : "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does.", s = (e, t, n) => /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "segmented",
 		role: "radiogroup",
 		"aria-label": n,
@@ -9256,8 +9263,8 @@ function lt({ getHass: e, device: t, info: n }) {
 		})
 	] });
 }
-function ut({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
-	let a = dt(n, i), o = dt(r, i);
+function dt({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
+	let a = ft(n, i), o = ft(r, i);
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "adjust",
 		children: [e && /* @__PURE__ */ (0, f.jsx)("span", {
@@ -9286,7 +9293,7 @@ function ut({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
 		})]
 	});
 }
-function dt(e, t) {
+function ft(e, t) {
 	let n = (0, u.useRef)(e);
 	n.current = e;
 	let r = (0, u.useRef)(), i = () => window.clearTimeout(r.current);
@@ -9309,14 +9316,14 @@ function dt(e, t) {
 	} : { onClick: () => e(0) };
 }
 // src/Onboarding.tsx
-var ft = {
+var pt = {
 	rooms: "Your rooms",
 	demand: "Rooms call for heat",
 	tidy: "Tidy up duplicate entities",
 	outside: "Outside temperature",
 	done: "You're all set"
 };
-function pt({ getHass: e, devices: t, status: n, onDone: r }) {
+function mt({ getHass: e, devices: t, status: n, onDone: r }) {
 	let i = t.filter((e) => e.channels.includes("heat")), a = [
 		"rooms",
 		...i.length ? ["demand"] : [],
@@ -9342,17 +9349,17 @@ function pt({ getHass: e, devices: t, status: n, onDone: r }) {
 					"aria-hidden": "true",
 					children: a.map((e, t) => /* @__PURE__ */ (0, f.jsx)("i", { className: t === o ? "on" : t < o ? "past" : "" }, e))
 				}),
-				/* @__PURE__ */ (0, f.jsx)("h2", { children: ft[c] }),
+				/* @__PURE__ */ (0, f.jsx)("h2", { children: pt[c] }),
 				/* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "onboarding-body",
 					children: [
-						c === "rooms" && /* @__PURE__ */ (0, f.jsx)(mt, { getHass: e }),
+						c === "rooms" && /* @__PURE__ */ (0, f.jsx)(ht, { getHass: e }),
 						c === "demand" && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsx)("p", {
 							className: "muted",
 							children: "Lets a cold room bring the heating on even when the receiver's own thermostat is warm enough. Off unless you turn it on."
 						}), /* @__PURE__ */ (0, f.jsx)("div", {
 							className: "settings-group",
-							children: i.map((t) => n[t.entry_id]?.heat?.demand ? /* @__PURE__ */ (0, f.jsx)(lt, {
+							children: i.map((t) => n[t.entry_id]?.heat?.demand ? /* @__PURE__ */ (0, f.jsx)(ut, {
 								getHass: e,
 								device: t,
 								info: n[t.entry_id].heat.demand
@@ -9361,12 +9368,12 @@ function pt({ getHass: e, devices: t, status: n, onDone: r }) {
 						c === "tidy" && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsx)("p", {
 							className: "muted",
 							children: "ZHA or Zigbee2MQTT makes its own thermostat for the receiver and for each valve."
-						}), /* @__PURE__ */ (0, f.jsx)(et, {
+						}), /* @__PURE__ */ (0, f.jsx)(tt, {
 							getHass: e,
 							bare: !0,
 							empty: "Nothing to tidy up: no duplicates found."
 						})] }),
-						c === "outside" && /* @__PURE__ */ (0, f.jsx)(ht, { getHass: e }),
+						c === "outside" && /* @__PURE__ */ (0, f.jsx)(gt, { getHass: e }),
 						c === "done" && /* @__PURE__ */ (0, f.jsxs)("p", {
 							className: "muted",
 							children: [
@@ -9399,7 +9406,7 @@ function pt({ getHass: e, devices: t, status: n, onDone: r }) {
 		})
 	});
 }
-function mt({ getHass: e }) {
+function ht({ getHass: e }) {
 	let [t, n] = (0, u.useState)(null), [r, i] = (0, u.useState)(0), [a, o] = (0, u.useState)(!1), [s, c] = (0, u.useState)(""), l = () => e().callWS({ type: "hive_local/rooms/suggest" }).then((e) => n(e.rooms.length)).catch((e) => c(b(e)));
 	return (0, u.useEffect)(() => {
 		l(), e().callWS({ type: "hive_local/rooms/valves" }).then((e) => i(new Set(e.valves.map((e) => e.room).filter(Boolean)).size)).catch(() => {});
@@ -9436,7 +9443,7 @@ function mt({ getHass: e }) {
 				]
 			})
 		}),
-		a && /* @__PURE__ */ (0, f.jsx)(Ze, {
+		a && /* @__PURE__ */ (0, f.jsx)(Qe, {
 			getHass: e,
 			onDone: () => {
 				o(!1), l(), e().callWS({ type: "hive_local/rooms/valves" }).then((e) => i(new Set(e.valves.map((e) => e.room).filter(Boolean)).size)).catch(() => {});
@@ -9444,7 +9451,7 @@ function mt({ getHass: e }) {
 		})
 	] });
 }
-function ht({ getHass: e }) {
+function gt({ getHass: e }) {
 	let [t, n] = (0, u.useState)(null), [r, i] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/settings" }).then(n).catch((e) => i(b(e)));
@@ -9499,7 +9506,7 @@ function ht({ getHass: e }) {
 	] });
 }
 // src/RoomSchedule.tsx
-var gt = {
+var _t = {
 	max_transitions: 6,
 	heat_min: 5,
 	heat_max: 32,
@@ -9507,12 +9514,12 @@ var gt = {
 	boost_max_minutes: 360,
 	water_on: 22,
 	water_off: 1
-}, _t = (e) => e[0].toUpperCase() + e.slice(1, 3);
-function vt(e) {
+}, vt = (e) => e[0].toUpperCase() + e.slice(1, 3);
+function L(e) {
 	return e == null ? "its clock isn't set" : `its clock is ${Math.round(Math.abs(e) / 60)} min ${e < 0 ? "behind" : "ahead"}`;
 }
-function L({ getHass: e, room: t, onClose: n, page: r }) {
-	let [i, a] = (0, u.useState)([]), [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)(gt), [d, m] = (0, u.useState)(!1), [h, _] = (0, u.useState)(!1), [v, y] = (0, u.useState)(null);
+function yt({ getHass: e, room: t, onClose: n, page: r }) {
+	let [i, a] = (0, u.useState)([]), [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)(_t), [d, m] = (0, u.useState)(!1), [h, _] = (0, u.useState)(!1), [v, y] = (0, u.useState)(null);
 	(0, u.useEffect)(() => {
 		let e = (e) => !r && e.key === "Escape" && n?.();
 		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
@@ -9528,7 +9535,7 @@ function L({ getHass: e, room: t, onClose: n, page: r }) {
 				room_id: t.id
 			});
 			return a(n.valves), s(n.differs), l({
-				...gt,
+				..._t,
 				...n.limits
 			}), n;
 		},
@@ -9537,7 +9544,7 @@ function L({ getHass: e, room: t, onClose: n, page: r }) {
 				type: "hive_local/rooms/schedule/set",
 				room_id: t.id,
 				schedule: n
-			}), i = g.filter((e) => e in r.schedule).map(_t).join(", "), a = r.valves.filter((e) => e.clock?.set).map((e) => e.name), o = r.valves.filter((e) => e.error), s = [o.length ? `Wrote ${i} to ${r.valves.length - o.length} of ${r.valves.length} valves. ${o.map((e) => `${e.name}: ${e.error}`).join(" ")}` : `Wrote ${i} to ${r.valves.length === 1 ? "the valve" : `all ${r.valves.length} valves`}. Read back to confirm they kept it.`, a.length ? `Set the clock on ${a.join(", ")}.` : ""];
+			}), i = g.filter((e) => e in r.schedule).map(vt).join(", "), a = r.valves.filter((e) => e.clock?.set).map((e) => e.name), o = r.valves.filter((e) => e.error), s = [o.length ? `Wrote ${i} to ${r.valves.length - o.length} of ${r.valves.length} valves. ${o.map((e) => `${e.name}: ${e.error}`).join(" ")}` : `Wrote ${i} to ${r.valves.length === 1 ? "the valve" : `all ${r.valves.length} valves`}. Read back to confirm they kept it.`, a.length ? `Set the clock on ${a.join(", ")}.` : ""];
 			return {
 				schedule: r.schedule,
 				note: s.filter(Boolean).join(" "),
@@ -9571,8 +9578,8 @@ function L({ getHass: e, room: t, onClose: n, page: r }) {
 			m(!1);
 		}
 	}, T = [];
-	for (let e of i) e.error ? T.push(`${e.name} didn't answer: ${e.error}`) : e.complete || T.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && T.push(`${e.name}: ${vt(e.clock.offset)}. It's set when you save.`);
-	o.length && i.length > 1 && T.push(`The valves have different times on ${o.map(_t).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
+	for (let e of i) e.error ? T.push(`${e.name} didn't answer: ${e.error}`) : e.complete || T.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && T.push(`${e.name}: ${L(e.clock.offset)}. It's set when you save.`);
+	o.length && i.length > 1 && T.push(`The valves have different times on ${o.map(vt).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
 	let E = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
 		r ? /* @__PURE__ */ (0, f.jsx)("div", {
 			className: "room-schedule-head",
@@ -9661,7 +9668,7 @@ function L({ getHass: e, room: t, onClose: n, page: r }) {
 	});
 }
 // src/RoomPage.tsx
-var yt = [
+var bt = [
 	{
 		id: "control",
 		label: "Control"
@@ -9675,7 +9682,7 @@ var yt = [
 		label: "History"
 	}
 ];
-function bt({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, onTab: o, onBack: s }) {
+function xt({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, onTab: o, onBack: s }) {
 	let [c, l] = (0, u.useState)(null), [d, m] = (0, u.useState)(!1);
 	(0, u.useEffect)(() => {
 		let n = e().connection.subscribeMessage((e) => {
@@ -9692,7 +9699,7 @@ function bt({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 	if ((0, u.useEffect)(() => {
 		a === "schedule" && g(!0);
 	}, [a]), !c) return null;
-	let _ = n.length > 1, v = r[c.receiver ?? n[0]?.entry_id ?? ""]?.heat, y = [_ ? c.receiver_name : null, Je(c)].filter(Boolean).join(" · ");
+	let _ = n.length > 1, v = r[c.receiver ?? n[0]?.entry_id ?? ""]?.heat, y = [_ ? c.receiver_name : null, Ye(c)].filter(Boolean).join(" · ");
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "device-page room-page",
 		children: [
@@ -9714,7 +9721,7 @@ function bt({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "page-tabs",
 				role: "tablist",
-				children: yt.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+				children: bt.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 					role: "tab",
 					"aria-selected": e.id === a,
 					className: e.id === a ? "on" : "",
@@ -9730,19 +9737,19 @@ function bt({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 				defaultMinutes: v?.boost_minutes ?? 60,
 				defaultTemp: v?.boost_temperature ?? 21,
 				page: !0
-			}), /* @__PURE__ */ (0, f.jsx)(Ye, {
+			}), /* @__PURE__ */ (0, f.jsx)(Xe, {
 				getHass: e,
 				room: c
 			})] }),
 			h && /* @__PURE__ */ (0, f.jsx)("div", {
 				hidden: a !== "schedule",
-				children: /* @__PURE__ */ (0, f.jsx)(L, {
+				children: /* @__PURE__ */ (0, f.jsx)(yt, {
 					getHass: e,
 					room: c,
 					page: !0
 				})
 			}),
-			a === "history" && /* @__PURE__ */ (0, f.jsx)(xe, {
+			a === "history" && /* @__PURE__ */ (0, f.jsx)(Se, {
 				getHass: e,
 				devices: n,
 				roomId: c.id
@@ -9751,7 +9758,7 @@ function bt({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 	});
 }
 // src/App.tsx
-var xt = [
+var St = [
 	{
 		id: "overview",
 		label: "Overview",
@@ -9773,7 +9780,7 @@ var xt = [
 		icon: "tune-variant"
 	}
 ];
-function St({ getHass: e, narrow: t, onToggleMenu: n }) {
+function Ct({ getHass: e, narrow: t, onToggleMenu: n }) {
 	let [r, i] = (0, u.useState)([]), [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)({}), [l, d] = (0, u.useState)("overview"), [m, g] = (0, u.useState)(null), [_, v] = (0, u.useState)("control"), [y, x] = (0, u.useState)(null), [S, C] = (0, u.useState)(""), [w, T] = (0, u.useState)(!1);
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/devices" }).then((e) => {
@@ -9813,7 +9820,7 @@ function St({ getHass: e, narrow: t, onToggleMenu: n }) {
 					/* @__PURE__ */ (0, f.jsx)("nav", {
 						className: "tabs",
 						role: "tablist",
-						children: xt.map((e) => /* @__PURE__ */ (0, f.jsxs)("button", {
+						children: St.map((e) => /* @__PURE__ */ (0, f.jsxs)("button", {
 							role: "tab",
 							"aria-selected": e.id === l,
 							className: e.id === l ? "on" : "",
@@ -9832,7 +9839,7 @@ function St({ getHass: e, narrow: t, onToggleMenu: n }) {
 					className: "empty-state",
 					children: [/* @__PURE__ */ (0, f.jsx)(h, { size: 56 }), /* @__PURE__ */ (0, f.jsx)("p", { children: "No receivers yet. Add one under Settings → Devices & services → Add integration → Hive Local." })]
 				}),
-				A && a ? /* @__PURE__ */ (0, f.jsx)(Oe, {
+				A && a ? /* @__PURE__ */ (0, f.jsx)(ke, {
 					getHass: e,
 					device: A,
 					channel: m.channel,
@@ -9842,7 +9849,7 @@ function St({ getHass: e, narrow: t, onToggleMenu: n }) {
 					tab: _,
 					onTab: v,
 					onBack: () => g(null)
-				}, `${m.entry}-${m.channel}`) : y ? /* @__PURE__ */ (0, f.jsx)(bt, {
+				}, `${m.entry}-${m.channel}`) : y ? /* @__PURE__ */ (0, f.jsx)(xt, {
 					getHass: e,
 					roomId: y,
 					devices: r,
@@ -9860,18 +9867,18 @@ function St({ getHass: e, narrow: t, onToggleMenu: n }) {
 						onOpenDevice: O,
 						onOpenRoom: E
 					}),
-					l === "devices" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(je, {
+					l === "devices" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Me, {
 						getHass: e,
 						devices: r,
 						status: s,
 						limits: a,
 						onOpenDevice: O
 					}),
-					l === "stats" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(xe, {
+					l === "stats" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Se, {
 						getHass: e,
 						devices: r
 					}),
-					l === "settings" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Qe, {
+					l === "settings" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)($e, {
 						getHass: e,
 						devices: r,
 						status: s,
@@ -9879,7 +9886,7 @@ function St({ getHass: e, narrow: t, onToggleMenu: n }) {
 					})
 				] })
 			] }),
-			w && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(pt, {
+			w && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(mt, {
 				getHass: e,
 				devices: r,
 				status: s,
@@ -9894,7 +9901,7 @@ function St({ getHass: e, narrow: t, onToggleMenu: n }) {
 	});
 }
 // src/styles.ts
-var Ct = "\n:host {\n  /* One accent for everything that's on or active (heating, hot water, boosting, the selected tab):\n     HA's heating orange. Heating and hot water share it. */\n  --hl-brand: var(--state-climate-heat-color, #ff8100);\n  --hl-heat: var(--hl-brand);\n  /* Main buttons and selected chips use the accent too, not HA's blue. */\n  --hl-accent: var(--hl-brand);\n  --hl-water: var(--hl-brand);\n  --hl-idle: var(--secondary-text-color, #727272);\n  --hl-off: var(--disabled-text-color, #9e9e9e);\n  --hl-off-fill: color-mix(in srgb, var(--secondary-text-color, #888) 18%, transparent);\n  --hl-radius: 18px;\n  --hl-soft: color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent);\n  display: block; height: 100%;\n  background: var(--primary-background-color);\n  color: var(--primary-text-color);\n  font-family: var(--ha-font-family-body, var(--paper-font-body1_-_font-family, Roboto, sans-serif));\n  -webkit-font-smoothing: antialiased;\n}\n* { box-sizing: border-box; }\n.panel { min-height: 100%; background: var(--primary-background-color); }\n.icon-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; --mdc-icon-size: 20px; }\n.spacer { flex: 1; }\n.muted { color: var(--secondary-text-color); font-size: 14px; }\n.small { font-size: 12px; }\n\n/* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */\nheader { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }\n/* In the companion app HA already places the panel below the status bar / Dynamic Island,\n   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own\n   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */\nheader::before { content: \"\"; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }\n.toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }\n.brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }\n.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }\n.logo-mark { display: block; flex: none; }\n.empty-state .logo-mark { opacity: .9; }\n.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; margin-right: -10px; border-radius: 50%; }\n.toolbar-row .menu:hover { background: rgba(255,255,255,.12); }\n/* Pills. flex-shrink 0: when they don't fit beside the logo, the tabs wrap onto their own row instead of squashing. */\n.tabs { display: flex; align-items: center; gap: 4px; flex: 1 0 auto; padding: 10px 0; margin: 0 -8px 0 -4px; overflow-x: auto; scrollbar-width: none; }\n.tabs::-webkit-scrollbar { display: none; }\n.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; opacity: .75; padding: 0 14px; font-weight: 500; letter-spacing: .01em; }\n.tabs button:hover:not(:disabled) { opacity: .95; background: color-mix(in srgb, currentColor 7%, transparent); }\n.tabs button:active:not(:disabled) { transform: none; }\n.tabs button.on, .tabs button.on:hover:not(:disabled) { opacity: 1; background: color-mix(in srgb, currentColor 13%, transparent); }\n.tabs .icon-wrap { --mdc-icon-size: 18px; }\n\nmain { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }\n.stack { display: flex; flex-direction: column; gap: 16px; }\n\n/* Cards */\n.card { background: var(--card-background-color); border-radius: var(--hl-radius); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }\n.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n.title { display: flex; align-items: center; gap: 12px; }\n.title-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; --mdc-icon-size: 22px; color: var(--secondary-text-color); background: var(--hl-soft); }\n.card.heat { --hl-accent: var(--hl-heat); }\n.card.water { --hl-accent: var(--hl-water); }\nh2 { font-size: 18px; font-weight: 500; margin: 0; }\nh3 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--secondary-text-color); margin: 6px 0 -4px; }\n\n/* Controls */\nbutton { font: inherit; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); cursor: pointer; transition: background .15s, border-color .15s, opacity .15s, transform .1s; }\nbutton:hover:not(:disabled) { background: var(--hl-soft); }\nbutton:active:not(:disabled) { transform: scale(.98); }\nbutton:disabled { opacity: .45; cursor: default; }\nbutton:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }\nbutton.primary { background: var(--hl-accent, var(--primary-color)); color: var(--text-primary-color, #fff); border-color: transparent; }\nbutton.primary:hover:not(:disabled) { background: var(--hl-accent, var(--primary-color)); filter: brightness(1.08); }\nbutton.ghost { border-color: transparent; background: transparent; color: var(--secondary-text-color); padding-right: 6px; }\nbutton.round { width: 36px; height: 36px; padding: 0; border-radius: 50%; }\nbutton.danger { color: var(--error-color); border-color: transparent; background: transparent; }\nselect, input[type=time], input[type=text] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }\n.toolbar, .actions, .inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }\n.inline-row { gap: 12px; }\n\n.segmented { display: inline-flex; padding: 3px; gap: 3px; border-radius: 12px; background: var(--hl-soft); }\n.segmented.full { display: flex; }\n.segmented.full button { flex: 1; }\n.segmented button { border: 0; border-radius: 9px; background: transparent; padding: 7px 12px; color: var(--secondary-text-color); }\n.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); font-weight: 500; }\n.segmented .raw { padding: 7px 10px; }\n\n.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--secondary-text-color); white-space: nowrap; }\n.chip .icon-wrap { --mdc-icon-size: 14px; }\n.chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }\n.chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }\n.channel-switch { align-self: flex-start; }\n.channel-switch .icon-wrap { --mdc-icon-size: 18px; }\n.chips { display: flex; flex-wrap: wrap; gap: 8px; }\n.chip-btn { border-radius: 999px; padding: 6px 14px; }\n.chip-btn.on { background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 16%, transparent); border-color: var(--hl-accent, var(--primary-color)); color: var(--hl-accent, var(--primary-color)); font-weight: 500; }\n\n.status { padding: 10px 14px; border-radius: 10px; font-size: 14px; background: var(--hl-soft); }\n.status.ok { background: color-mix(in srgb, var(--success-color, #43a047) 14%, transparent); }\n.status.error { background: color-mix(in srgb, var(--error-color, #db4437) 14%, transparent); color: var(--error-color); }\n.status.busy { opacity: .8; }\n\n.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 48px 16px; color: var(--secondary-text-color); }\n.empty-state .icon-wrap { --mdc-icon-size: 48px; opacity: .5; }\n\n/* Overview: quick actions, filter pills and device cards */\n.home { display: flex; flex-direction: column; gap: 12px; }\n.home-section { font-size: 19px; font-weight: 700; letter-spacing: -.01em; text-transform: none; letter-spacing: 0; color: var(--primary-text-color); margin: 6px 0 0; }\n.quick { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; }\n.quick::-webkit-scrollbar { display: none; }\n.quick-action { flex: none; padding: 0; gap: 0; border-radius: 14px; overflow: hidden; align-items: stretch; background: var(--card-background-color); }\n.quick-icon { padding-left: 14px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); }\n.quick-icon .icon-wrap { --mdc-icon-size: 22px; }\n.quick-label { padding: 14px 16px 14px 10px; white-space: nowrap; }\n.pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }\n.pills::-webkit-scrollbar { display: none; }\n.pill { flex: none; border-radius: 999px; padding: 8px 16px; background: var(--card-background-color); }\n.pill .icon-wrap { --mdc-icon-size: 18px; }\n.pill.on, .pill.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; border-color: transparent; font-weight: 500; }\n/* Cards in a row share its height. */\n.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: stretch; }\n.card.device { padding: 0; gap: 0; overflow: hidden; height: 100%; }\n.device-head { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 20px; cursor: pointer; outline: none; transition: background .15s; }\n.device-head:hover { background: color-mix(in srgb, var(--primary-text-color) 3%, transparent); }\n.device-head:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color); }\n.device-row { display: flex; align-items: center; gap: 12px; }\n/* Our own icon tile: a rounded square with the logo's warm gradient (not a diamond). */\n/* Icons: grey, in a shaded rounded box. */\n.device-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); background: var(--hl-soft); }\n.device-icon .icon-wrap { --mdc-icon-size: 22px; }\n.device-name { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; font-weight: 500; }\n.device-name .small { font-weight: 400; }\n.device-status { font-size: 14px; color: var(--secondary-text-color); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }\n.device-status b { color: var(--primary-text-color); font-weight: 600; }\n.status-icon { --mdc-icon-size: 18px; color: var(--hl-heat); }\n.water .status-icon { color: var(--hl-water); }\n.device-big { flex: 1; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; }\n.device-big span { font-size: 30px; line-height: 1.1; }\n.device-big small { grid-column: 1 / -1; font-size: 13px; letter-spacing: 0; color: var(--secondary-text-color); margin-top: 4px; font-weight: 400; }\n.device-action { min-width: 120px; height: 50px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 500; color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 12%, transparent); }\n.device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }\n.device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }\n.status-icon.done { color: var(--success-color, #43a047); }\n.status-icon.away { color: var(--secondary-text-color); }\n.stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }\n.device.heat { --hl-accent: var(--hl-heat); }\n.device.water { --hl-accent: var(--hl-water); }\n.device-name .warn { color: var(--warning-color, #ffa600); font-weight: 500; }\n\n\n.device-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; border-top: 1px solid var(--divider-color); }\n.schedule-link { align-self: center; }\n\n/* Boost sheet: slides up from the bottom on phones, a centred dialog on wider screens */\n.sheet-backdrop { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); animation: hl-fade .15s ease-out; }\n.sheet { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; padding: 14px 20px 18px; border-radius: 24px; background: var(--card-background-color); color: var(--primary-text-color); }\n.sheet.heat { --hl-accent: var(--hl-heat); }\n.sheet.water { --hl-accent: var(--hl-water); }\n.sheet-handle { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--divider-color); }\n.sheet-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }\n.sheet-title h2 { font-size: 24px; }\n.sheet-field { display: flex; flex-direction: column; gap: 10px; }\n.sheet-label { font-size: 14px; color: var(--secondary-text-color); }\n.sheet-temp { display: flex; align-items: center; gap: 12px; }\n.sheet-step { width: 52px; height: 52px; flex: none; border-color: var(--divider-color); }\n.sheet-step .icon-wrap { --mdc-icon-size: 24px; }\n.sheet-temp-value { flex: 1; text-align: center; padding: 14px 0; border-radius: 18px; color: #fff; font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; background: linear-gradient(135deg, #FF9F43, #F0532B); }\n.sheet-lengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }\n.sheet-lengths button { height: 46px; padding: 0 6px; border-radius: 12px; }\n.sheet-lengths button.on, .sheet-lengths button.on:hover:not(:disabled) { background: var(--hl-accent); border-color: transparent; color: #fff; font-weight: 500; }\n.sheet-live { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; padding: 8px 0; }\n.sheet-live .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); }\n.sheet-go { height: 52px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 600; color: #fff; background: var(--hl-accent); }\n.sheet-go:hover:not(:disabled) { background: var(--hl-accent); filter: brightness(1.06); }\n.sheet-go.stop { color: var(--error-color, #db4437); background: color-mix(in srgb, var(--error-color, #db4437) 12%, transparent); }\n.sheet-cancel { align-self: center; padding: 8px 16px; font-size: 15px; }\n@keyframes hl-fade { from { opacity: 0; } }\n@keyframes hl-rise { from { transform: translateY(40px); opacity: 0; } }\n\n/* Device controls (opened from a card) */\n.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }\n.channel { gap: 16px; }\n.holiday-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--hl-soft); }\n.holiday-row > .icon-wrap { --mdc-icon-size: 20px; color: var(--secondary-text-color); }\n.holiday-text { flex: 1; }\n.holiday-row > button { padding: 6px 12px; }\n.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }\n.target-text { display: flex; flex-direction: column; gap: 2px; }\n.target-label { font-size: 16px; font-weight: 500; }\n.target-control { display: inline-flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.target-btn { width: 44px; height: 44px; background: var(--card-background-color); }\n.target-btn .icon-wrap { --mdc-icon-size: 22px; }\n.target-value { min-width: 76px; text-align: center; font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }\n.target-value.pending { color: var(--hl-heat); }\n.card-actions { display: flex; align-items: center; gap: 8px; }\n\n.stepper { background: var(--card-background-color); }\n.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }\n.stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }\n.stepper button.round:hover { background: var(--card-background-color); }\n.stepper-value { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }\n\n/* Schedule: a status line, a strip of day circles, and the day's time slots */\n.sched { display: flex; flex-direction: column; gap: 14px; position: relative; padding-bottom: 72px; }\n\n.sched-status { margin: 0; font-size: 14px; }\n.sched-days { display: flex; justify-content: space-between; gap: 4px; padding: 12px 10px; border-radius: 16px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.sched-day { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: transparent; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }\n.sched-day:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.sched-day.today { border-color: var(--hl-brand); color: var(--hl-brand); }\n.sched-day.on, .sched-day.on:hover:not(:disabled) { background: var(--hl-brand); border-color: var(--hl-brand); color: #fff; }\n.sched-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning-color, #ffa600); border: 2px solid var(--card-background-color); }\n.sched-list { display: flex; flex-direction: column; gap: 4px; }\n.sched-empty { margin: 8px 4px; }\n.slot { justify-content: flex-start; gap: 18px; padding: 10px 8px; border: 0; border-radius: 16px; background: transparent; text-align: left; }\n.slot:hover:not(:disabled) { background: var(--hl-soft); }\n.slot-badge { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid var(--hl-brand); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; color: var(--primary-text-color); font-variant-numeric: tabular-nums; }\n.slot-badge.off { border-color: var(--divider-color); color: var(--secondary-text-color); }\n.slot-badge.off .icon-wrap, .slot-badge.add .icon-wrap { --mdc-icon-size: 24px; }\n.slot-badge.add { border: 2px dashed var(--divider-color); color: var(--secondary-text-color); }\n.slot-time { flex: 1; font-size: 20px; font-variant-numeric: tabular-nums; }\n.slot-add .slot-time { font-size: 16px; color: var(--secondary-text-color); }\n.slot-chev { color: var(--secondary-text-color); }\n/* Unwritten changes: a dark bar across the bottom, above the tab bar on phones. */\n.sched-save { position: sticky; bottom: 16px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--primary-text-color); color: var(--card-background-color); }\n.sched-save-icon { --mdc-icon-size: 20px; opacity: .8; }\n.sched-undo { border: 0; background: transparent; color: inherit; opacity: .8; padding: 10px 12px; }\n.sched-undo:hover:not(:disabled) { background: color-mix(in srgb, var(--card-background-color) 12%, transparent); opacity: 1; }\n.sched-write { border: 0; border-radius: 12px; padding: 10px 20px; background: var(--hl-brand); color: #fff; font-weight: 600; }\n.sched-write:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab-wrap.raised { bottom: 96px; }\n.sched-changed { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }\n.fab-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 4; }\n.fab { width: 56px; height: 56px; padding: 0; border-radius: 50%; border: 0; background: var(--hl-brand); color: #fff; }\n.fab:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab .icon-wrap { --mdc-icon-size: 26px; }\n.fab-backdrop { position: fixed; inset: 0; }\n.fab-menu { position: absolute; right: 0; bottom: 66px; min-width: 260px; display: flex; flex-direction: column; padding: 6px; border-radius: 16px; background: var(--card-background-color); border: 1px solid var(--divider-color); }\n.fab-menu button { justify-content: flex-start; gap: 10px; border: 0; border-radius: 10px; padding: 12px; background: transparent; }\n.fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }\n.sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }\n.sheet-note { margin: -6px 0 0; text-align: center; }\n.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }\n.room-sheet .sheet-live .heating { color: var(--hl-heat); }\n.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }\n.room-sheet-actions .sheet-cancel { align-self: auto; }\n.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }\n.room-sensor-note.warn { color: var(--warning-color, #ffa600); }\n.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }\n.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }\n.sensor-toggle-main:hover:not(:disabled) { background: transparent; }\n.sensor-toggle .warn { color: var(--warning-color, #ffa600); }\n.room-sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: transparent; text-align: left; justify-content: flex-start; }\n.room-sheet-row > span:nth-child(2) { flex: 1; }\n.room-sheet-row .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule { max-width: 520px; gap: 14px; }\n.room-schedule-head { display: flex; align-items: center; gap: 10px; }\n.room-schedule-head .page-title { flex: 1; min-width: 0; }\n.room-schedule-head h2 { font-size: 20px; }\n.room-schedule-note { margin: 0; }\n.room-schedule-mode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--divider-color); }\n.room-schedule-mode-text { flex: 1; }\n.room-schedule-mode .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule-notes { margin: 0; padding: 10px 14px 10px 28px; border-radius: 10px; background: color-mix(in srgb, var(--warning-color, #ffa600) 12%, transparent); display: flex; flex-direction: column; gap: 4px; }\n/* In a dialog the save bar and the ... button stick to its bottom instead of the page's. */\n.sched.embedded { padding-bottom: 0; }\n.sched.embedded .sched-save { bottom: 0; }\n.sched.embedded .fab-wrap { position: sticky; right: auto; bottom: 0; align-self: flex-end; }\n.sched.embedded .fab-wrap.raised { bottom: 64px; }\n.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }\n.valve-picker { display: flex; flex-direction: column; gap: 8px; }\n.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }\n.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }\n.valve-search input::-webkit-search-cancel-button { display: none; }\n.valve-search .round { width: 30px; height: 30px; }\n.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }\n.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow-y: auto; max-height: 300px; overscroll-behavior: contain; }\n.valve-pick { flex: none; display: flex; align-items: center; gap: 8px; padding-right: 10px; }\n.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }\n.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }\n.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }\n.valve-pick-main:hover:not(:disabled) { background: transparent; }\n.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }\n.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }\n.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }\n.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }\n.valve-pick .warn { color: var(--warning-color, #ffa600); }\n.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }\n.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }\n.setup-list { display: flex; flex-direction: column; gap: 8px; }\n.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }\n.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }\n.setup-room.on select { margin: 0 14px 12px 48px; }\n.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }\n.setup-room-main:hover:not(:disabled) { background: transparent; }\n.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }\n.setup-room-text .muted { font-weight: 400; }\n.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }\n.danger-text { color: var(--error-color, #db4437); }\n\n/* Rooms */\n.dot-heating { width: 10px; height: 10px; border-radius: 50%; background: var(--hl-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl-accent) 20%, transparent); flex: none; }\n.zone { display: flex; flex-direction: column; gap: 10px; }\n.zone h3 { margin: 4px 0 0; }\n/* Room for the + button under the last room / device. */\n.devices-page { padding-bottom: 72px; }\n.add-options { display: flex; flex-direction: column; gap: 8px; }\n.add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }\n.add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }\n.add-text b { font-size: 16px; font-weight: 500; }\n.room.heating { --hl-accent: var(--hl-heat); }\n.chip.heating { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.room-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }\n.room-temp { font-size: 44px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }\n.room-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }\n.room-target { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }\n.valves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }\n.valve { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--divider-color); font-size: 14px; }\n.valve.off { opacity: .6; }\n.valve-icon { color: var(--secondary-text-color); --mdc-icon-size: 18px; }\n.valve-icon.heating { color: var(--hl-heat); }\n.valve-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.valve-temps { font-variant-numeric: tabular-nums; white-space: nowrap; }\n.battery { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.battery .icon-wrap { --mdc-icon-size: 16px; }\n.battery.low { color: var(--warning-color, #ffa600); font-weight: 500; }\n.room-editor h2 { margin: 0; }\n.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }\n.field > span, .field legend { font-size: 13px; font-weight: 500; color: var(--secondary-text-color); padding: 0; margin-bottom: 6px; }\n.field input[type=text], .field select { width: 100%; max-width: 420px; }\n.checklist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 0; }\n.checklist > .muted { width: 100%; }\n.pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }\n\n/* A device's own page (heating or hot water), opened from its Overview card */\n.device-page { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n.device-page .history { max-width: none; }\n.page-head { display: flex; align-items: center; gap: 6px; margin-left: -8px; }\n.page-head .round { width: 44px; height: 44px; }\n.page-head .round .icon-wrap { --mdc-icon-size: 26px; }\n.page-title { display: flex; flex-direction: column; }\n.page-title h2 { font-size: 24px; font-weight: 700; }\n.page-tabs { margin-top: -6px; }\n.card.device.page .device-head, .device-head.static { cursor: default; }\n.device-head.static:hover { background: transparent; }\n.room-device.off { opacity: .6; }\n/* Devices tab: about the hardware, not controlling it */\n.card.hw { gap: 12px; padding: 18px; }\n.card.hw.off .device-name, .card.hw.off .facts { opacity: .6; }\n.hw-head { display: flex; align-items: center; gap: 12px; }\n.online { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--secondary-text-color); white-space: nowrap; }\n.online i { width: 8px; height: 8px; border-radius: 50%; background: var(--success-color, #43a047); }\n.online.no { color: var(--warning-color, #ffa600); }\n.online.no i { background: var(--warning-color, #ffa600); }\n.facts { display: flex; flex-wrap: wrap; gap: 6px; }\n.fact { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); }\n.fact .icon-wrap { --mdc-icon-size: 15px; }\n.fact.warn { color: var(--warning-color, #ffa600); background: color-mix(in srgb, var(--warning-color, #ffa600) 14%, transparent); font-weight: 500; }\n.hw-links { display: flex; gap: 8px; border-top: 1px solid var(--divider-color); margin: 0 -18px -18px; padding: 6px 8px; }\n.hw-link { flex: 1; justify-content: space-between; border: 0; background: transparent; padding: 10px; font-weight: 500; }\n.hw-link .icon-wrap { color: var(--secondary-text-color); }\n/* The page title already names it. */\n.card.device.page .device-icon, .card.device.page .device-name { display: none; }\n.history-title { font-size: 24px; font-weight: 700; margin: 4px 0 -4px; }\n.card.device.page .device-head:hover { background: transparent; }\n\n/* Stats: heating history, after the Hive app's */\n.history { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n/* Underlined tabs: receivers on Stats, Control · Schedule · History on a device page. */\n.history-tabs, .page-tabs { display: flex; border-bottom: 1px solid var(--divider-color); overflow-x: auto; scrollbar-width: none; }\n.history-tabs button, .page-tabs button { flex: 1 0 auto; border: 0; border-radius: 0; background: transparent; padding: 12px 16px; color: var(--secondary-text-color); border-bottom: 2px solid transparent; margin-bottom: -1px; }\n.history-tabs button.on, .page-tabs button.on { color: var(--hl-brand); border-bottom-color: var(--hl-brand); font-weight: 500; }\n.history-controls { display: flex; justify-content: space-between; gap: 12px; }\n.history-toggle { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.history-toggle button { min-width: 44px; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--primary-text-color); }\n.history-toggle button.wide { min-width: 60px; }\n.history-toggle button.on, .history-toggle button.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; }\n.history-toggle .icon-wrap { --mdc-icon-size: 22px; }\n.history-date { display: flex; align-items: center; justify-content: space-between; }\n.history-date .round { width: 40px; height: 40px; }\n.history-range { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--hl-brand) 10%, transparent); color: var(--hl-brand); font-weight: 500; }\n.history-range .icon-wrap { --mdc-icon-size: 18px; }\n.history-summary { display: flex; align-items: center; padding: 22px 12px; border-radius: 18px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.history-summary > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }\n.history-summary b { font-size: 30px; font-weight: 500; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }\n.history-summary i { width: 1px; align-self: stretch; background: var(--divider-color); }\n.history-note { margin: -6px 0 0; text-align: center; }\n.history-empty { text-align: center; margin: 24px 0; }\n.history-rows { display: flex; flex-direction: column; gap: 6px; }\n.history-key { align-self: flex-end; display: inline-flex; align-items: center; gap: 4px; }\n.history-key .icon-wrap { --mdc-icon-size: 16px; }\n.history-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 12px; min-height: 40px; }\n.history-day { font-size: 15px; color: var(--secondary-text-color); white-space: nowrap; }\n.history-day span { display: inline-block; min-width: 20px; margin-left: 4px; }\n.history-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.history-bar i { display: block; height: 14px; max-width: calc(100% - 64px); border-radius: 999px; background: var(--hl-brand); flex: none; }\n.history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.history-temps span { color: var(--primary-text-color); }\n.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }\n.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }\n.history-key span { display: inline-flex; align-items: center; gap: 4px; }\n.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-hint { text-align: center; margin: 0; }\n\n/* Settings: grouped rows, like a phone's settings */\n.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }\n.settings-section { display: flex; flex-direction: column; gap: 8px; }\n.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }\n.settings-help { margin: -2px 4px 2px; }\n.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }\n.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }\n.settings-group > * + * { border-top: 1px solid var(--divider-color); }\n.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }\n.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }\n.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }\n.settings-row select { max-width: 220px; }\n.onboarding { max-width: 560px; gap: 14px; }\n.onboarding h2 { margin: 0; text-align: center; }\n.onboarding-body { display: flex; flex-direction: column; gap: 12px; }\n.onboarding-body p { margin: 0; line-height: 1.45; }\n.onboarding-dots { display: flex; justify-content: center; gap: 6px; }\n.onboarding-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--divider-color); }\n.onboarding-dots i.past { background: color-mix(in srgb, var(--hl-brand) 45%, transparent); }\n.onboarding-dots i.on { background: var(--hl-brand); width: 20px; border-radius: 4px; }\n.onboarding-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }\n.onboarding-actions .sheet-go { flex: 1; }\n.room-control { display: flex; flex-direction: column; gap: 14px; }\n.room-control .room-sensor-note { margin-top: 0; justify-content: flex-start; text-align: left; }\n.room-mode-note { margin: -4px 0 0; }\n.room-schedule-page { max-width: none; display: flex; flex-direction: column; gap: 12px; }\n.room-schedule-page .room-schedule-head { justify-content: flex-end; }\n.tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }\n.stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }\n.settings-chevron { color: var(--secondary-text-color); }\n.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }\n.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }\n.adjust .stepper-value { min-width: 72px; text-align: center; }\n@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }\ncode { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }\n\n@media (max-width: 600px) {\n  /* Room at the bottom for the tab bar (and the phone's home indicator). */\n  main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }\n  .card { padding: 14px; }\n  .grid { grid-template-columns: 1fr; }\n  .device-grid { grid-template-columns: 1fr; }\n    .device-big { font-size: 46px; }\n  .sheet-backdrop { align-items: flex-end; padding: 0; }\n  .fab-wrap { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); }\n  /* Above the bottom tab bar. */\n  .sched-save { bottom: calc(84px + env(safe-area-inset-bottom)); }\n  .fab-wrap.raised { bottom: calc(156px + env(safe-area-inset-bottom)); }\n  .sched.embedded .sched-save, .sched.embedded .fab-wrap { bottom: 0; right: auto; }\n  .sched.embedded .fab-wrap.raised { bottom: 64px; }\n  .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }\n  /* Phones: the tabs become a bar along the bottom, in thumb reach. */\n  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;\n    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;\n    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); }\n  .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }\n  .tabs button:hover:not(:disabled) { background: transparent; }\n  .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }\n  .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }\n  .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }\n}\n", wt = class extends HTMLElement {
+var wt = "\n:host {\n  /* One accent for everything that's on or active (heating, hot water, boosting, the selected tab):\n     HA's heating orange. Heating and hot water share it. */\n  --hl-brand: var(--state-climate-heat-color, #ff8100);\n  --hl-heat: var(--hl-brand);\n  /* Main buttons and selected chips use the accent too, not HA's blue. */\n  --hl-accent: var(--hl-brand);\n  --hl-water: var(--hl-brand);\n  --hl-idle: var(--secondary-text-color, #727272);\n  --hl-off: var(--disabled-text-color, #9e9e9e);\n  --hl-off-fill: color-mix(in srgb, var(--secondary-text-color, #888) 18%, transparent);\n  --hl-radius: 18px;\n  --hl-soft: color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent);\n  display: block; height: 100%;\n  background: var(--primary-background-color);\n  color: var(--primary-text-color);\n  font-family: var(--ha-font-family-body, var(--paper-font-body1_-_font-family, Roboto, sans-serif));\n  -webkit-font-smoothing: antialiased;\n}\n* { box-sizing: border-box; }\n.panel { min-height: 100%; background: var(--primary-background-color); }\n.icon-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; --mdc-icon-size: 20px; }\n.spacer { flex: 1; }\n.muted { color: var(--secondary-text-color); font-size: 14px; }\n.small { font-size: 12px; }\n\n/* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */\nheader { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }\n/* In the companion app HA already places the panel below the status bar / Dynamic Island,\n   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own\n   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */\nheader::before { content: \"\"; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }\n.toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }\n.brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }\n.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }\n.logo-mark { display: block; flex: none; }\n.empty-state .logo-mark { opacity: .9; }\n.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; margin-right: -10px; border-radius: 50%; }\n.toolbar-row .menu:hover { background: rgba(255,255,255,.12); }\n/* Pills. flex-shrink 0: when they don't fit beside the logo, the tabs wrap onto their own row instead of squashing. */\n.tabs { display: flex; align-items: center; gap: 4px; flex: 1 0 auto; padding: 10px 0; margin: 0 -8px 0 -4px; overflow-x: auto; scrollbar-width: none; }\n.tabs::-webkit-scrollbar { display: none; }\n.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; opacity: .75; padding: 0 14px; font-weight: 500; letter-spacing: .01em; }\n.tabs button:hover:not(:disabled) { opacity: .95; background: color-mix(in srgb, currentColor 7%, transparent); }\n.tabs button:active:not(:disabled) { transform: none; }\n.tabs button.on, .tabs button.on:hover:not(:disabled) { opacity: 1; background: color-mix(in srgb, currentColor 13%, transparent); }\n.tabs .icon-wrap { --mdc-icon-size: 18px; }\n\nmain { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }\n.stack { display: flex; flex-direction: column; gap: 16px; }\n\n/* Cards */\n.card { background: var(--card-background-color); border-radius: var(--hl-radius); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }\n.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n.title { display: flex; align-items: center; gap: 12px; }\n.title-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; --mdc-icon-size: 22px; color: var(--secondary-text-color); background: var(--hl-soft); }\n.card.heat { --hl-accent: var(--hl-heat); }\n.card.water { --hl-accent: var(--hl-water); }\nh2 { font-size: 18px; font-weight: 500; margin: 0; }\nh3 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--secondary-text-color); margin: 6px 0 -4px; }\n\n/* Controls */\nbutton { font: inherit; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); cursor: pointer; transition: background .15s, border-color .15s, opacity .15s, transform .1s; }\nbutton:hover:not(:disabled) { background: var(--hl-soft); }\nbutton:active:not(:disabled) { transform: scale(.98); }\nbutton:disabled { opacity: .45; cursor: default; }\nbutton:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }\nbutton.primary { background: var(--hl-accent, var(--primary-color)); color: var(--text-primary-color, #fff); border-color: transparent; }\nbutton.primary:hover:not(:disabled) { background: var(--hl-accent, var(--primary-color)); filter: brightness(1.08); }\nbutton.ghost { border-color: transparent; background: transparent; color: var(--secondary-text-color); padding-right: 6px; }\nbutton.round { width: 36px; height: 36px; padding: 0; border-radius: 50%; }\nbutton.danger { color: var(--error-color); border-color: transparent; background: transparent; }\nselect, input[type=time], input[type=text] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }\n.toolbar, .actions, .inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }\n.inline-row { gap: 12px; }\n\n.segmented { display: inline-flex; padding: 3px; gap: 3px; border-radius: 12px; background: var(--hl-soft); }\n.segmented.full { display: flex; }\n.segmented.full button { flex: 1; }\n.segmented button { border: 0; border-radius: 9px; background: transparent; padding: 7px 12px; color: var(--secondary-text-color); }\n.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); font-weight: 500; }\n.segmented .raw { padding: 7px 10px; }\n\n.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--secondary-text-color); white-space: nowrap; }\n.chip .icon-wrap { --mdc-icon-size: 14px; }\n.chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }\n.chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }\n.channel-switch { align-self: flex-start; }\n.channel-switch .icon-wrap { --mdc-icon-size: 18px; }\n.chips { display: flex; flex-wrap: wrap; gap: 8px; }\n.chip-btn { border-radius: 999px; padding: 6px 14px; }\n.chip-btn.on { background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 16%, transparent); border-color: var(--hl-accent, var(--primary-color)); color: var(--hl-accent, var(--primary-color)); font-weight: 500; }\n\n.status { padding: 10px 14px; border-radius: 10px; font-size: 14px; background: var(--hl-soft); }\n.status.ok { background: color-mix(in srgb, var(--success-color, #43a047) 14%, transparent); }\n.status.error { background: color-mix(in srgb, var(--error-color, #db4437) 14%, transparent); color: var(--error-color); }\n.status.busy { opacity: .8; }\n\n.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 48px 16px; color: var(--secondary-text-color); }\n.empty-state .icon-wrap { --mdc-icon-size: 48px; opacity: .5; }\n\n/* Overview: quick actions, filter pills and device cards */\n.home { display: flex; flex-direction: column; gap: 12px; }\n.home-section { font-size: 19px; font-weight: 700; letter-spacing: -.01em; text-transform: none; letter-spacing: 0; color: var(--primary-text-color); margin: 6px 0 0; }\n.quick { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; }\n.quick::-webkit-scrollbar { display: none; }\n.quick-action { flex: none; padding: 0; gap: 0; border-radius: 14px; overflow: hidden; align-items: stretch; background: var(--card-background-color); }\n.quick-icon { padding-left: 14px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); }\n.quick-icon .icon-wrap { --mdc-icon-size: 22px; }\n.quick-label { padding: 14px 16px 14px 10px; white-space: nowrap; }\n.pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }\n.pills::-webkit-scrollbar { display: none; }\n.pill { flex: none; border-radius: 999px; padding: 8px 16px; background: var(--card-background-color); }\n.pill .icon-wrap { --mdc-icon-size: 18px; }\n.pill.on, .pill.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; border-color: transparent; font-weight: 500; }\n/* Cards in a row share its height. */\n.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: stretch; }\n.card.device { padding: 0; gap: 0; overflow: hidden; height: 100%; }\n.device-head { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 20px; cursor: pointer; outline: none; transition: background .15s; }\n.device-head:hover { background: color-mix(in srgb, var(--primary-text-color) 3%, transparent); }\n.device-head:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color); }\n.device-row { display: flex; align-items: center; gap: 12px; }\n/* Our own icon tile: a rounded square with the logo's warm gradient (not a diamond). */\n/* Icons: grey, in a shaded rounded box. */\n.device-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); background: var(--hl-soft); }\n.device-icon .icon-wrap { --mdc-icon-size: 22px; }\n.device-name { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; font-weight: 500; }\n.device-name .small { font-weight: 400; }\n.device-status { font-size: 14px; color: var(--secondary-text-color); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }\n.device-status b { color: var(--primary-text-color); font-weight: 600; }\n.status-icon { --mdc-icon-size: 18px; color: var(--hl-heat); }\n.water .status-icon { color: var(--hl-water); }\n.device-big { flex: 1; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; }\n.device-big span { font-size: 30px; line-height: 1.1; }\n.device-big small { grid-column: 1 / -1; font-size: 13px; letter-spacing: 0; color: var(--secondary-text-color); margin-top: 4px; font-weight: 400; }\n.device-action { min-width: 120px; height: 50px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 500; color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 12%, transparent); }\n.device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }\n.device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }\n.status-icon.done { color: var(--success-color, #43a047); }\n.status-icon.away { color: var(--secondary-text-color); }\n.stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }\n.device.heat { --hl-accent: var(--hl-heat); }\n.device.water { --hl-accent: var(--hl-water); }\n.device-name .warn { color: var(--warning-color, #ffa600); font-weight: 500; }\n\n\n.device-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; border-top: 1px solid var(--divider-color); }\n.schedule-link { align-self: center; }\n\n/* Boost sheet: slides up from the bottom on phones, a centred dialog on wider screens */\n.sheet-backdrop { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); animation: hl-fade .15s ease-out; }\n.sheet { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; padding: 14px 20px 18px; border-radius: 24px; background: var(--card-background-color); color: var(--primary-text-color); }\n.sheet.heat { --hl-accent: var(--hl-heat); }\n.sheet.water { --hl-accent: var(--hl-water); }\n.sheet-handle { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--divider-color); }\n.sheet-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }\n.sheet-title h2 { font-size: 24px; }\n.sheet-field { display: flex; flex-direction: column; gap: 10px; }\n.sheet-label { font-size: 14px; color: var(--secondary-text-color); }\n.sheet-temp { display: flex; align-items: center; gap: 12px; }\n.sheet-step { width: 52px; height: 52px; flex: none; border-color: var(--divider-color); }\n.sheet-step .icon-wrap { --mdc-icon-size: 24px; }\n.sheet-temp-value { flex: 1; text-align: center; padding: 14px 0; border-radius: 18px; color: #fff; font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; background: linear-gradient(135deg, #FF9F43, #F0532B); }\n.sheet-lengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }\n.sheet-lengths button { height: 46px; padding: 0 6px; border-radius: 12px; }\n.sheet-lengths button.on, .sheet-lengths button.on:hover:not(:disabled) { background: var(--hl-accent); border-color: transparent; color: #fff; font-weight: 500; }\n.sheet-live { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; padding: 8px 0; }\n.sheet-live .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); }\n.sheet-go { height: 52px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 600; color: #fff; background: var(--hl-accent); }\n.sheet-go:hover:not(:disabled) { background: var(--hl-accent); filter: brightness(1.06); }\n.sheet-go.stop { color: var(--error-color, #db4437); background: color-mix(in srgb, var(--error-color, #db4437) 12%, transparent); }\n.sheet-cancel { align-self: center; padding: 8px 16px; font-size: 15px; }\n@keyframes hl-fade { from { opacity: 0; } }\n@keyframes hl-rise { from { transform: translateY(40px); opacity: 0; } }\n\n/* Device controls (opened from a card) */\n.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }\n.channel { gap: 16px; }\n.holiday-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--hl-soft); }\n.holiday-row > .icon-wrap { --mdc-icon-size: 20px; color: var(--secondary-text-color); }\n.holiday-text { flex: 1; }\n.holiday-row > button { padding: 6px 12px; }\n.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }\n.target-text { display: flex; flex-direction: column; gap: 2px; }\n.target-label { font-size: 16px; font-weight: 500; }\n.target-control { display: inline-flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.target-btn { width: 44px; height: 44px; background: var(--card-background-color); }\n.target-btn .icon-wrap { --mdc-icon-size: 22px; }\n.target-value { min-width: 76px; text-align: center; font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }\n.target-value.pending { color: var(--hl-heat); }\n.card-actions { display: flex; align-items: center; gap: 8px; }\n\n.stepper { background: var(--card-background-color); }\n.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }\n.stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }\n.stepper button.round:hover { background: var(--card-background-color); }\n.stepper-value { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }\n\n/* Schedule: a status line, a strip of day circles, and the day's time slots */\n.sched { display: flex; flex-direction: column; gap: 14px; position: relative; padding-bottom: 72px; }\n\n.sched-status { margin: 0; font-size: 14px; }\n.sched-days { display: flex; justify-content: space-between; gap: 4px; padding: 12px 10px; border-radius: 16px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.sched-day { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: transparent; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }\n.sched-day:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.sched-day.today { border-color: var(--hl-brand); color: var(--hl-brand); }\n.sched-day.on, .sched-day.on:hover:not(:disabled) { background: var(--hl-brand); border-color: var(--hl-brand); color: #fff; }\n.sched-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning-color, #ffa600); border: 2px solid var(--card-background-color); }\n.sched-list { display: flex; flex-direction: column; gap: 4px; }\n.sched-empty { margin: 8px 4px; }\n.slot { justify-content: flex-start; gap: 18px; padding: 10px 8px; border: 0; border-radius: 16px; background: transparent; text-align: left; }\n.slot:hover:not(:disabled) { background: var(--hl-soft); }\n.slot-badge { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid var(--hl-brand); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; color: var(--primary-text-color); font-variant-numeric: tabular-nums; }\n.slot-badge.off { border-color: var(--divider-color); color: var(--secondary-text-color); }\n.slot-badge.off .icon-wrap, .slot-badge.add .icon-wrap { --mdc-icon-size: 24px; }\n.slot-badge.add { border: 2px dashed var(--divider-color); color: var(--secondary-text-color); }\n.slot-time { flex: 1; font-size: 20px; font-variant-numeric: tabular-nums; }\n.slot-add .slot-time { font-size: 16px; color: var(--secondary-text-color); }\n.slot-chev { color: var(--secondary-text-color); }\n/* Unwritten changes: a dark bar across the bottom, above the tab bar on phones. */\n.sched-save { position: sticky; bottom: 16px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--primary-text-color); color: var(--card-background-color); }\n.sched-save-icon { --mdc-icon-size: 20px; opacity: .8; }\n.sched-undo { border: 0; background: transparent; color: inherit; opacity: .8; padding: 10px 12px; }\n.sched-undo:hover:not(:disabled) { background: color-mix(in srgb, var(--card-background-color) 12%, transparent); opacity: 1; }\n.sched-write { border: 0; border-radius: 12px; padding: 10px 20px; background: var(--hl-brand); color: #fff; font-weight: 600; }\n.sched-write:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab-wrap.raised { bottom: 96px; }\n.sched-changed { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }\n.fab-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 4; }\n.fab { width: 56px; height: 56px; padding: 0; border-radius: 50%; border: 0; background: var(--hl-brand); color: #fff; }\n.fab:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab .icon-wrap { --mdc-icon-size: 26px; }\n.fab-backdrop { position: fixed; inset: 0; }\n.fab-menu { position: absolute; right: 0; bottom: 66px; min-width: 260px; display: flex; flex-direction: column; padding: 6px; border-radius: 16px; background: var(--card-background-color); border: 1px solid var(--divider-color); }\n.fab-menu button { justify-content: flex-start; gap: 10px; border: 0; border-radius: 10px; padding: 12px; background: transparent; }\n.fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }\n.sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }\n.sheet-note { margin: -6px 0 0; text-align: center; }\n.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }\n.room-sheet .sheet-live .heating { color: var(--hl-heat); }\n.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }\n.room-sheet-actions .sheet-cancel { align-self: auto; }\n.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }\n.room-sensor-note.warn { color: var(--warning-color, #ffa600); }\n.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }\n.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }\n.sensor-toggle-main:hover:not(:disabled) { background: transparent; }\n.sensor-toggle .warn { color: var(--warning-color, #ffa600); }\n.room-sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: transparent; text-align: left; justify-content: flex-start; }\n.room-sheet-row > span:nth-child(2) { flex: 1; }\n.room-sheet-row .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule { max-width: 520px; gap: 14px; }\n.room-schedule-head { display: flex; align-items: center; gap: 10px; }\n.room-schedule-head .page-title { flex: 1; min-width: 0; }\n.room-schedule-head h2 { font-size: 20px; }\n.room-schedule-note { margin: 0; }\n.room-schedule-mode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--divider-color); }\n.room-schedule-mode-text { flex: 1; }\n.room-schedule-mode .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule-notes { margin: 0; padding: 10px 14px 10px 28px; border-radius: 10px; background: color-mix(in srgb, var(--warning-color, #ffa600) 12%, transparent); display: flex; flex-direction: column; gap: 4px; }\n/* In a dialog the save bar and the ... button stick to its bottom instead of the page's. */\n.sched.embedded { padding-bottom: 0; }\n.sched.embedded .sched-save { bottom: 0; }\n.sched.embedded .fab-wrap { position: sticky; right: auto; bottom: 0; align-self: flex-end; }\n.sched.embedded .fab-wrap.raised { bottom: 64px; }\n.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }\n.valve-picker { display: flex; flex-direction: column; gap: 8px; }\n.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }\n.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }\n.valve-search input::-webkit-search-cancel-button { display: none; }\n.valve-search .round { width: 30px; height: 30px; }\n.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }\n.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow-y: auto; max-height: 300px; overscroll-behavior: contain; }\n.valve-pick { flex: none; display: flex; align-items: center; gap: 8px; padding-right: 10px; }\n.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }\n.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }\n.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }\n.valve-pick-main:hover:not(:disabled) { background: transparent; }\n.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }\n.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }\n.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }\n.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }\n.valve-pick .warn { color: var(--warning-color, #ffa600); }\n.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }\n.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }\n.setup-list { display: flex; flex-direction: column; gap: 8px; }\n.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }\n.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }\n.setup-room.on select { margin: 0 14px 12px 48px; }\n.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }\n.setup-room-main:hover:not(:disabled) { background: transparent; }\n.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }\n.setup-room-text .muted { font-weight: 400; }\n.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }\n.danger-text { color: var(--error-color, #db4437); }\n\n/* Rooms */\n.dot-heating { width: 10px; height: 10px; border-radius: 50%; background: var(--hl-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl-accent) 20%, transparent); flex: none; }\n.zone { display: flex; flex-direction: column; gap: 10px; }\n.zone h3 { margin: 4px 0 0; }\n/* Room for the + button under the last room / device. */\n.devices-page { padding-bottom: 72px; }\n.add-options { display: flex; flex-direction: column; gap: 8px; }\n.add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }\n.add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }\n.add-text b { font-size: 16px; font-weight: 500; }\n.room.heating { --hl-accent: var(--hl-heat); }\n.chip.heating { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.room-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }\n.room-temp { font-size: 44px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }\n.room-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }\n.room-target { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }\n.valves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }\n.valve { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--divider-color); font-size: 14px; }\n.valve.off { opacity: .6; }\n.valve-icon { color: var(--secondary-text-color); --mdc-icon-size: 18px; }\n.valve-icon.heating { color: var(--hl-heat); }\n.valve-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.valve-temps { font-variant-numeric: tabular-nums; white-space: nowrap; }\n.battery { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.battery .icon-wrap { --mdc-icon-size: 16px; }\n.battery.low { color: var(--warning-color, #ffa600); font-weight: 500; }\n.room-editor h2 { margin: 0; }\n.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }\n.field > span, .field legend { font-size: 13px; font-weight: 500; color: var(--secondary-text-color); padding: 0; margin-bottom: 6px; }\n.field input[type=text], .field select { width: 100%; max-width: 420px; }\n.checklist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 0; }\n.checklist > .muted { width: 100%; }\n.pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }\n\n/* A device's own page (heating or hot water), opened from its Overview card */\n.device-page { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n.device-page .history { max-width: none; }\n.page-head { display: flex; align-items: center; gap: 6px; margin-left: -8px; }\n.page-head .round { width: 44px; height: 44px; }\n.page-head .round .icon-wrap { --mdc-icon-size: 26px; }\n.page-title { display: flex; flex-direction: column; }\n.page-title h2 { font-size: 24px; font-weight: 700; }\n.page-tabs { margin-top: -6px; }\n.card.device.page .device-head, .device-head.static { cursor: default; }\n.device-head.static:hover { background: transparent; }\n.room-device.off { opacity: .6; }\n/* Devices tab: about the hardware, not controlling it */\n.card.hw { gap: 12px; padding: 18px; }\n.card.hw.off .device-name, .card.hw.off .facts { opacity: .6; }\n.hw-head { display: flex; align-items: center; gap: 12px; }\n.online { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--secondary-text-color); white-space: nowrap; }\n.online i { width: 8px; height: 8px; border-radius: 50%; background: var(--success-color, #43a047); }\n.online.no { color: var(--warning-color, #ffa600); }\n.online.no i { background: var(--warning-color, #ffa600); }\n.facts { display: flex; flex-wrap: wrap; gap: 6px; }\n.fact { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); }\n.fact .icon-wrap { --mdc-icon-size: 15px; }\n.fact.warn { color: var(--warning-color, #ffa600); background: color-mix(in srgb, var(--warning-color, #ffa600) 14%, transparent); font-weight: 500; }\n.hw-links { display: flex; gap: 8px; border-top: 1px solid var(--divider-color); margin: 0 -18px -18px; padding: 6px 8px; }\n.hw-link { flex: 1; justify-content: space-between; border: 0; background: transparent; padding: 10px; font-weight: 500; }\n.hw-link .icon-wrap { color: var(--secondary-text-color); }\n/* The page title already names it. */\n.card.device.page .device-icon, .card.device.page .device-name { display: none; }\n.history-title { font-size: 24px; font-weight: 700; margin: 4px 0 -4px; }\n.card.device.page .device-head:hover { background: transparent; }\n\n/* Stats: heating history, after the Hive app's */\n.history { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n/* Underlined tabs: receivers on Stats, Control · Schedule · History on a device page. */\n.history-tabs, .page-tabs { display: flex; border-bottom: 1px solid var(--divider-color); overflow-x: auto; scrollbar-width: none; }\n.history-tabs button, .page-tabs button { flex: 1 0 auto; border: 0; border-radius: 0; background: transparent; padding: 12px 16px; color: var(--secondary-text-color); border-bottom: 2px solid transparent; margin-bottom: -1px; }\n.history-tabs button.on, .page-tabs button.on { color: var(--hl-brand); border-bottom-color: var(--hl-brand); font-weight: 500; }\n.history-controls { display: flex; justify-content: space-between; gap: 12px; }\n.history-toggle { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.history-toggle button { min-width: 44px; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--primary-text-color); }\n.history-toggle button.wide { min-width: 60px; }\n.history-toggle button.on, .history-toggle button.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; }\n.history-toggle .icon-wrap { --mdc-icon-size: 22px; }\n.history-date { display: flex; align-items: center; justify-content: space-between; }\n.history-date .round { width: 40px; height: 40px; }\n.history-range { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--hl-brand) 10%, transparent); color: var(--hl-brand); font-weight: 500; }\n.history-range .icon-wrap { --mdc-icon-size: 18px; }\n.history-summary { display: flex; align-items: center; padding: 22px 12px; border-radius: 18px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.history-summary > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }\n.history-summary b { font-size: 30px; font-weight: 500; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }\n.history-summary i { width: 1px; align-self: stretch; background: var(--divider-color); }\n.history-note { margin: -6px 0 0; text-align: center; }\n.history-empty { text-align: center; margin: 24px 0; }\n.history-rows { display: flex; flex-direction: column; gap: 6px; }\n.history-key { align-self: flex-end; display: inline-flex; align-items: center; gap: 4px; }\n.history-key .icon-wrap { --mdc-icon-size: 16px; }\n.history-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 12px; min-height: 40px; }\n.history-day { font-size: 15px; color: var(--secondary-text-color); white-space: nowrap; }\n.history-day span { display: inline-block; min-width: 20px; margin-left: 4px; }\n.history-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.history-bar i { display: block; height: 14px; max-width: calc(100% - 64px); border-radius: 999px; background: var(--hl-brand); flex: none; }\n.history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.history-temps span { color: var(--primary-text-color); }\n.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }\n.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }\n.history-key span { display: inline-flex; align-items: center; gap: 4px; }\n.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-hint { text-align: center; margin: 0; }\n\n/* Settings: grouped rows, like a phone's settings */\n.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }\n.settings-section { display: flex; flex-direction: column; gap: 8px; }\n.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }\n.settings-help { margin: -2px 4px 2px; }\n.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }\n.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }\n.settings-group > * + * { border-top: 1px solid var(--divider-color); }\n.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }\n.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }\n.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }\n.settings-row select { max-width: 220px; }\n.onboarding { max-width: 560px; gap: 14px; }\n.onboarding h2 { margin: 0; text-align: center; }\n.onboarding-body { display: flex; flex-direction: column; gap: 12px; }\n.onboarding-body p { margin: 0; line-height: 1.45; }\n.onboarding-dots { display: flex; justify-content: center; gap: 6px; }\n.onboarding-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--divider-color); }\n.onboarding-dots i.past { background: color-mix(in srgb, var(--hl-brand) 45%, transparent); }\n.onboarding-dots i.on { background: var(--hl-brand); width: 20px; border-radius: 4px; }\n.onboarding-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }\n.onboarding-actions .sheet-go { flex: 1; }\n.room-control { display: flex; flex-direction: column; gap: 14px; }\n.room-control .room-sensor-note { margin-top: 0; justify-content: flex-start; text-align: left; }\n.room-mode-note { margin: -4px 0 0; }\n.room-schedule-page { max-width: none; display: flex; flex-direction: column; gap: 12px; }\n.room-schedule-page .room-schedule-head { justify-content: flex-end; }\n.tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }\n.stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }\n.settings-chevron { color: var(--secondary-text-color); }\n.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }\n.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }\n.adjust .stepper-value { min-width: 72px; text-align: center; }\n@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }\ncode { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }\n\n@media (max-width: 600px) {\n  /* Room at the bottom for the tab bar (and the phone's home indicator). */\n  main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }\n  .card { padding: 14px; }\n  .grid { grid-template-columns: 1fr; }\n  .device-grid { grid-template-columns: 1fr; }\n    .device-big { font-size: 46px; }\n  .sheet-backdrop { align-items: flex-end; padding: 0; }\n  .fab-wrap { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); }\n  /* Above the bottom tab bar. */\n  .sched-save { bottom: calc(84px + env(safe-area-inset-bottom)); }\n  .fab-wrap.raised { bottom: calc(156px + env(safe-area-inset-bottom)); }\n  .sched.embedded .sched-save, .sched.embedded .fab-wrap { bottom: 0; right: auto; }\n  .sched.embedded .fab-wrap.raised { bottom: 64px; }\n  .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }\n  /* Phones: the tabs become a bar along the bottom, in thumb reach. */\n  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;\n    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;\n    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); }\n  .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }\n  .tabs button:hover:not(:disabled) { background: transparent; }\n  .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }\n  .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }\n  .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }\n}\n", Tt = class extends HTMLElement {
 	_hass;
 	_narrow = !1;
 	_root;
@@ -9908,7 +9915,7 @@ var Ct = "\n:host {\n  /* One accent for everything that's on or active (heating
 	connectedCallback() {
 		if (!this._root) {
 			let e = this.shadowRoot ?? this.attachShadow({ mode: "open" }), t = document.createElement("style");
-			t.textContent = Ct;
+			t.textContent = wt;
 			let n = document.createElement("div");
 			e.append(t, n), this._root = (0, d.createRoot)(n);
 		}
@@ -9918,7 +9925,7 @@ var Ct = "\n:host {\n  /* One accent for everything that's on or active (heating
 		this._root?.unmount(), this._root = void 0, this.shadowRoot?.replaceChildren();
 	}
 	_render() {
-		this._root && this._hass && this._root.render(/* @__PURE__ */ (0, f.jsx)(St, {
+		this._root && this._hass && this._root.render(/* @__PURE__ */ (0, f.jsx)(Ct, {
 			getHass: () => this._hass,
 			narrow: this._narrow,
 			onToggleMenu: () => this.dispatchEvent(new Event("hass-toggle-menu", {
@@ -9928,4 +9935,4 @@ var Ct = "\n:host {\n  /* One accent for everything that's on or active (heating
 		}));
 	}
 };
-customElements.get("hive-local-panel") || customElements.define("hive-local-panel", wt);
+customElements.get("hive-local-panel") || customElements.define("hive-local-panel", Tt);

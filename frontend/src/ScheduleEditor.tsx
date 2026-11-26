@@ -181,7 +181,7 @@ export function ScheduleEditor({
   // Each slot runs until the next one; the day's last runs until the next day's first.
   const nextDay = DAYS[(DAYS.indexOf(day) + 1) % 7];
   const nextFirst = (schedule[nextDay] ?? [])[0]?.time;
-  const isOff = (t: Transition) => (isWater ? t.setpoint < limits.water_on : t.setpoint <= limits.heat_min);
+  const isOff = (t: Transition) => (isWater ? t.setpoint < limits.water_on : offSetpoint(t.setpoint, limits));
 
   let statusLine = "Stored on the receiver, so it keeps running without Home Assistant.";
   if (source?.statusLine) statusLine = source.statusLine;
@@ -331,7 +331,7 @@ function SlotSheet({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-  const off = isWater ? slot.setpoint < limits.water_on : slot.setpoint <= limits.heat_min;
+  const off = isWater ? slot.setpoint < limits.water_on : offSetpoint(slot.setpoint, limits);
   const clamp = (t: number) => Math.min(limits.heat_max, Math.max(5, Math.round(t * 2) / 2));
   const warm = off ? 20 : slot.setpoint;
 
@@ -355,7 +355,7 @@ function SlotSheet({
             <button className={!off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_on : warm })}>
               {isWater ? "On" : "Heat to"}
             </button>
-            <button className={off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_off : limits.heat_min })}>
+            <button className={off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_off : limits.frost ?? limits.heat_min })}>
               Off
             </button>
           </div>
@@ -373,8 +373,8 @@ function SlotSheet({
         )}
         {!isWater && off && (
           <p className="muted small sheet-note">
-            {limits.heat_min > 1
-              ? `Off sets the valves to ${limits.heat_min}°, their lowest.`
+            {limits.frost != null
+              ? `Off holds the room at frost protection, ${limits.frost}° (a Hive valve can't switch off). Change it in Settings → Frost protection.`
               : "Off means the thermostat only keeps the house above its frost protection temperature."}
           </p>
         )}
@@ -388,4 +388,9 @@ function SlotSheet({
       </div>
     </div>
   );
+}
+
+/** An "off" slot: the heating's 1° (or anything at or below the minimum), or the valves' frost protection temperature. */
+function offSetpoint(setpoint: number, limits: Limits): boolean {
+  return setpoint <= limits.heat_min || (limits.frost != null && setpoint === limits.frost);
 }
