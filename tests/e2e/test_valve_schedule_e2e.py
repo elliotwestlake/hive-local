@@ -289,8 +289,8 @@ async def test_zha_valve_read_and_write(hass: HomeAssistant, hass_storage, hass_
     assert msg["success"] and len(valve.time_writes) == 1 and len(valve.schedule_writes) == 3
     assert msg["result"]["valves"][0]["clock"] == {"offset": 0, "ok": True, "set": False}
 
-    # Follow the schedule.
-    await client.send_json({"id": 5, "type": "hive_local/rooms/schedule/mode", "room_id": "lounge", "enabled": True})
+    # The room on Schedule: the valves follow their schedule.
+    await client.send_json({"id": 5, "type": "hive_local/rooms/mode", "room_id": "lounge", "mode": "schedule"})
     msg = await client.receive_json()
     assert msg["success"] and msg["result"] == {"failed": []}
     assert valve.thermostat_writes == [{"programing_oper_mode": 1}]

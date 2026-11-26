@@ -294,13 +294,6 @@ class RoomManager:
         await self._async_save()
         return sorted(failed)
 
-    async def async_schedule_mode_changed(self, room_id: str, enabled: bool) -> None:
-        """The panel's Use it / Stop changed the valves' schedule mode: keep the room's mode in step."""
-        room = self._room(room_id)
-        if enabled or room.get("mode") == ROOM_SCHEDULE:
-            room["mode"] = ROOM_SCHEDULE if enabled else ROOM_MANUAL
-            await self._async_save()
-
     def _target(self, entity_id: str) -> float | None:
         state = self.hass.states.get(entity_id)
         value = state.attributes.get(ATTR_TEMPERATURE) if state else None
