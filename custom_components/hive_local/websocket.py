@@ -35,7 +35,9 @@ hive_local/rooms/schedule/mode {room_id, enabled}  -> {"failed"}  make the valve
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections import Counter
+from collections.abc import Awaitable, Callable, Iterator
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any
@@ -117,6 +119,28 @@ def async_register(hass: HomeAssistant) -> None:
         ws_rooms_schedule_mode,
     ):
         websocket_api.async_register_command(hass, command)
+
+
+# Schedules being read now, by ("receiver", entry_id, channel) or ("room", room_id): a write
+# (or a valve schedule-mode change) waits until the read is over, so it can't cross it.
+DATA_READING = f"{DOMAIN}_schedule_reading"
+STILL_READING = "Still reading the schedule. Save once it's finished."
+
+
+@contextmanager
+def _reading(hass: HomeAssistant, key: tuple[str, ...]) -> Iterator[None]:
+    reading: Counter[tuple[str, ...]] = hass.data.setdefault(DATA_READING, Counter())
+    reading[key] += 1
+    try:
+        yield
+    finally:
+        reading[key] -= 1
+        if reading[key] <= 0:
+            del reading[key]
+
+
+def _being_read(hass: HomeAssistant, key: tuple[str, ...]) -> bool:
+    return hass.data.get(DATA_READING, Counter())[key] > 0
 
 
 def _entries(hass: HomeAssistant) -> list[HiveConfigEntry]:
@@ -207,7 +231,8 @@ def ws_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
 @websocket_api.async_response
 @_with_entry
 async def ws_get(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
-    schedule, complete = await entry.runtime_data.transport.async_read(msg["channel"])
+    with _reading(hass, ("receiver", entry.entry_id, msg["channel"])):
+        schedule, complete = await entry.runtime_data.transport.async_read(msg["channel"])
     entry.runtime_data.preheat.schedule_seen(msg["channel"], schedule)
     connection.send_result(msg["id"], {"schedule": schedule, "complete": complete})
 
@@ -218,6 +243,9 @@ async def ws_get(hass: HomeAssistant, connection, msg: dict[str, Any], entry: Hi
 @websocket_api.async_response
 @_with_entry
 async def ws_set(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
+    if _being_read(hass, ("receiver", entry.entry_id, msg["channel"])):
+        connection.send_error(msg["id"], "busy", STILL_READING)
+        return
     clean = validate(
         msg["schedule"],
         max_transitions=MAX_TRANSITIONS,
@@ -627,7 +655,9 @@ async def ws_rooms_cancel_boost(hass, connection, msg: dict[str, Any], rooms: Ro
 @websocket_api.async_response
 @_rooms_handler
 async def ws_rooms_schedule_get(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
-    connection.send_result(msg["id"], await valve_schedule.async_read_room(hass, rooms, msg["room_id"]))
+    with _reading(hass, ("room", msg["room_id"])):
+        result = await valve_schedule.async_read_room(hass, rooms, msg["room_id"])
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(
@@ -636,6 +666,9 @@ async def ws_rooms_schedule_get(hass, connection, msg: dict[str, Any], rooms: Ro
 @websocket_api.async_response
 @_rooms_handler
 async def ws_rooms_schedule_set(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    if _being_read(hass, ("room", msg["room_id"])):
+        connection.send_error(msg["id"], "busy", STILL_READING)
+        return
     connection.send_result(
         msg["id"], await valve_schedule.async_write_room(hass, rooms, msg["room_id"], msg["schedule"])
     )
@@ -647,6 +680,9 @@ async def ws_rooms_schedule_set(hass, connection, msg: dict[str, Any], rooms: Ro
 @websocket_api.async_response
 @_rooms_handler
 async def ws_rooms_schedule_mode(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    if _being_read(hass, ("room", msg["room_id"])):
+        connection.send_error(msg["id"], "busy", STILL_READING)
+        return
     connection.send_result(
         msg["id"], await valve_schedule.async_set_room_schedule_mode(hass, rooms, msg["room_id"], msg["enabled"])
     )

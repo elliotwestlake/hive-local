@@ -42,6 +42,7 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
   const [differs, setDiffers] = useState<string[]>([]);
   const [limits, setLimits] = useState<Limits>(LIMITS);
   const [modeBusy, setModeBusy] = useState(false);
+  const [reading, setReading] = useState(false);
   const [modeNote, setModeNote] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
     () => ({
       noun: "valves",
       embedded: true,
+      onReading: setReading,
       statusLine: "Kept on each valve, so it runs without Home Assistant. Saving writes the changed days to every valve in the room.",
       read: async () => {
         const r = await getHass().callWS<{ schedule: Schedule; complete: boolean; differs: string[]; valves: ValveRead[]; limits: Partial<Limits> }>({
@@ -145,7 +147,7 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
                   ? `${notFollowing.length === valves.length ? "The valves don't" : `${notFollowing.map((v) => v.name).join(", ")} doesn't`} follow a schedule: ${notFollowing.length === 1 ? "it stays" : "they stay"} at the target.`
                   : "Couldn't tell whether the valves follow a schedule."}
             </span>
-            <button className="ghost" onClick={() => setMode(!following)} disabled={modeBusy}>
+            <button className="ghost" onClick={() => setMode(!following)} disabled={modeBusy || reading}>
               {following ? "Stop" : "Use it"}
             </button>
           </div>

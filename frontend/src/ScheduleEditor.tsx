@@ -32,6 +32,8 @@ export interface ScheduleSource {
   statusLine?: string;
   /** Inside a dialog: the ⋯ button and the save bar stick to the dialog, not the page. */
   embedded?: boolean;
+  /** Told when a read starts and ends (so the dialog can hold its own controls). */
+  onReading?: (reading: boolean) => void;
 }
 
 const toMin = (t: string) => {
@@ -64,6 +66,8 @@ export function ScheduleEditor({
   const [loaded, setLoaded] = useState<Schedule>({});
   const [day, setDay] = useState<Day>("monday");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  // While reading, nothing can be edited or saved: the read would overwrite it.
+  const [reading, setReading] = useState(false);
 
   const entryId = device?.entry_id;
   const isWater = channel === "water";
@@ -72,6 +76,8 @@ export function ScheduleEditor({
 
   const read = useCallback(async () => {
     setStatus({ kind: "busy", text: `Reading from the ${noun}…` });
+    setReading(true);
+    source?.onReading?.(true);
     try {
       const r = source
         ? await source.read()
@@ -92,6 +98,9 @@ export function ScheduleEditor({
       );
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
+    } finally {
+      setReading(false);
+      source?.onReading?.(false);
     }
     // source is made once per dialog; reading again on every render would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -211,7 +220,7 @@ export function ScheduleEditor({
           const end = transitions[i + 1]?.time ?? (nextFirst ? `${nextFirst} (${label(nextDay)})` : "00:00");
           const off = isOff(t);
           return (
-            <button key={i} className="slot" onClick={() => setEditing(i)}>
+            <button key={i} className="slot" onClick={() => setEditing(i)} disabled={reading}>
               <span
                 className={`slot-badge ${off ? "off" : ""}`}
                 style={off ? undefined : { borderColor: isWater ? "var(--hl-brand)" : heatColor(t.setpoint, range, limits) }}
@@ -223,7 +232,7 @@ export function ScheduleEditor({
             </button>
           );
         })}
-        <button className="slot slot-add" onClick={() => { addTransition(); setEditing(transitions.length); }} disabled={transitions.length >= max}>
+        <button className="slot slot-add" onClick={() => { addTransition(); setEditing(transitions.length); }} disabled={reading || transitions.length >= max}>
           <span className="slot-badge add"><Icon name="plus" /></span>
           <span className="slot-time">{transitions.length >= max ? `${max} times a day at most` : "Add a time"}</span>
         </button>
@@ -235,7 +244,7 @@ export function ScheduleEditor({
           <span className="sched-changed" title={`Changed: ${changedDays.map(label).join(", ")}`}>
             Unsaved changes
           </span>
-          <button className="sched-undo" onClick={() => { setSchedule(loaded); setEditing(null); }}>Undo</button>
+          <button className="sched-undo" onClick={() => { setSchedule(loaded); setEditing(null); }} disabled={reading}>Undo</button>
           <button className="sched-write" onClick={write} disabled={status.kind === "busy"}>
             Save
           </button>
@@ -250,13 +259,13 @@ export function ScheduleEditor({
               <button role="menuitem" onClick={() => { setMenu(false); read(); }} disabled={status.kind === "busy"}>
                 <Icon name="download" /> Read from the {noun}
               </button>
-              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKDAYS); }} disabled={!transitions.length}>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKDAYS); }} disabled={reading || !transitions.length}>
                 <Icon name="content-copy" /> Copy {label(day)} to weekdays
               </button>
-              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKEND); }} disabled={!transitions.length}>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKEND); }} disabled={reading || !transitions.length}>
                 <Icon name="content-copy" /> Copy {label(day)} to the weekend
               </button>
-              <button role="menuitem" onClick={() => { setMenu(false); copyTo([...DAYS]); }} disabled={!transitions.length}>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo([...DAYS]); }} disabled={reading || !transitions.length}>
                 <Icon name="content-copy" /> Copy {label(day)} to every day
               </button>
             </div>
