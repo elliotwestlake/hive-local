@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.11.0](https://github.com/elliotwestlake/hive-local/compare/v0.10.0...v0.11.0) (2026-11-26)
+
+
+### New
+
+* **panel:** a first-run walkthrough ([#42](https://github.com/elliotwestlake/hive-local/issues/42)) ([c99bb38](https://github.com/elliotwestlake/hive-local/commit/c99bb38caf5c89de275e9f922aa24f0742f5a36c))
+* **repairs:** raise repairs issues for common problems ([#13](https://github.com/elliotwestlake/hive-local/issues/13)) ([#36](https://github.com/elliotwestlake/hive-local/issues/36)) ([6fbf3c7](https://github.com/elliotwestlake/hive-local/commit/6fbf3c7746e7b12f44a4972e12f8879655645a84))
+* **rooms:** room sensor on the valves, rooms call for heat, valve schedules, room boost, room pages and entities ([#3](https://github.com/elliotwestlake/hive-local/issues/3), [#4](https://github.com/elliotwestlake/hive-local/issues/4), [#5](https://github.com/elliotwestlake/hive-local/issues/5)) ([#41](https://github.com/elliotwestlake/hive-local/issues/41)) ([2925e75](https://github.com/elliotwestlake/hive-local/commit/2925e7575ef464f850f008718d6e8894c73a3048))
+
 ## [0.10.0](https://github.com/elliotwestlake/hive-local/compare/v0.9.0...v0.10.0) (2026-11-24)
 
 
