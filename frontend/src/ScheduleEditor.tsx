@@ -25,7 +25,8 @@ const label = (d: Day) => d[0].toUpperCase() + d.slice(1, 3);
 export interface ScheduleSource {
   /** What it's stored on, for messages: "receiver", "valves". */
   noun: string;
-  read: () => Promise<{ schedule: Schedule; complete: boolean }>;
+  /** `edited`: the schedule to show, when it differs from what was read (its changes are unsaved); `note` says why. */
+  read: () => Promise<{ schedule: Schedule; complete: boolean; edited?: Schedule; note?: string }>;
   /** Write the changed days; note replaces the usual "Wrote …" message. */
   write: (changed: Schedule) => Promise<{ schedule: Schedule; note?: string; error?: boolean }>;
   /** The line at the top, instead of the receiver's mode. */
@@ -79,18 +80,20 @@ export function ScheduleEditor({
     setReading(true);
     source?.onReading?.(true);
     try {
-      const r = source
+      const r: { schedule: Schedule; complete: boolean; edited?: Schedule; note?: string } = source
         ? await source.read()
         : await getHass().callWS<{ schedule: Schedule; complete: boolean }>({
             type: "hive_local/get",
             entry_id: entryId,
             channel,
           });
-      setSchedule(r.schedule);
+      setSchedule(r.edited ?? r.schedule);
       setLoaded(r.schedule);
       const n = Object.keys(r.schedule).length;
       setStatus(
-        r.complete
+        r.complete && r.note
+          ? { kind: "ok", text: r.note }
+          : r.complete
           ? { kind: "ok", text: `Schedule read from the ${noun}` }
           : n
             ? { kind: "error", text: `Only got ${n}/7 days — try reading again` }
