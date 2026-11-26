@@ -172,6 +172,8 @@ export interface Room {
   external_sensor?: "using" | "partly" | "waiting" | "unsupported" | "off" | null;
   /** A room boost running now: the valves at `temperature` until `until` (ISO, local). */
   boost?: { until: string; temperature: number; remaining: number } | null;
+  /** Like the room's climate entity: schedule (the valves' own), manual (hold the target) or off (5 °C). */
+  mode?: RoomMode;
 }
 
 export interface Candidate {
@@ -246,3 +248,5 @@ export interface Stats {
   period_end: number;
   series: StatsBucket[];
 }
+
+export type RoomMode = "schedule" | "manual" | "off";

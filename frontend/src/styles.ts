@@ -425,6 +425,11 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .onboarding-dots i.on { background: var(--hl-brand); width: 20px; border-radius: 4px; }
 .onboarding-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
 .onboarding-actions .sheet-go { flex: 1; }
+.room-control { display: flex; flex-direction: column; gap: 14px; }
+.room-control .room-sensor-note { margin-top: 0; justify-content: flex-start; text-align: left; }
+.room-mode-note { margin: -4px 0 0; }
+.room-schedule-page { max-width: none; display: flex; flex-direction: column; gap: 12px; }
+.room-schedule-page .room-schedule-head { justify-content: flex-end; }
 .tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }
 .stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .settings-chevron { color: var(--secondary-text-color); }

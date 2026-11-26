@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 import { Overview } from "./Overview";
 import { DevicePage, type DeviceTab } from "./DevicePage";
 import { Devices } from "./Devices";
-import { RoomSheet } from "./Rooms";
 import { Onboarding } from "./Onboarding";
+import { RoomPage } from "./RoomPage";
 import { Settings } from "./Settings";
 import { Stats } from "./Stats";
 import { errorText, type Channel, type Device, type Hass, type Limits, type StatusMap } from "./types";
@@ -62,6 +62,12 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
     };
   }, [getHass]);
 
+  // A room opens its own page, like heating's (Control · Schedule · History).
+  const openRoom = (id: string) => {
+    setOpenedRoom(id);
+    setDeviceTab("control");
+  };
+  const closeRoom = useCallback(() => setOpenedRoom(null), []);
   const openDevice = (entry: string, channel: Channel) => {
     setOpened({ entry, channel });
     setDeviceTab("control");
@@ -121,23 +127,27 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
             onTab={setDeviceTab}
             onBack={() => setOpened(null)}
           />
+        ) : openedRoom ? (
+          <RoomPage
+            key={openedRoom}
+            getHass={getHass}
+            roomId={openedRoom}
+            devices={devices}
+            status={status}
+            limits={limits}
+            tab={deviceTab}
+            onTab={setDeviceTab}
+            onBack={closeRoom}
+          />
         ) : (
           <>
             {tab === "overview" && (
-              <Overview getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} onOpenRoom={setOpenedRoom} />
+              <Overview getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} onOpenRoom={openRoom} />
             )}
             {tab === "devices" && devices.length > 0 && <Devices getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} />}
             {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
             {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} onSetup={() => setOnboarding(true)} />}
           </>
-        )}
-        {openedRoom && (
-          <RoomSheet
-            getHass={getHass}
-            roomId={openedRoom}
-            several={devices.length > 1}
-            onClose={() => setOpenedRoom(null)}
-          />
         )}
       </main>
 
