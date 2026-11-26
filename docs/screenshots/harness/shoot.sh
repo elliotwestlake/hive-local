@@ -55,6 +55,13 @@ shot heating 900,660 "tab=Overview&open=1"
 shot phone-schedule 390,770 "tab=Overview&narrow=1&open=1&click=Schedule"
 shot phone-room 390,770 "tab=Overview&narrow=1&room=Lounge"
 shot phone-boost 390,770 "tab=Overview&narrow=1&click=Boost"
+# The first-run walkthrough: rooms, rooms call for heat, tidy up, outside temperature, done; and on a phone.
+shot onboarding-rooms 900,860 "tab=Overview&onboarding=1"
+shot onboarding-demand 900,860 "tab=Overview&onboarding=1&click=Next"
+shot onboarding-tidy 900,860 "tab=Overview&onboarding=1&click=Next&click=Next"
+shot onboarding-outside 900,860 "tab=Overview&onboarding=1&click=Next&click=Next&click=Next"
+shot onboarding-done 900,860 "tab=Overview&onboarding=1&click=Next&click=Next&click=Next&click=Next"
+shot phone-onboarding 390,770 "tab=Overview&narrow=1&onboarding=1"
 # Tidy up duplicate entities (Settings → Entities), before and after.
 shot tidy 900,1400 "tab=Settings"
 shot tidy-done 900,1400 "tab=Settings&tidy=done"
@@ -107,7 +114,8 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
 for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
            "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
            "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule",
-           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done"):
+           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done",
+           "onboarding-rooms", "onboarding-demand", "onboarding-tidy", "onboarding-outside", "onboarding-done", "phone-onboarding"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)

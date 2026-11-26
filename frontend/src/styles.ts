@@ -415,6 +415,16 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }
 .settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
 .settings-row select { max-width: 220px; }
+.onboarding { max-width: 560px; gap: 14px; }
+.onboarding h2 { margin: 0; text-align: center; }
+.onboarding-body { display: flex; flex-direction: column; gap: 12px; }
+.onboarding-body p { margin: 0; line-height: 1.45; }
+.onboarding-dots { display: flex; justify-content: center; gap: 6px; }
+.onboarding-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--divider-color); }
+.onboarding-dots i.past { background: color-mix(in srgb, var(--hl-brand) 45%, transparent); }
+.onboarding-dots i.on { background: var(--hl-brand); width: 20px; border-radius: 4px; }
+.onboarding-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+.onboarding-actions .sheet-go { flex: 1; }
 .tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }
 .stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .settings-chevron { color: var(--secondary-text-color); }

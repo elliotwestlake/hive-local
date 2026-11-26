@@ -53,6 +53,7 @@ class HouseSettings:
         self.hass = hass
         self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.settings")
         self.outdoor_entity: str | None = None
+        self.onboarded = False
         self.boiler_kw: float | None = None
         self.price_source: str | None = None
         self.fixed_price: float | None = None
@@ -67,6 +68,8 @@ class HouseSettings:
     async def async_load(self) -> None:
         data = await self._store.async_load() or {}
         self.outdoor_entity = data.get("outdoor_entity") or None
+        # The panel's first-run walkthrough has been finished or skipped.
+        self.onboarded = bool(data.get("onboarded"))
         self.boiler_kw = cost.boiler_kw(data.get("boiler_kw"))
         self.price_source = data.get("price_source") or None
         self.fixed_price = cost.price_per_kwh(data.get("fixed_price"), None)
@@ -102,6 +105,7 @@ class HouseSettings:
         await self._store.async_save(
             {
                 "outdoor_entity": self.outdoor_entity,
+                "onboarded": self.onboarded,
                 "boiler_kw": self.boiler_kw,
                 "price_source": self.price_source,
                 "fixed_price": self.fixed_price,
@@ -307,7 +311,12 @@ class HouseSettings:
             "energy_price": await self._async_energy_price(),
             "price": await self.async_price(),
             "currency": self.hass.config.currency,
+            "onboarded": self.onboarded,
         }
+
+    async def async_set_onboarded(self, done: bool) -> None:
+        self.onboarded = done
+        await self._async_save()
 
     async def async_set_outdoor(self, entity_id: str | None) -> None:
         entity_id = entity_id or None
