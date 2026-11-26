@@ -43,14 +43,7 @@ SET_HOLIDAY_SCHEMA = vol.Schema(
         ),
     }
 )
-SET_AWAY_SCHEMA = vol.Schema(
-    _DEVICE
-    | {
-        vol.Optional(ATTR_TEMPERATURE): vol.All(
-            vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)
-        ),
-    }
-)
+SET_AWAY_SCHEMA = vol.Schema(_DEVICE)
 
 
 def _entries(hass: HomeAssistant, call: ServiceCall) -> list[HiveConfigEntry]:
@@ -116,7 +109,7 @@ def async_register(hass: HomeAssistant) -> None:
         """Away until you're back (the Away switch): every receiver unless device_id says which."""
         try:
             for entry in _entries(hass, call):
-                await entry.runtime_data.async_set_holiday(None, call.data.get(ATTR_TEMPERATURE))
+                await entry.runtime_data.async_set_holiday(None)
         except ScheduleError as err:
             raise ServiceValidationError(str(err)) from err
 
