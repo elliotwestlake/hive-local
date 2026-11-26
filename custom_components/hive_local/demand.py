@@ -20,7 +20,7 @@ no usable valves is ignored.
 from __future__ import annotations
 
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 from .schedule import DAYS, HEAT_MAX, HEAT_MIN, hhmm_to_minutes
@@ -271,3 +271,103 @@ class Run:
             )
         except (KeyError, TypeError, ValueError, AttributeError):
             return None
+
+
+# -- overshoot -------------------------------------------------------------------------
+#
+# When we stop because the rooms are warm, the radiators are still hot and the rooms keep
+# warming for a while. We watch each room after a stop until it has clearly peaked (or for
+# `COAST_MINUTES`), and keep what happened (`Overshoot`), so we can see how far past its
+# target each room goes before changing when we stop. Recording only: nothing here changes
+# what the boiler does.
+
+COAST_MINUTES = 45  # watch a room this long after we stop
+PEAKED_BY = 0.3  # °C below the peak that says it's past it
+TRAIL_MINUTES = 15  # the rate of rise at the stop is taken over this long
+TRAIL_MIN_MINUTES = 5  # and needs at least this much of it
+KEEP_RUNS = 10  # per room
+MIN_RUNS = 3  # before there's a median
+
+
+def rise_rate(trail: list[tuple[float, float]], now: float) -> float | None:
+    """°C per hour over the last `TRAIL_MINUTES` of (epoch, temperature) readings, or None."""
+    recent = [(t, c) for t, c in trail if now - t <= TRAIL_MINUTES * 60]
+    if len(recent) < 2:
+        return None
+    (t0, c0), (t1, c1) = recent[0], recent[-1]
+    if t1 - t0 < TRAIL_MIN_MINUTES * 60:
+        return None
+    return round((c1 - c0) / ((t1 - t0) / 3600), 2)
+
+
+@dataclass(frozen=True)
+class Coast:
+    """A room being watched after we stopped heating it."""
+
+    room: str
+    target: float
+    stopped: float  # epoch
+    stopped_at: float  # the room's temperature then
+    rate: float | None  # °C/h rising when we stopped
+    why: str  # "warm", "schedule_off", "turned_off"
+    peak: float
+    peak_at: float
+    receiver_heated: bool = False  # the receiver fired by itself meanwhile
+
+    @classmethod
+    def begin(cls, need: Need, now: float, rate: float | None, why: str) -> Coast | None:
+        if need.current is None or need.target is None:
+            return None
+        return cls(need.room, need.target, now, need.current, rate, why, need.current, now)
+
+    def update(self, current: float | None, now: float, receiver_heating: bool) -> Coast:
+        out = self
+        if current is not None and current > self.peak:
+            out = replace(out, peak=current, peak_at=now)
+        if receiver_heating and not out.receiver_heated:
+            out = replace(out, receiver_heated=True)
+        return out
+
+    def over(self, current: float | None, now: float) -> bool:
+        if now - self.stopped >= COAST_MINUTES * 60:
+            return True
+        return current is not None and current <= self.peak - PEAKED_BY
+
+    def result(self, *, cut_short: bool = False) -> dict[str, Any]:
+        """What's kept: times as epoch seconds, temperatures in °C."""
+        return {
+            "stopped": self.stopped,
+            "why": self.why,
+            "target": self.target,
+            "stopped_at": self.stopped_at,
+            "peak": self.peak,
+            "overshoot": round(self.peak - self.target, 2),
+            "rise": round(self.peak - self.stopped_at, 2),
+            "minutes_to_peak": round((self.peak_at - self.stopped) / 60),
+            "rate": self.rate,
+            "receiver_heated": self.receiver_heated,
+            "cut_short": cut_short,
+        }
+
+
+def keep_run(runs: list[dict[str, Any]], run: dict[str, Any]) -> list[dict[str, Any]]:
+    """Add a run to a room's history, keeping the latest `KEEP_RUNS`."""
+    return [*runs, run][-KEEP_RUNS:]
+
+
+def median_overshoot(runs: list[dict[str, Any]]) -> float | None:
+    """The median overshoot of the runs that tell us something: we stopped because the room
+    was warm, watched it to its peak, and the receiver didn't fire by itself meanwhile.
+    None with fewer than `MIN_RUNS`."""
+    values = sorted(
+        float(r["overshoot"])
+        for r in runs
+        if r.get("why") == "warm"
+        and not r.get("receiver_heated")
+        and not r.get("cut_short")
+        and isinstance(r.get("overshoot"), (int, float))
+    )
+    if len(values) < MIN_RUNS:
+        return None
+    mid = len(values) // 2
+    return round(values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2, 2)

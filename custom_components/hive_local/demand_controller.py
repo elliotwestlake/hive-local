@@ -13,6 +13,10 @@ back on the schedule from Manual or Off); someone's boost on top just ends this 
 
 The running request is kept in `.storage/hive_local.demand.<entry_id>`, so a restart
 mid-way picks it up again (or notices the lease ran out while HA was down).
+
+Overshoot (recording only): after we stop, each room we heated is watched until it peaks
+(`demand.Coast`), and the last runs per room are kept in the same store, for diagnostics
+and the climate entity's `room_overshoot`. A restart drops the rooms being watched.
 """
 
 from __future__ import annotations
@@ -44,6 +48,8 @@ STORE_VERSION = 1
 # After we send something (or start up) the new state can take a moment to arrive.
 SETTLE_SECONDS = 30
 TICK = timedelta(minutes=1)
+# Why we stopped (`_async_end`), as kept with an overshoot run.
+STOP_WHY = {"the rooms are warm": "warm", "the schedule is off": "schedule_off", "turned off": "turned_off"}
 
 
 class Demand:
@@ -79,6 +85,12 @@ class Demand:
         self._last_mode: str | None = None
         self._recheck: Callable[[], None] | None = None
         self._unsubs: list[Callable[[], None]] = []
+        # Overshoot: each room's readings during a run, the rooms that called in it, the
+        # rooms being watched since we stopped, and what happened (kept, per room).
+        self._trail: dict[str, list[tuple[float, float]]] = {}
+        self._called: set[str] = set()
+        self.coasts: dict[str, d.Coast] = {}
+        self.overshoot: dict[str, list[dict[str, Any]]] = {}
 
     @property
     def available(self) -> bool:
@@ -94,6 +106,8 @@ class Demand:
         if isinstance(stored.get("last_end"), (int, float)):
             self.last_end = float(stored["last_end"])
         self.suppressed = bool(stored.get("suppressed"))
+        if isinstance(stored.get("overshoot"), dict):
+            self.overshoot = {str(k): list(v) for k, v in stored["overshoot"].items() if isinstance(v, list)}
         if self.run:
             _LOGGER.info("Rooms were calling for heat when Home Assistant stopped (%s)", ", ".join(self.run.rooms))
             self._settle()  # give the receiver a moment to report
@@ -299,6 +313,7 @@ class Demand:
             return
         status = self.transport.status(CHANNEL_HEAT)
         needs = self._read_needs()
+        self._watch(needs, status)
         before = (self.reason, [n.room for n in self.calling])
         try:
             self._decide(status, needs)
@@ -358,6 +373,8 @@ class Demand:
             lease=lease,
         )
         self.reason = self._why(verdict, status, schedule_off, now)
+        if verdict in (d.START, d.KEEP):
+            self._called.update(n.room for n in self.calling)
         setpoint = d.boost_setpoint(self.calling or needs, scheduled, status.get("current_temperature"))
         if verdict == d.START:
             rooms = tuple(n.room for n in self.calling)
@@ -400,6 +417,7 @@ class Demand:
         previous, self.run = self.run, run
         if previous is None:
             self._seen = False
+            self._new_run(run)
         self._busy = True
         self._settle()
         self._save()
@@ -422,6 +440,7 @@ class Demand:
         if self.run is None:
             return
         _LOGGER.info("Rooms' heat request over (%s): back to the schedule", why)
+        self._begin_coasts(STOP_WHY.get(why, why))
         status = self.transport.status(CHANNEL_HEAT) or {}
         settling = dt_util.utcnow().timestamp() < self._settle_until
         # Ours, or just sent and not reported yet (not a holiday's or pre-heat's).
@@ -441,12 +460,85 @@ class Demand:
         finally:
             self._busy = False
 
+    # -- overshoot -------------------------------------------------------------------
+
+    @callback
+    def _new_run(self, _run: d.Run) -> None:
+        """A new request: rooms still being watched are cut short (the boiler's on again)."""
+        for coast in self.coasts.values():
+            self._record(coast, cut_short=True)
+        self.coasts = {}
+        self._trail = {}
+        self._called = set()
+
+    @callback
+    def _begin_coasts(self, why: str) -> None:
+        """We're stopping: watch every room we heated in this run."""
+        now = dt_util.utcnow().timestamp()
+        rooms = self._called | set(self.run.rooms if self.run else ())
+        for need in self.needs:
+            if need.room not in rooms:
+                continue
+            rate = d.rise_rate(self._trail.get(need.room, []), now)
+            if coast := d.Coast.begin(need, now, rate, why):
+                self.coasts[need.room] = coast
+        self._trail = {}
+        self._called = set()
+
+    @callback
+    def _watch(self, needs: list[d.Need], status: dict[str, Any] | None) -> None:
+        """Every check: keep the readings of a run, and follow the rooms we stopped heating."""
+        now = dt_util.utcnow().timestamp()
+        if self.run is not None:
+            for need in needs:
+                if need.current is not None:
+                    trail = self._trail.setdefault(need.room, [])
+                    trail.append((now, need.current))
+                    trail[:] = [(t, c) for t, c in trail if now - t <= d.TRAIL_MINUTES * 60]
+        if not self.coasts:
+            return
+        # Right after we cancel, the receiver can still say it's heating: that's ours.
+        heating = bool(status and status.get("heating")) and now >= self._settle_until
+        by_room = {n.room: n for n in needs}
+        for room, coast in list(self.coasts.items()):
+            need = by_room.get(room)
+            current = need.current if need else None
+            if need and need.target is not None and abs(need.target - coast.target) > d.SETPOINT_TOLERANCE:
+                _LOGGER.debug("%s's target changed after we stopped; not recording its overshoot", room)
+                del self.coasts[room]
+                continue
+            coast = self.coasts[room] = coast.update(current, now, heating)
+            if coast.over(current, now):
+                del self.coasts[room]
+                self._record(coast)
+
+    @callback
+    def _record(self, coast: d.Coast, *, cut_short: bool = False) -> None:
+        result = coast.result(cut_short=cut_short)
+        _LOGGER.info(
+            "%s peaked at %s °C, %+.1f° from its %s° target, %s min after the boiler stopped at %s °C%s",
+            coast.room, coast.peak, result["overshoot"], coast.target, result["minutes_to_peak"], coast.stopped_at,
+            " (cut short: heating again)" if cut_short else "",
+        )
+        self.overshoot[coast.room] = d.keep_run(self.overshoot.get(coast.room, []), result)
+        self._save()
+        self._notify()
+
+    def overshoot_summary(self) -> dict[str, dict[str, Any]]:
+        """Per room: the median overshoot (None until there are enough runs) and how many runs."""
+        return {room: {"median": d.median_overshoot(runs), "runs": len(runs)} for room, runs in self.overshoot.items()}
+
     # -- reporting -------------------------------------------------------------------
 
     @callback
     def _save(self) -> None:
         self._store.async_delay_save(
-            lambda: {"run": self.run.as_store() if self.run else None, "last_end": self.last_end, "suppressed": self.suppressed},
+            lambda: {
+                "run": self.run.as_store() if self.run else None,
+                "last_end": self.last_end,
+                "suppressed": self.suppressed,
+                "overshoot": self.overshoot,
+            },
             1,
         )
 
@@ -483,5 +575,21 @@ class Demand:
             "suppressed": self.suppressed,
             "needs": [
                 {"room": n.room, "current": n.current, "target": n.target, "heating": n.heating} for n in self.needs
+            ],
+            "overshoot": {
+                room: {
+                    "median": d.median_overshoot(runs),
+                    "runs": [
+                        {**r, "stopped": dt_util.utc_from_timestamp(r["stopped"]).isoformat()}
+                        if isinstance(r.get("stopped"), (int, float))
+                        else r
+                        for r in runs
+                    ],
+                }
+                for room, runs in self.overshoot.items()
+            },
+            "watching": [
+                {"room": c.room, "since": dt_util.utc_from_timestamp(c.stopped).isoformat(), "peak": c.peak}
+                for c in self.coasts.values()
             ],
         }

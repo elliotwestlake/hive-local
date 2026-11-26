@@ -165,6 +165,8 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
             "preheat": self._data.preheat.is_active,
             "holiday_until": until.isoformat() if until else None,
             "room_demand": self._data.demand.rooms_heating(),
+            # How far past their targets rooms go after we stop heating them (recording only).
+            "room_overshoot": self._data.demand.overshoot_summary() or None,
         }
 
     def _boost_minutes_left(self) -> int | None:
