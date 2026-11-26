@@ -38,9 +38,6 @@ SET_HOLIDAY_SCHEMA = vol.Schema(
     _DEVICE
     | {
         vol.Required(ATTR_UNTIL): cv.datetime,
-        vol.Optional(ATTR_TEMPERATURE): vol.All(
-            vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)
-        ),
     }
 )
 SET_AWAY_SCHEMA = vol.Schema(_DEVICE)
@@ -97,7 +94,7 @@ def async_register(hass: HomeAssistant) -> None:
             until = until.replace(tzinfo=dt_util.get_default_time_zone())
         try:
             for entry in _entries(hass, call):
-                await entry.runtime_data.async_set_holiday(until, call.data.get(ATTR_TEMPERATURE))
+                await entry.runtime_data.async_set_holiday(until)
         except ScheduleError as err:
             raise ServiceValidationError(str(err)) from err
 

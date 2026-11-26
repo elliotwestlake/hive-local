@@ -6007,24 +6007,20 @@ function O(e) {
 }
 // src/Holiday.tsx
 var k = (e) => String(e).padStart(2, "0"), A = (e) => `${e.getFullYear()}-${k(e.getMonth() + 1)}-${k(e.getDate())}T${k(e.getHours())}:${k(e.getMinutes())}`;
-function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, onClose: o }) {
-	let [s, c] = (0, u.useState)(() => {
+function ee({ hasHeat: e, hasWater: t, frost: n, busy: r, onGo: i, onClose: a }) {
+	let [o, s] = (0, u.useState)(() => {
 		let e = /* @__PURE__ */ new Date();
 		return e.setDate(e.getDate() + 7), e.setHours(14, 0, 0, 0), A(e);
-	}), [l, d] = (0, u.useState)(n), [m, h] = (0, u.useState)(!1), g = r?.boost_min_temp ?? 5, _ = r?.heat_max ?? 32, v = (e) => Math.min(_, Math.max(g, Math.round(e * 2) / 2));
+	}), [c, l] = (0, u.useState)(!1);
 	(0, u.useEffect)(() => {
-		let e = (e) => e.key === "Escape" && o();
+		let e = (e) => e.key === "Escape" && a();
 		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
-	}, [o]);
-	let y = new Date(s), b = !m || !Number.isNaN(y.getTime()) && y.getTime() > Date.now() + 6e4, x = [
-		e && `heating holds ${l.toFixed(1)}°`,
-		t && "hot water is off",
-		e && "the rooms hold frost protection"
-	].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " and $1");
+	}, [a]);
+	let d = new Date(o), p = !c || !Number.isNaN(d.getTime()) && d.getTime() > Date.now() + 6e4, m = [e && `the heating and rooms hold frost protection (${n.toFixed(1)}°)`, t && "hot water is off"].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " and $1");
 	return /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: (e) => {
-			e.stopPropagation(), o();
+			e.stopPropagation(), a();
 		},
 		children: /* @__PURE__ */ (0, f.jsxs)("div", {
 			className: "sheet heat",
@@ -6040,7 +6036,7 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 						className: "muted",
 						children: [
 							"While you're away, ",
-							x,
+							m,
 							". Then everything goes back to what it was doing."
 						]
 					})]
@@ -6053,17 +6049,17 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 					}), /* @__PURE__ */ (0, f.jsxs)("div", {
 						className: "sheet-lengths",
 						children: [/* @__PURE__ */ (0, f.jsx)("button", {
-							className: m ? "" : "on",
-							onClick: () => h(!1),
+							className: c ? "" : "on",
+							onClick: () => l(!1),
 							children: "Until I'm back"
 						}), /* @__PURE__ */ (0, f.jsx)("button", {
-							className: m ? "on" : "",
-							onClick: () => h(!0),
+							className: c ? "on" : "",
+							onClick: () => l(!0),
 							children: "Until a date"
 						})]
 					})]
 				}),
-				m && /* @__PURE__ */ (0, f.jsxs)("div", {
+				c && /* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "sheet-field",
 					children: [/* @__PURE__ */ (0, f.jsx)("span", {
 						className: "sheet-label",
@@ -6071,47 +6067,20 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 					}), /* @__PURE__ */ (0, f.jsx)("input", {
 						className: "sheet-time",
 						type: "datetime-local",
-						value: s,
+						value: o,
 						min: A(/* @__PURE__ */ new Date()),
-						onChange: (e) => c(e.target.value)
-					})]
-				}),
-				e && /* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "sheet-field",
-					children: [/* @__PURE__ */ (0, f.jsx)("span", {
-						className: "sheet-label",
-						children: "Heating while away"
-					}), /* @__PURE__ */ (0, f.jsxs)("div", {
-						className: "sheet-temp",
-						children: [
-							/* @__PURE__ */ (0, f.jsx)("button", {
-								className: "round sheet-step",
-								onClick: () => d(v(l - .5)),
-								"aria-label": "Lower",
-								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "minus" })
-							}),
-							/* @__PURE__ */ (0, f.jsxs)("span", {
-								className: "sheet-temp-value",
-								children: [l.toFixed(1), "°"]
-							}),
-							/* @__PURE__ */ (0, f.jsx)("button", {
-								className: "round sheet-step",
-								onClick: () => d(v(l + .5)),
-								"aria-label": "Raise",
-								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
-							})
-						]
+						onChange: (e) => s(e.target.value)
 					})]
 				}),
 				/* @__PURE__ */ (0, f.jsx)("button", {
 					className: "sheet-go",
-					disabled: i || !b,
-					onClick: () => a(m ? y : null, l),
-					children: m ? b ? `Away until ${T(y)}` : "Pick a time in the future" : "Away until I'm back"
+					disabled: r || !p,
+					onClick: () => i(c ? d : null),
+					children: c ? p ? `Away until ${T(d)}` : "Pick a time in the future" : "Away until I'm back"
 				}),
 				/* @__PURE__ */ (0, f.jsx)("button", {
 					className: "ghost sheet-cancel",
-					onClick: o,
+					onClick: a,
 					children: "Cancel"
 				})
 			]
@@ -6320,12 +6289,10 @@ function N({ getHass: e, devices: t, status: n, limits: r }) {
 			hasHeat: g.some(({ c: e }) => e === "heat"),
 			hasWater: g.some(({ c: e }) => e === "water"),
 			frost: v?.frost_temperature ?? 12,
-			limits: r,
 			busy: i != null,
-			onGo: (e, t) => m("holiday", [{
+			onGo: (e) => m("holiday", [{
 				type: "hive_local/holiday/set",
-				...e ? { until: e.toISOString() } : {},
-				temperature: t
+				...e ? { until: e.toISOString() } : {}
 			}], e ? `Away until ${T(e)}` : "Away until you're back").then((e) => e && l(!1)),
 			onClose: () => l(!1)
 		})

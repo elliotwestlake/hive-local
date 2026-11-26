@@ -172,9 +172,9 @@ async def test_holiday(hass, mqtt_mock, freezer, hass_ws_client):
     freezer.move_to(t1)
     await report(hass, {**SCHEDULE, "temperature_setpoint_hold_heat": True, "occupied_heating_setpoint_heat": 19})
     mqtt_mock.async_publish.reset_mock()
-    await hass.services.async_call("hive_local", "set_holiday", {"until": t1 + timedelta(hours=2), "temperature": 10}, blocking=True)
-    assert boost(120, 10.0) in sets(mqtt_mock), sets(mqtt_mock)
-    await report(hass, away(temp=10, left=120))
+    await hass.services.async_call("hive_local", "set_holiday", {"until": t1 + timedelta(hours=2)}, blocking=True)
+    assert boost(120, 12.0) in sets(mqtt_mock), sets(mqtt_mock)
+    await report(hass, away(temp=12, left=120))
     assert holiday.away["heat"].restore_mode == "manual" and holiday.away["heat"].restore_setpoint == 19
     mqtt_mock.async_publish.reset_mock()
     await tick(hass, freezer, t1 + timedelta(hours=2, seconds=1))
