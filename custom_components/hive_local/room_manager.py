@@ -8,6 +8,7 @@ RoomManager per HA, in hass.data[DATA_ROOMS], stored in .storage/hive_local.room
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from homeassistant.components.climate import ATTR_CURRENT_TEMPERATURE, ATTR_HVAC_ACTION
@@ -27,6 +28,7 @@ from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, suggest_ro
 STORAGE_VERSION = 1
 DATA_ROOMS = f"{DOMAIN}_rooms"
 # Fired when rooms are added, changed or removed.
+_LOGGER = logging.getLogger(__name__)
 SIGNAL_ROOMS = f"{DOMAIN}_rooms"
 
 # A room's mode, as its climate entity shows it (auto / heat / off).
@@ -200,6 +202,7 @@ class RoomManager:
                     ),
                     "boost": boosts.as_dict(room["id"]) if boosts else None,
                     "frost": self.frost(room["id"]),
+                    "away": "away_restore" in room,
                 }
                 | summarise(valves, sensor.state if sensor else None)
             )
@@ -264,7 +267,7 @@ class RoomManager:
         """"schedule" (the valves follow their own schedule), "manual" (they hold the target) or "off"."""
         return self._room(room_id).get("mode", ROOM_MANUAL)
 
-    async def async_set_mode(self, room_id: str, mode: str) -> list[str]:
+    async def async_set_mode(self, room_id: str, mode: str, *, away: bool = False) -> list[str]:
         """Change the room's mode. Returns the valves that didn't take it.
 
         Off: a Hive valve can't switch off, so each goes to its lowest (5 °C) and its target
@@ -275,6 +278,9 @@ class RoomManager:
         if mode not in ROOM_MODES:
             raise RoomError(f"Unknown mode: {mode}")
         room = self._room(room_id)
+        if not away and room.pop("away_restore", None) is not None:
+            # Changed by hand while away: it stays as set when you come back.
+            await self._async_save()
         before = room.get("mode", ROOM_MANUAL)
         if mode == before:
             return []
@@ -293,6 +299,25 @@ class RoomManager:
         room["mode"] = mode
         await self._async_save()
         return sorted(failed)
+
+    async def async_away(self, entry_id: str, away: bool) -> None:
+        """Away (the holiday or the Away toggle) on a receiver: its rooms go Off (frost
+        protection) and remember their mode; coming back puts each one back."""
+        entries = self.hass.config_entries.async_loaded_entries(DOMAIN)
+        first = entries[0].entry_id if entries else None
+        for room in list(self.rooms):
+            if (room.get("receiver") or first) != entry_id:
+                continue
+            try:
+                if away and "away_restore" not in room:
+                    room["away_restore"] = room.get("mode", ROOM_MANUAL)
+                    await self.async_set_mode(room["id"], ROOM_OFF, away=True)
+                elif not away and "away_restore" in room:
+                    mode = room.pop("away_restore")
+                    await self.async_set_mode(room["id"], mode, away=True)
+            except Exception:  # noqa: BLE001 - one room mustn't stop the others
+                _LOGGER.warning("Away: couldn't change %s", room.get("name"), exc_info=True)
+        await self._async_save()
 
     def _target(self, entity_id: str) -> float | None:
         state = self.hass.states.get(entity_id)

@@ -30,7 +30,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import CHANNEL_HEAT, DOMAIN, HOLIDAY_MAX_DAYS, SIGNAL_STATUS
-from .holiday import DROP, REASSERT, Away, is_our_boost, judge, lease_minutes, needs_renewal, restore_point
+from .holiday import DROP, REASSERT, Away, is_our_boost, judge, lease_minutes, needs_renewal, overdue, restore_point
 from .schedule import ScheduleError
 from .transports import Transport
 from .z2m import MODE_BOOST, MODE_OFF
@@ -88,14 +88,15 @@ class Holiday:
 
     # -- commands ----------------------------------------------------------------
 
-    async def async_set(self, until: datetime, temperature: float) -> None:
-        """Go away until `until`: every channel of this receiver."""
-        until = dt_util.as_utc(until)
+    async def async_set(self, until: datetime | None, temperature: float) -> None:
+        """Go away until `until` (None: until you're back, the Away toggle): every channel."""
         now = dt_util.utcnow()
-        if until <= now + timedelta(minutes=1):
-            raise ScheduleError("Pick a time in the future")
-        if until > now + timedelta(days=HOLIDAY_MAX_DAYS):
-            raise ScheduleError(f"A holiday can last at most {HOLIDAY_MAX_DAYS} days")
+        if until is not None:
+            until = dt_util.as_utc(until)
+            if until <= now + timedelta(minutes=1):
+                raise ScheduleError("Pick a time in the future")
+            if until > now + timedelta(days=HOLIDAY_MAX_DAYS):
+                raise ScheduleError(f"A holiday can last at most {HOLIDAY_MAX_DAYS} days")
         for channel in self.transport.channels:
             status = self.transport.status(channel)
             if previous := self.away.get(channel):
@@ -108,7 +109,7 @@ class Holiday:
             else:
                 raise ScheduleError("The receiver hasn't reported yet")
             self.away[channel] = Away(
-                until=until.timestamp(),
+                until=until.timestamp() if until is not None else None,
                 temperature=temperature if channel == CHANNEL_HEAT else None,
                 restore_mode=mode,
                 restore_setpoint=setpoint,
@@ -118,6 +119,7 @@ class Holiday:
         self._save()
         self._arm()
         self._notify()
+        self._rooms(True)
 
     async def async_set_temperature(self, temperature: float) -> None:
         """Change what the heating holds while away (the panel's − / +, the climate card)."""
@@ -206,7 +208,7 @@ class Holiday:
             if not status or channel in self._busy:
                 continue
             mode, setpoint = status["mode"], status.get("setpoint")
-            if now >= away.until:
+            if overdue(away, now):
                 # Overdue, e.g. Home Assistant was down at the end time.
                 self.hass.async_create_task(self._async_end(channel, quiet=True))
                 continue
@@ -236,7 +238,7 @@ class Holiday:
         if status["mode"] != MODE_BOOST or not is_our_boost(away, status.get("setpoint")):
             return  # not ours right now: _on_status deals with it
         now = dt_util.utcnow().timestamp()
-        if now >= away.until:
+        if overdue(away, now):
             return
         if needs_renewal(status.get("boost_remaining"), lease_minutes(now, away.until)):
             self.hass.async_create_task(self._async_hold_quietly(CHANNEL_HEAT))
@@ -248,7 +250,7 @@ class Holiday:
             self._timer = None
         now = dt_util.utcnow().timestamp()
         # Overdue channels are ended from _on_status, once the receiver has reported.
-        future = [a.until for a in self.away.values() if a.until > now]
+        future = [a.until for a in self.away.values() if a.until is not None and a.until > now]
         if not future:
             return
 
@@ -256,7 +258,7 @@ class Holiday:
         def _due(_now: datetime) -> None:
             self._timer = None
             for channel, away in list(self.away.items()):
-                if dt_util.utcnow().timestamp() >= away.until and self.transport.status(channel):
+                if overdue(away, dt_util.utcnow().timestamp()) and self.transport.status(channel):
                     self.hass.async_create_task(self._async_end(channel, quiet=True))
             self._arm()
 
@@ -271,6 +273,16 @@ class Holiday:
         self._save()
         self._arm()
         self._notify()
+        if channel == CHANNEL_HEAT:
+            self._rooms(False)
+
+    @callback
+    def _rooms(self, away: bool) -> None:
+        """The rooms this receiver heats follow its heating: frost protection while away, then back."""
+        from .room_manager import DATA_ROOMS  # noqa: PLC0415 - avoid an import cycle
+
+        if (rooms := self.hass.data.get(DATA_ROOMS)) is not None and (away is False or CHANNEL_HEAT in self.away):
+            self.hass.async_create_task(rooms.async_away(self.entry_id, away))
 
     @callback
     def _save(self) -> None:
@@ -298,8 +310,9 @@ class Holiday:
         )
 
     def until(self, channel: str) -> datetime | None:
+        """When the holiday ends (None: not away, or away until you're back)."""
         away = self.away.get(channel)
-        return dt_util.as_local(dt_util.utc_from_timestamp(away.until)) if away else None
+        return dt_util.as_local(dt_util.utc_from_timestamp(away.until)) if away and away.until is not None else None
 
     def as_dict(self, channel: str) -> dict[str, Any] | None:
         """For the panel: {until (ISO, local), temperature, restore_mode, holding}, or None."""
@@ -307,7 +320,7 @@ class Holiday:
         if away is None:
             return None
         return {
-            "until": self.until(channel).isoformat(),
+            "until": until.isoformat() if (until := self.until(channel)) else None,
             "temperature": away.temperature,
             "restore_mode": away.restore_mode,
             "holding": self.is_holding(channel),

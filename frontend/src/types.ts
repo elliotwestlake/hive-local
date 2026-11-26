@@ -72,7 +72,7 @@ export interface DemandInfo {
 
 /** Holiday (away): heating holds `temperature`, hot water is off, until `until`. */
 export interface HolidayInfo {
-  until: string; // ISO, HA's local time
+  until: string | null; // ISO, HA's local time; null: until you're back (the Away toggle)
   temperature: number | null; // heating only
   restore_mode: Exclude<Mode, "boost">; // what it goes back to
   holding: boolean; // heating is on the holiday's own boost (its fail-safe), not one started on top
@@ -176,6 +176,8 @@ export interface Room {
   boost?: { until: string; temperature: number; remaining: number } | null;
   /** Like the room's climate entity: schedule (the valves' own), manual (hold the target) or off (5 °C). */
   mode?: RoomMode;
+  /** Held Off by Away (the holiday or the Away toggle); its own mode comes back after. */
+  away?: boolean;
   /** What Off holds the valves at: the room's receiver's frost protection. */
   frost?: number;
 }

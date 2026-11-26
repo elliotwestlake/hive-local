@@ -15,7 +15,7 @@ hive_local/settings                                -> {"outdoor_entity", "outdoo
 hive_local/tidy | tidy/apply | tidy/undo      -> {receiver: [...], valves: [...], pending, undoable} (ZHA/Z2M duplicates)
 hive_local/settings/set {outdoor_entity?, gas_meter?, boiler_kw?, price_source?: "energy"|"fixed"|entity_id|null, fixed_price?}
 hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures, outdoor temperature and the cost per hour of heating if set (from the recorder)
-hive_local/holiday/set {until, temperature?, entry_id?}  away until `until` (every receiver without entry_id)
+hive_local/holiday/set {until?, temperature?, entry_id?}  away until `until`, or until you're back without it (every receiver without entry_id; the rooms go Off too)
 hive_local/holiday/cancel {entry_id?}               back to the previous modes now
 Rooms are house-wide, so these don't take an entry_id:
 hive_local/rooms/subscribe                         -> pushes {"receivers", "rooms"} on any room/valve/sensor/battery change
@@ -485,7 +485,7 @@ def _holiday_entries(hass: HomeAssistant, msg: dict[str, Any]) -> list[HiveConfi
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "hive_local/holiday/set",
-        vol.Required("until"): str,
+        vol.Optional("until"): vol.Any(str, None),  # none: until you're back (the Away toggle)
         vol.Optional("temperature"): vol.All(vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)),
         vol.Optional("entry_id"): str,
         vol.Optional("channel"): str,  # ignored: a holiday covers the whole receiver
@@ -493,12 +493,14 @@ def _holiday_entries(hass: HomeAssistant, msg: dict[str, Any]) -> list[HiveConfi
 )
 @websocket_api.async_response
 async def ws_holiday_set(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
-    until = dt_util.parse_datetime(msg["until"])
-    if until is None:
-        connection.send_error(msg["id"], "invalid", "Not a date and time")
-        return
-    if until.tzinfo is None:
-        until = until.replace(tzinfo=dt_util.get_default_time_zone())
+    until = None
+    if msg.get("until"):
+        until = dt_util.parse_datetime(msg["until"])
+        if until is None:
+            connection.send_error(msg["id"], "invalid", "Not a date and time")
+            return
+        if until.tzinfo is None:
+            until = until.replace(tzinfo=dt_util.get_default_time_zone())
     try:
         for entry in _holiday_entries(hass, msg):
             await entry.runtime_data.async_set_holiday(until, msg.get("temperature"))

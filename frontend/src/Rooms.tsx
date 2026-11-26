@@ -353,6 +353,7 @@ const ROOM_MODES: { id: RoomMode; label: string }[] = [
 /** What a room's mode means, for its page's subtitle. */
 export function roomModeText(room: Room): string {
   if (room.boost) return `Boost · ${formatMinutes(room.boost.remaining)} left`;
+  if (room.away) return "Away";
   return room.mode === "schedule" ? "On the valves' schedule" : room.mode === "off" ? "Off" : "Manual";
 }
 
@@ -444,7 +445,8 @@ export function RoomControl({ getHass, room }: { getHass: () => Hass; room: Room
         ))}
       </div>
       {mode === "schedule" && <p className="muted small room-mode-note">The valves follow the schedule kept on them (the Schedule tab).</p>}
-      {mode === "off" && <p className="muted small room-mode-note">A Hive valve can't switch off, so they hold the room at frost protection, {room.frost ?? 12}° (Settings → Frost protection). Their targets come back when you turn the room on.</p>}
+      {room.away && <p className="muted small room-mode-note">Away: the valves hold frost protection, {room.frost ?? 12}°. The room goes back to how it was when you're back (choosing a mode here keeps that instead).</p>}
+      {mode === "off" && !room.away && <p className="muted small room-mode-note">A Hive valve can't switch off, so they hold the room at frost protection, {room.frost ?? 12}° (Settings → Frost protection). Their targets come back when you turn the room on.</p>}
       {message && <div className="status error">{message}</div>}
       <div className="sheet-field">
         <span className="sheet-label">Valves</span>

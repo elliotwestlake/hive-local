@@ -23,6 +23,8 @@ async def async_setup_entry(
     entities: list[SwitchEntity] = []
     if entry.runtime_data.preheat.available:
         entities.append(PreheatSwitch(entry, CHANNEL_HEAT))
+    # Away: until you're back (the holiday with no end), heating, hot water and the rooms.
+    entities.append(AwaySwitch(entry, CHANNEL_HEAT if entry.runtime_data.preheat.available else entry.runtime_data.transport.channels[0]))
     if entry.runtime_data.demand.available:
         entities += [RoomDemandSwitch(entry, CHANNEL_HEAT), RoomDemandOutsideSwitch(entry, CHANNEL_HEAT)]
     async_add_entities(entities)
@@ -102,3 +104,31 @@ class RoomDemandOutsideSwitch(_RestoredSwitch):
 
     async def _async_set(self, on: bool) -> None:
         await self._data.demand.async_set_outside_schedule(on)
+
+
+class AwaySwitch(HiveEntity, SwitchEntity):
+    """Away until you're back: the heating holds frost protection (its self-ending boost,
+    renewed while away), hot water is off, and the rooms go Off; turning it off puts
+    everything back. On while any holiday runs (a dated one too), so off also ends that."""
+
+    _attr_translation_key = "away"
+
+    def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
+        super().__init__(entry, channel, "away")
+        self._attr_translation_key = "away"
+        self._attr_unique_id = f"{entry.entry_id}_away"
+
+    @property
+    def is_on(self) -> bool:
+        return bool(self._data.holiday.away)
+
+    @property
+    def icon(self) -> str:
+        return "mdi:bag-suitcase" if self.is_on else "mdi:home"
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        if not self.is_on:
+            await self._data.async_set_holiday(None)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._data.holiday.async_cancel()

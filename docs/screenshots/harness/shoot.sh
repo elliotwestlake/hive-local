@@ -45,7 +45,8 @@ shot stats-cost 900,780 "tab=Stats&click=Estimated%20cost"
 shot settings 900,640 "tab=Settings"
 shot settings-fixed-price 900,760 "tab=Settings&price=fixed"
 shot holiday 900,640 "tab=Overview&holiday=1"
-shot holiday-sheet 900,700 "tab=Overview&click=Away%20until%E2%80%A6"
+shot holiday-sheet 900,700 "tab=Overview&click=Away"
+shot away-open 900,900 "tab=Overview&holiday=open"
 shot holiday-page 900,560 "tab=Overview&holiday=1&open=1"
 # A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
 shot phone 390,770 "tab=Overview&narrow=1"
@@ -120,7 +121,7 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
 for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
            "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
            "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule",
-           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done", "room-page", "room-page-schedule", "room-page-schedule-old-off", "room-page-history", "phone-room-page",
+           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done", "room-page", "room-page-schedule", "room-page-schedule-old-off", "room-page-history", "phone-room-page", "away-open",
            "onboarding-rooms", "onboarding-demand", "onboarding-tidy", "onboarding-outside", "onboarding-done", "phone-onboarding"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(

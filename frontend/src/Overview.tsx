@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { formatMinutes, formatUntil, roomsLabel, useSender } from "./api";
+import { awayText, formatMinutes, formatUntil, roomsLabel, useSender } from "./api";
 import { HolidaySheet } from "./Holiday";
 import { Icon } from "./Icon";
 import { errorText, type Room } from "./types";
@@ -132,14 +132,14 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
   if (away)
     actions.push({
       id: "holiday-end",
-      label: `End holiday · away until ${formatUntil(away.until)}`,
+      label: away.until ? `I'm back · away until ${formatUntil(away.until)}` : "I'm back",
       icon: "home-import-outline",
       kind: "neutral",
       msgs: [{ type: "hive_local/holiday/cancel" }],
       done: "Welcome back: everything's back to what it was doing",
     });
   else
-    actions.push({ id: "holiday", label: "Away until…", icon: "bag-suitcase", kind: "neutral", msgs: [], done: "", open: () => setHolidaySheet(true) });
+    actions.push({ id: "holiday", label: "Away", icon: "bag-suitcase", kind: "neutral", msgs: [], done: "", open: () => setHolidaySheet(true) });
 
   for (const d of devices)
     for (const c of d.channels) {
@@ -194,7 +194,7 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
           limits={limits}
           busy={busy != null}
           onGo={(until, temperature) =>
-            run("holiday", [{ type: "hive_local/holiday/set", until: until.toISOString(), temperature }], `Away until ${formatUntil(until)}`).then(
+            run("holiday", [{ type: "hive_local/holiday/set", ...(until ? { until: until.toISOString() } : {}), temperature }], until ? `Away until ${formatUntil(until)}` : "Away until you're back").then(
               (ok) => ok && setHolidaySheet(false),
             )
           }
@@ -262,7 +262,7 @@ export function RoomCard({
             </span>
           </div>
           <span className="device-status">
-            {room.heating ? <>Heating to <b>{target}</b> <Icon name="fire" className="status-icon heat" /></> : target ? <>Target <b>{target}</b></> : "No target"}
+            {room.away && !boost ? <>Away <b>{room.frost ?? 12}°</b> <Icon name="bag-suitcase" className="status-icon away" /></> : room.heating ? <>Heating to <b>{target}</b> <Icon name="fire" className="status-icon heat" /></> : target ? <>Target <b>{target}</b></> : "No target"}
           </span>
         </div>
         <div className="device-row">
@@ -400,7 +400,7 @@ export function ChannelCard({
   if (s && demandFor) status = <>Heating for rooms <Icon name="home-thermometer-outline" className="status-icon" /></>;
   // Away: heating holds a low temperature, hot water is off (a boost on top shows as a boost).
   const holiday = info?.holiday ?? null;
-  const awayUntil = holiday ? `Away until ${formatUntil(holiday.until)}` : null;
+  const awayUntil = holiday ? awayText(holiday.until) : null;
   if (s && holiday && !boosting && !active)
     status = water ? <>Off while away <Icon name="bag-suitcase" className="status-icon away" /></> : <>Away <b>{s.setpoint}°</b> <Icon name="bag-suitcase" className="status-icon away" /></>;
   const modeName = !s ? "" : awayUntil && !boosting ? awayUntil : preheating ? `Pre-heating for ${info?.preheat?.active_for}` : demandFor ? `Heating for ${demandFor}` : s.mode === "boost" ? (s.boost_remaining != null ? `Boost · ${formatMinutes(s.boost_remaining)} left` : "Boost") : s.mode === "schedule" ? "On schedule" : modes.find((m) => m.id === s.mode)?.label;
@@ -444,7 +444,7 @@ export function ChannelCard({
           <div className="target-text">
             <span className="target-label">{targetLabel || "Target"}</span>
             <span className="muted small">
-              {!s ? "" : holidayHold && holiday ? `While you're away, until ${formatUntil(holiday.until)}` : s.mode === "off" ? "Turn the heating on to set a target" : s.mode === "schedule" ? "Until the next scheduled change" : s.mode === "boost" ? "Keeps the boost time left" : "Held until you change it"}
+              {!s ? "" : holidayHold && holiday ? (holiday.until ? `While you're away, until ${formatUntil(holiday.until)}` : "While you're away") : s.mode === "off" ? "Turn the heating on to set a target" : s.mode === "schedule" ? "Until the next scheduled change" : s.mode === "boost" ? "Keeps the boost time left" : "Held until you change it"}
             </span>
           </div>
           <div className="target-control">
@@ -464,7 +464,7 @@ export function ChannelCard({
       {holiday && (
         <div className="holiday-row">
           <Icon name="bag-suitcase" />
-          <span className="holiday-text">{awayUntil}, then back to {holiday.restore_mode === "schedule" ? "the schedule" : modes.find((m) => m.id === holiday.restore_mode)?.label.toLowerCase()}</span>
+          <span className="holiday-text">{holiday.until ? awayUntil : "Away until you're back"}, then back to {holiday.restore_mode === "schedule" ? "the schedule" : modes.find((m) => m.id === holiday.restore_mode)?.label.toLowerCase()}</span>
           <button className="ghost" disabled={busy} onClick={() => send({ type: "hive_local/holiday/cancel" }, "Holiday ended")}>End</button>
         </div>
       )}
