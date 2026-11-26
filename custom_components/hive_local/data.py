@@ -61,8 +61,9 @@ class HiveData:
             temperature if temperature is not None else defaults.temperature,
         )
 
-    async def async_set_holiday(self, until: datetime, temperature: float | None = None) -> None:
-        """Away until `until`: heating holds `temperature` (default: frost protection), hot water off."""
+    async def async_set_holiday(self, until: datetime | None, temperature: float | None = None) -> None:
+        """Away until `until` (None: until you're back): heating holds `temperature` (default:
+        frost protection), hot water off, and the rooms Off."""
         if temperature is None:
             temperature = self.boost_defaults(CHANNEL_HEAT).frost
         await self.holiday.async_set(until, temperature)

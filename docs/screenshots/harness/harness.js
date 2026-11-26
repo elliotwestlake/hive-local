@@ -82,10 +82,12 @@ if (DEMAND === "1") STATUS.e1.heat.status = { ...STATUS.e1.heat.status, mode: "b
 if (DEMAND === "1") STATUS.e1.heat.preheat = { ...STATUS.e1.heat.preheat, next: null };
 
 // ?holiday=1: away until four days from now at 14:00 (heating on the holiday's 12° boost, hot water off).
-if (params.get("holiday") === "1") {
+// ?holiday=open: away until you're back (the Away toggle), rooms included.
+const HOLIDAY = params.get("holiday");
+if (HOLIDAY === "1" || HOLIDAY === "open") {
   const until = new Date(Date.now() + 4 * 86400000);
   until.setHours(14, 0, 0, 0);
-  const holiday = { until: until.toISOString(), restore_mode: "schedule" };
+  const holiday = { until: HOLIDAY === "open" ? null : until.toISOString(), restore_mode: "schedule" };
   STATUS.e1.heat = { ...STATUS.e1.heat, status: { ...STATUS.e1.heat.status, mode: "boost", boost_remaining: 312, setpoint: 12, heating: false }, holiday: { ...holiday, temperature: 12, holding: true } };
   STATUS.e1.water = { ...STATUS.e1.water, status: { ...STATUS.e1.water.status, mode: "off", boost_remaining: null, heating: false }, holiday: { ...holiday, temperature: null, holding: false } };
 }
@@ -123,6 +125,8 @@ const ROOMS = [
     heating_valves: [], unavailable: [], lowest_battery: 66, battery_low: false,
   },
 ];
+if (HOLIDAY === "open") ROOMS.forEach((r) => Object.assign(r, { away: true, mode: "off", frost: 12, heating: false }));
+
 if (TWO)
   ROOMS.splice(1, 0, {
     id: "c3", name: "Kitchen", valves: ["climate.kitchen"], sensor: null, sensor_name: null, receiver: "e1", receiver_name: "Downstairs",

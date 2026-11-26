@@ -76,10 +76,10 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		});
 	}
 	var k = /\/+/g;
-	function ee(e, t) {
+	function A(e, t) {
 		return typeof e == "object" && e && e.key != null ? O("" + e.key) : t.toString(36);
 	}
-	function te(e, r, i, a, o) {
+	function ee(e, r, i, a, o) {
 		var s = typeof e;
 		(s === "undefined" || s === "boolean") && (e = null);
 		var c = !1;
@@ -94,26 +94,26 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				case n: c = !0;
 			}
 		}
-		if (c) return c = e, o = o(c), e = a === "" ? "." + ee(c, 0) : a, x(o) ? (i = "", e != null && (i = e.replace(k, "$&/") + "/"), te(o, r, i, "", function(e) {
+		if (c) return c = e, o = o(c), e = a === "" ? "." + A(c, 0) : a, x(o) ? (i = "", e != null && (i = e.replace(k, "$&/") + "/"), ee(o, r, i, "", function(e) {
 			return e;
 		})) : o != null && (D(o) && (o = E(o, i + (!o.key || c && c.key === o.key ? "" : ("" + o.key).replace(k, "$&/") + "/") + e)), r.push(o)), 1;
 		if (c = 0, a = a === "" ? "." : a + ":", x(e)) for (var l = 0; l < e.length; l++) {
 			s = e[l];
-			var u = a + ee(s, l);
-			c += te(s, r, i, u, o);
+			var u = a + A(s, l);
+			c += ee(s, r, i, u, o);
 		}
-		else if (u = p(e), typeof u == "function") for (e = u.call(e), l = 0; !(s = e.next()).done;) s = s.value, u = a + ee(s, l++), c += te(s, r, i, u, o);
+		else if (u = p(e), typeof u == "function") for (e = u.call(e), l = 0; !(s = e.next()).done;) s = s.value, u = a + A(s, l++), c += ee(s, r, i, u, o);
 		else if (s === "object") throw r = String(e), Error("Objects are not valid as a React child (found: " + (r === "[object Object]" ? "object with keys {" + Object.keys(e).join(", ") + "}" : r) + "). If you meant to render a collection of children, use an array instead.");
 		return c;
 	}
-	function A(e, t, n) {
+	function j(e, t, n) {
 		if (e == null) return e;
 		var r = [], i = 0;
-		return te(e, r, "", "", function(e) {
+		return ee(e, r, "", "", function(e) {
 			return t.call(n, e, i++);
 		}), r;
 	}
-	function j(e) {
+	function M(e) {
 		if (e._status === -1) {
 			var t = e._result;
 			t = t(), t.then(function(t) {
@@ -125,29 +125,29 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		if (e._status === 1) return e._result.default;
 		throw e._result;
 	}
-	var M = { current: null }, N = { transition: null }, ne = {
-		ReactCurrentDispatcher: M,
-		ReactCurrentBatchConfig: N,
+	var N = { current: null }, te = { transition: null }, ne = {
+		ReactCurrentDispatcher: N,
+		ReactCurrentBatchConfig: te,
 		ReactCurrentOwner: C
 	};
 	function re() {
 		throw Error("act(...) is not supported in production builds of React.");
 	}
 	e.Children = {
-		map: A,
+		map: j,
 		forEach: function(e, t, n) {
-			A(e, function() {
+			j(e, function() {
 				t.apply(this, arguments);
 			}, n);
 		},
 		count: function(e) {
 			var t = 0;
-			return A(e, function() {
+			return j(e, function() {
 				t++;
 			}), t;
 		},
 		toArray: function(e) {
-			return A(e, function(e) {
+			return j(e, function(e) {
 				return e;
 			}) || [];
 		},
@@ -208,7 +208,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				_status: -1,
 				_result: e
 			},
-			_init: j
+			_init: M
 		};
 	}, e.memo = function(e, t) {
 		return {
@@ -217,41 +217,41 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			compare: t === void 0 ? null : t
 		};
 	}, e.startTransition = function(e) {
-		var t = N.transition;
-		N.transition = {};
+		var t = te.transition;
+		te.transition = {};
 		try {
 			e();
 		} finally {
-			N.transition = t;
+			te.transition = t;
 		}
 	}, e.unstable_act = re, e.useCallback = function(e, t) {
-		return M.current.useCallback(e, t);
+		return N.current.useCallback(e, t);
 	}, e.useContext = function(e) {
-		return M.current.useContext(e);
+		return N.current.useContext(e);
 	}, e.useDebugValue = function() {}, e.useDeferredValue = function(e) {
-		return M.current.useDeferredValue(e);
+		return N.current.useDeferredValue(e);
 	}, e.useEffect = function(e, t) {
-		return M.current.useEffect(e, t);
+		return N.current.useEffect(e, t);
 	}, e.useId = function() {
-		return M.current.useId();
+		return N.current.useId();
 	}, e.useImperativeHandle = function(e, t, n) {
-		return M.current.useImperativeHandle(e, t, n);
+		return N.current.useImperativeHandle(e, t, n);
 	}, e.useInsertionEffect = function(e, t) {
-		return M.current.useInsertionEffect(e, t);
+		return N.current.useInsertionEffect(e, t);
 	}, e.useLayoutEffect = function(e, t) {
-		return M.current.useLayoutEffect(e, t);
+		return N.current.useLayoutEffect(e, t);
 	}, e.useMemo = function(e, t) {
-		return M.current.useMemo(e, t);
+		return N.current.useMemo(e, t);
 	}, e.useReducer = function(e, t, n) {
-		return M.current.useReducer(e, t, n);
+		return N.current.useReducer(e, t, n);
 	}, e.useRef = function(e) {
-		return M.current.useRef(e);
+		return N.current.useRef(e);
 	}, e.useState = function(e) {
-		return M.current.useState(e);
+		return N.current.useState(e);
 	}, e.useSyncExternalStore = function(e, t, n) {
-		return M.current.useSyncExternalStore(e, t, n);
+		return N.current.useSyncExternalStore(e, t, n);
 	}, e.useTransition = function() {
-		return M.current.useTransition();
+		return N.current.useTransition();
 	}, e.version = "18.3.1";
 })), n = /* @__PURE__ */ e(((e, n) => {
 	n.exports = t();
@@ -309,10 +309,10 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 	}
 	function b(e) {
 		if (h = !1, y(e), !m) {
-			if (n(c) !== null) m = !0, A(x);
+			if (n(c) !== null) m = !0, j(x);
 			else {
 				var t = n(l);
-				t !== null && j(b, t.startTime - e);
+				t !== null && M(b, t.startTime - e);
 			}
 		}
 	}
@@ -332,7 +332,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			if (d !== null) var u = !0;
 			else {
 				var g = n(l);
-				g !== null && j(b, g.startTime - i), u = !1;
+				g !== null && M(b, g.startTime - i), u = !1;
 			}
 			return u;
 		} finally {
@@ -360,17 +360,17 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		v(O);
 	};
 	else if (typeof MessageChannel < "u") {
-		var ee = new MessageChannel(), te = ee.port2;
-		ee.port1.onmessage = O, k = function() {
-			te.postMessage(null);
+		var A = new MessageChannel(), ee = A.port2;
+		A.port1.onmessage = O, k = function() {
+			ee.postMessage(null);
 		};
 	} else k = function() {
 		g(O, 0);
 	};
-	function A(e) {
+	function j(e) {
 		C = e, S || (S = !0, k());
 	}
-	function j(t, n) {
+	function M(t, n) {
 		w = g(function() {
 			t(e.unstable_now());
 		}, n);
@@ -378,7 +378,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 	e.unstable_IdlePriority = 5, e.unstable_ImmediatePriority = 1, e.unstable_LowPriority = 4, e.unstable_NormalPriority = 3, e.unstable_Profiling = null, e.unstable_UserBlockingPriority = 2, e.unstable_cancelCallback = function(e) {
 		e.callback = null;
 	}, e.unstable_continueExecution = function() {
-		m || p || (m = !0, A(x));
+		m || p || (m = !0, j(x));
 	}, e.unstable_forceFrameRate = function(e) {
 		0 > e || 125 < e ? console.error("forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported") : T = 0 < e ? Math.floor(1e3 / e) : 5;
 	}, e.unstable_getCurrentPriorityLevel = function() {
@@ -441,7 +441,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			startTime: a,
 			expirationTime: s,
 			sortIndex: -1
-		}, a > o ? (r.sortIndex = a, t(l, r), n(c) === null && r === n(l) && (h ? (_(w), w = -1) : h = !0, j(b, a - o))) : (r.sortIndex = s, t(c, r), m || p || (m = !0, A(x))), r;
+		}, a > o ? (r.sortIndex = a, t(l, r), n(c) === null && r === n(l) && (h ? (_(w), w = -1) : h = !0, M(b, a - o))) : (r.sortIndex = s, t(c, r), m || p || (m = !0, j(x))), r;
 	}, e.unstable_shouldYield = D, e.unstable_wrapCallback = function(e) {
 		var t = f;
 		return function() {
@@ -573,7 +573,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		var i = y.hasOwnProperty(t) ? y[t] : null;
 		(i === null ? r || !(2 < t.length) || t[0] !== "o" && t[0] !== "O" || t[1] !== "n" && t[1] !== "N" : i.type !== 0) && (_(t, n, i, r) && (n = null), r || i === null ? h(t) && (n === null ? e.removeAttribute(t) : e.setAttribute(t, "" + n)) : i.mustUseProperty ? e[i.propertyName] = n === null ? i.type !== 3 && "" : n : (t = i.attributeName, r = i.attributeNamespace, n === null ? e.removeAttribute(t) : (i = i.type, n = i === 3 || i === 4 && !0 === n ? "" : "" + n, r ? e.setAttributeNS(r, t, n) : e.setAttribute(t, n))));
 	}
-	var C = t.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED, w = Symbol.for("react.element"), T = Symbol.for("react.portal"), E = Symbol.for("react.fragment"), D = Symbol.for("react.strict_mode"), O = Symbol.for("react.profiler"), k = Symbol.for("react.provider"), ee = Symbol.for("react.context"), te = Symbol.for("react.forward_ref"), A = Symbol.for("react.suspense"), j = Symbol.for("react.suspense_list"), M = Symbol.for("react.memo"), N = Symbol.for("react.lazy"), ne = Symbol.for("react.offscreen"), re = Symbol.iterator;
+	var C = t.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED, w = Symbol.for("react.element"), T = Symbol.for("react.portal"), E = Symbol.for("react.fragment"), D = Symbol.for("react.strict_mode"), O = Symbol.for("react.profiler"), k = Symbol.for("react.provider"), A = Symbol.for("react.context"), ee = Symbol.for("react.forward_ref"), j = Symbol.for("react.suspense"), M = Symbol.for("react.suspense_list"), N = Symbol.for("react.memo"), te = Symbol.for("react.lazy"), ne = Symbol.for("react.offscreen"), re = Symbol.iterator;
 	function ie(e) {
 		return typeof e != "object" || !e ? null : (e = re && e[re] || e["@@iterator"], typeof e == "function" ? e : null);
 	}
@@ -663,17 +663,17 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			case T: return "Portal";
 			case O: return "Profiler";
 			case D: return "StrictMode";
-			case A: return "Suspense";
-			case j: return "SuspenseList";
+			case j: return "Suspense";
+			case M: return "SuspenseList";
 		}
 		if (typeof e == "object") switch (e.$$typeof) {
-			case ee: return (e.displayName || "Context") + ".Consumer";
+			case A: return (e.displayName || "Context") + ".Consumer";
 			case k: return (e._context.displayName || "Context") + ".Provider";
-			case te:
+			case ee:
 				var t = e.render;
 				return e = e.displayName, e ||= (e = t.displayName || t.name || "", e === "" ? "ForwardRef" : "ForwardRef(" + e + ")"), e;
-			case M: return t = e.displayName || null, t === null ? ue(e.type) || "Memo" : t;
-			case N:
+			case N: return t = e.displayName || null, t === null ? ue(e.type) || "Memo" : t;
+			case te:
 				t = e._payload, e = e._init;
 				try {
 					return ue(e(t));
@@ -2607,7 +2607,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		}
 		function l(e, t, n, r) {
 			var a = n.type;
-			return a === E ? d(e, t, n.props.children, r, n.key) : t !== null && (t.elementType === a || typeof a == "object" && a && a.$$typeof === N && Va(a) === t.type) ? (r = i(t, n.props), r.ref = za(e, t, n), r.return = e, r) : (r = Xl(n.type, n.key, n.props, null, e.mode, r), r.ref = za(e, t, n), r.return = e, r);
+			return a === E ? d(e, t, n.props.children, r, n.key) : t !== null && (t.elementType === a || typeof a == "object" && a && a.$$typeof === te && Va(a) === t.type) ? (r = i(t, n.props), r.ref = za(e, t, n), r.return = e, r) : (r = Xl(n.type, n.key, n.props, null, e.mode, r), r.ref = za(e, t, n), r.return = e, r);
 		}
 		function u(e, t, n, r) {
 			return t === null || t.tag !== 4 || t.stateNode.containerInfo !== n.containerInfo || t.stateNode.implementation !== n.implementation ? (t = eu(n, e.mode, r), t.return = e, t) : (t = i(t, n.children || []), t.return = e, t);
@@ -2621,7 +2621,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				switch (t.$$typeof) {
 					case w: return n = Xl(t.type, t.key, t.props, null, e.mode, n), n.ref = za(e, null, t), n.return = e, n;
 					case T: return t = eu(t, e.mode, n), t.return = e, t;
-					case N:
+					case te:
 						var r = t._init;
 						return f(e, r(t._payload), n);
 				}
@@ -2637,7 +2637,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				switch (n.$$typeof) {
 					case w: return n.key === i ? l(e, t, n, r) : null;
 					case T: return n.key === i ? u(e, t, n, r) : null;
-					case N: return i = n._init, p(e, t, i(n._payload), r);
+					case te: return i = n._init, p(e, t, i(n._payload), r);
 				}
 				if (Ce(n) || ie(n)) return i === null ? d(e, t, n, r, null) : null;
 				Ba(e, n);
@@ -2650,7 +2650,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				switch (r.$$typeof) {
 					case w: return e = e.get(r.key === null ? n : r.key) || null, l(t, e, r, i);
 					case T: return e = e.get(r.key === null ? n : r.key) || null, u(t, e, r, i);
-					case N:
+					case te:
 						var a = r._init;
 						return m(e, t, n, a(r._payload), i);
 				}
@@ -2714,7 +2714,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 											n(e, l.sibling), r = i(l, a.props.children), r.return = e, e = r;
 											break a;
 										}
-									} else if (l.elementType === c || typeof c == "object" && c && c.$$typeof === N && Va(c) === l.type) {
+									} else if (l.elementType === c || typeof c == "object" && c && c.$$typeof === te && Va(c) === l.type) {
 										n(e, l.sibling), r = i(l, a.props), r.ref = za(e, l, a), r.return = e, e = r;
 										break a;
 									}
@@ -2742,7 +2742,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 							r = eu(a, e.mode, o), r.return = e, e = r;
 						}
 						return s(e);
-					case N: return l = a._init, _(e, r, l(a._payload), o);
+					case te: return l = a._init, _(e, r, l(a._payload), o);
 				}
 				if (Ce(a)) return h(e, r, a, o);
 				if (ie(a)) return g(e, r, a, o);
@@ -5524,8 +5524,8 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 	function Jl(e) {
 		if (typeof e == "function") return +!!ql(e);
 		if (e != null) {
-			if (e = e.$$typeof, e === te) return 11;
-			if (e === M) return 14;
+			if (e = e.$$typeof, e === ee) return 11;
+			if (e === N) return 14;
 		}
 		return 2;
 	}
@@ -5546,24 +5546,24 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				s = 8, i |= 8;
 				break;
 			case O: return e = Kl(12, n, t, i | 2), e.elementType = O, e.lanes = o, e;
-			case A: return e = Kl(13, n, t, i), e.elementType = A, e.lanes = o, e;
-			case j: return e = Kl(19, n, t, i), e.elementType = j, e.lanes = o, e;
+			case j: return e = Kl(13, n, t, i), e.elementType = j, e.lanes = o, e;
+			case M: return e = Kl(19, n, t, i), e.elementType = M, e.lanes = o, e;
 			case ne: return Ql(n, i, o, t);
 			default:
 				if (typeof e == "object" && e) switch (e.$$typeof) {
 					case k:
 						s = 10;
 						break a;
-					case ee:
+					case A:
 						s = 9;
 						break a;
-					case te:
+					case ee:
 						s = 11;
 						break a;
-					case M:
+					case N:
 						s = 14;
 						break a;
-					case N:
+					case te:
 						s = 16, r = null;
 						break a;
 				}
@@ -6001,17 +6001,26 @@ function T(e) {
 	let t = typeof e == "string" ? new Date(e) : e;
 	return Number.isNaN(t.getTime()) ? "" : `${((t.getTime() - Date.now()) / 864e5 < 6 ? S : C).format(t)} ${w.format(t)}`;
 }
-var E = (e) => e.length === 0 ? "rooms" : e.length <= 2 ? e.join(" and ") : `${e.length} rooms`, D = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, O = (e) => String(e).padStart(2, "0"), k = (e) => `${e.getFullYear()}-${O(e.getMonth() + 1)}-${O(e.getDate())}T${O(e.getHours())}:${O(e.getMinutes())}`;
+var E = (e) => e.length === 0 ? "rooms" : e.length <= 2 ? e.join(" and ") : `${e.length} rooms`, D = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`;
+function O(e) {
+	return e ? `Away until ${T(e)}` : "Away";
+}
+// src/Holiday.tsx
+var k = (e) => String(e).padStart(2, "0"), A = (e) => `${e.getFullYear()}-${k(e.getMonth() + 1)}-${k(e.getDate())}T${k(e.getHours())}:${k(e.getMinutes())}`;
 function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, onClose: o }) {
 	let [s, c] = (0, u.useState)(() => {
 		let e = /* @__PURE__ */ new Date();
-		return e.setDate(e.getDate() + 7), e.setHours(14, 0, 0, 0), k(e);
-	}), [l, d] = (0, u.useState)(n), m = r?.boost_min_temp ?? 5, h = r?.heat_max ?? 32, g = (e) => Math.min(h, Math.max(m, Math.round(e * 2) / 2));
+		return e.setDate(e.getDate() + 7), e.setHours(14, 0, 0, 0), A(e);
+	}), [l, d] = (0, u.useState)(n), [m, h] = (0, u.useState)(!1), g = r?.boost_min_temp ?? 5, _ = r?.heat_max ?? 32, v = (e) => Math.min(_, Math.max(g, Math.round(e * 2) / 2));
 	(0, u.useEffect)(() => {
 		let e = (e) => e.key === "Escape" && o();
 		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
 	}, [o]);
-	let _ = new Date(s), v = !Number.isNaN(_.getTime()) && _.getTime() > Date.now() + 6e4, y = [e && `heating holds ${l.toFixed(1)}°`, t && "hot water is off"].filter(Boolean).join(" and ");
+	let y = new Date(s), b = !m || !Number.isNaN(y.getTime()) && y.getTime() > Date.now() + 6e4, x = [
+		e && `heating holds ${l.toFixed(1)}°`,
+		t && "hot water is off",
+		e && "the rooms hold frost protection"
+	].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " and $1");
 	return /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: (e) => {
@@ -6030,8 +6039,8 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 					children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: "Away" }), /* @__PURE__ */ (0, f.jsxs)("span", {
 						className: "muted",
 						children: [
-							"Until you're back, ",
-							y,
+							"While you're away, ",
+							x,
 							". Then everything goes back to what it was doing."
 						]
 					})]
@@ -6040,12 +6049,30 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 					className: "sheet-field",
 					children: [/* @__PURE__ */ (0, f.jsx)("span", {
 						className: "sheet-label",
+						children: "How long"
+					}), /* @__PURE__ */ (0, f.jsxs)("div", {
+						className: "sheet-lengths",
+						children: [/* @__PURE__ */ (0, f.jsx)("button", {
+							className: m ? "" : "on",
+							onClick: () => h(!1),
+							children: "Until I'm back"
+						}), /* @__PURE__ */ (0, f.jsx)("button", {
+							className: m ? "on" : "",
+							onClick: () => h(!0),
+							children: "Until a date"
+						})]
+					})]
+				}),
+				m && /* @__PURE__ */ (0, f.jsxs)("div", {
+					className: "sheet-field",
+					children: [/* @__PURE__ */ (0, f.jsx)("span", {
+						className: "sheet-label",
 						children: "Back on"
 					}), /* @__PURE__ */ (0, f.jsx)("input", {
 						className: "sheet-time",
 						type: "datetime-local",
 						value: s,
-						min: k(/* @__PURE__ */ new Date()),
+						min: A(/* @__PURE__ */ new Date()),
 						onChange: (e) => c(e.target.value)
 					})]
 				}),
@@ -6059,7 +6086,7 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 						children: [
 							/* @__PURE__ */ (0, f.jsx)("button", {
 								className: "round sheet-step",
-								onClick: () => d(g(l - .5)),
+								onClick: () => d(v(l - .5)),
 								"aria-label": "Lower",
 								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "minus" })
 							}),
@@ -6069,7 +6096,7 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 							}),
 							/* @__PURE__ */ (0, f.jsx)("button", {
 								className: "round sheet-step",
-								onClick: () => d(g(l + .5)),
+								onClick: () => d(v(l + .5)),
 								"aria-label": "Raise",
 								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
 							})
@@ -6078,9 +6105,9 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 				}),
 				/* @__PURE__ */ (0, f.jsx)("button", {
 					className: "sheet-go",
-					disabled: i || !v,
-					onClick: () => a(_, l),
-					children: v ? `Away until ${T(_)}` : "Pick a time in the future"
+					disabled: i || !b,
+					onClick: () => a(m ? y : null, l),
+					children: m ? b ? `Away until ${T(y)}` : "Pick a time in the future" : "Away until I'm back"
 				}),
 				/* @__PURE__ */ (0, f.jsx)("button", {
 					className: "ghost sheet-cancel",
@@ -6092,13 +6119,13 @@ function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, on
 	});
 }
 // src/Overview.tsx
-var te = [
+var j = [
 	30,
 	60,
 	120,
 	180
 ];
-function A({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOpenRoom: a }) {
+function M({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOpenRoom: a }) {
 	let [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)("all");
 	(0, u.useEffect)(() => {
 		let t = e().connection.subscribeMessage((e) => s(e.rooms), { type: "hive_local/rooms/subscribe" });
@@ -6139,7 +6166,7 @@ function A({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOp
 				className: "home-section",
 				children: "Quick actions"
 			}),
-			/* @__PURE__ */ (0, f.jsx)(j, {
+			/* @__PURE__ */ (0, f.jsx)(N, {
 				getHass: e,
 				devices: t,
 				status: n,
@@ -6167,7 +6194,7 @@ function A({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOp
 			}),
 			/* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "device-grid",
-				children: [d.filter(({ c: e }) => c === "all" || c === e).map(({ d: t, c: a }) => /* @__PURE__ */ (0, f.jsx)(ne, {
+				children: [d.filter(({ c: e }) => c === "all" || c === e).map(({ d: t, c: a }) => /* @__PURE__ */ (0, f.jsx)(re, {
 					getHass: e,
 					device: t,
 					channel: a,
@@ -6177,7 +6204,7 @@ function A({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOp
 					onOpen: () => i(t.entry_id, a)
 				}, `${t.entry_id}-${a}`)), (c === "all" || c === "rooms") && o.map((i) => {
 					let o = n[i.receiver ?? t[0]?.entry_id ?? ""]?.heat;
-					return /* @__PURE__ */ (0, f.jsx)(N, {
+					return /* @__PURE__ */ (0, f.jsx)(ne, {
 						getHass: e,
 						room: i,
 						showReceiver: m,
@@ -6191,7 +6218,7 @@ function A({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOp
 		] })
 	});
 }
-function j({ getHass: e, devices: t, status: n, limits: r }) {
+function N({ getHass: e, devices: t, status: n, limits: r }) {
 	let [i, a] = (0, u.useState)(null), [o, s] = (0, u.useState)(null), [c, l] = (0, u.useState)(!1), d = t.length > 1, m = async (t, n, r) => {
 		a(t);
 		try {
@@ -6215,14 +6242,14 @@ function j({ getHass: e, devices: t, status: n, limits: r }) {
 	}))), _ = g.map(({ info: e }) => e?.holiday).find((e) => e), v = g.find(({ c: e }) => e === "heat")?.info;
 	_ ? h.push({
 		id: "holiday-end",
-		label: `End holiday · away until ${T(_.until)}`,
+		label: _.until ? `I'm back · away until ${T(_.until)}` : "I'm back",
 		icon: "home-import-outline",
 		kind: "neutral",
 		msgs: [{ type: "hive_local/holiday/cancel" }],
 		done: "Welcome back: everything's back to what it was doing"
 	}) : h.push({
 		id: "holiday",
-		label: "Away until…",
+		label: "Away",
 		icon: "bag-suitcase",
 		kind: "neutral",
 		msgs: [],
@@ -6297,20 +6324,20 @@ function j({ getHass: e, devices: t, status: n, limits: r }) {
 			busy: i != null,
 			onGo: (e, t) => m("holiday", [{
 				type: "hive_local/holiday/set",
-				until: e.toISOString(),
+				...e ? { until: e.toISOString() } : {},
 				temperature: t
-			}], `Away until ${T(e)}`).then((e) => e && l(!1)),
+			}], e ? `Away until ${T(e)}` : "Away until you're back").then((e) => e && l(!1)),
 			onClose: () => l(!1)
 		})
 	] });
 }
-var M = [
+var te = [
 	30,
 	60,
 	120,
 	180
 ];
-function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i, defaultTemp: a, onOpen: o, page: s }) {
+function ne({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i, defaultTemp: a, onOpen: o, page: s }) {
 	let [c, l] = (0, u.useState)(!1), [d, m] = (0, u.useState)(!1), [h, g] = (0, u.useState)(""), _ = async (n) => {
 		m(!0);
 		try {
@@ -6323,7 +6350,7 @@ function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i,
 		} finally {
 			m(!1);
 		}
-	}, v = t.boost ?? null, y = v ? `${v.temperature}°` : t.target == null ? t.target_range ? `${t.target_range[0]}–${t.target_range[1]}°` : null : `${t.target}°`, x = v ? `Boost · ${D(v.remaining)} left` : `${t.valves.length} valve${t.valves.length === 1 ? "" : "s"}`, S = (e) => Math.min(r?.heat_max ?? 32, Math.max(5, Math.round(e * 2) / 2)), C = Math.min(360, Math.max(15, i)), w = [.../* @__PURE__ */ new Set([...M, C])].sort((e, t) => e - t);
+	}, v = t.boost ?? null, y = v ? `${v.temperature}°` : t.target == null ? t.target_range ? `${t.target_range[0]}–${t.target_range[1]}°` : null : `${t.target}°`, x = v ? `Boost · ${D(v.remaining)} left` : `${t.valves.length} valve${t.valves.length === 1 ? "" : "s"}`, S = (e) => Math.min(r?.heat_max ?? 32, Math.max(5, Math.round(e * 2) / 2)), C = Math.min(360, Math.max(15, i)), w = [.../* @__PURE__ */ new Set([...te, C])].sort((e, t) => e - t);
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: `card device room-device ${t.heating ? "heating" : "idle"}`,
 		children: [
@@ -6365,7 +6392,15 @@ function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i,
 						}),
 						/* @__PURE__ */ (0, f.jsx)("span", {
 							className: "device-status",
-							children: t.heating ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
+							children: t.away && !v ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
+								"Away ",
+								/* @__PURE__ */ (0, f.jsxs)("b", { children: [t.frost ?? 12, "°"] }),
+								" ",
+								/* @__PURE__ */ (0, f.jsx)(p, {
+									name: "bag-suitcase",
+									className: "status-icon away"
+								})
+							] }) : t.heating ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
 								"Heating to ",
 								/* @__PURE__ */ (0, f.jsx)("b", { children: y }),
 								" ",
@@ -6403,7 +6438,7 @@ function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i,
 				className: "status error",
 				children: h
 			}),
-			c && /* @__PURE__ */ (0, f.jsx)(re, {
+			c && /* @__PURE__ */ (0, f.jsx)(ie, {
 				title: v ? "Boosting" : "Boost",
 				subtitle: t.name,
 				water: !1,
@@ -6427,7 +6462,7 @@ function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i,
 		]
 	});
 }
-function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits: a, onOpen: o, page: s = !1 }) {
+function re({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits: a, onOpen: o, page: s = !1 }) {
 	let c = n === "water", l = r?.status ?? null, { busy: d, result: m, send: h } = x(e, t.entry_id, n), g = !!l && l.mode !== "off" && l.heating, v = !l || l.mode === "off" ? "off" : g ? "heating" : "idle", y = !c && l?.setpoint != null && l.setpoint <= 1, b = c || l?.setpoint == null ? null : y ? r?.frost_temperature ?? null : l.setpoint, S = [
 		{
 			id: "schedule",
@@ -6441,22 +6476,22 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 			id: "off",
 			label: "Off"
 		}
-	], C = r?.boost_minutes ?? 30, w = r?.boost_temperature ?? 21, [O, k] = (0, u.useState)(!1), ee = a?.boost_min_temp ?? 5, A = a?.heat_max ?? 32, j = (e) => Math.min(A, Math.max(ee, Math.round(e * 2) / 2)), M = [.../* @__PURE__ */ new Set([...te, C])].filter((e) => e <= (a?.boost_max_minutes ?? 360)).sort((e, t) => e - t), [N, ne] = (0, u.useState)(null), ie = (0, u.useRef)();
-	(0, u.useEffect)(() => () => window.clearTimeout(ie.current), []), (0, u.useEffect)(() => ne(null), [l?.setpoint, l?.mode]);
-	let P = !c && !!l && l.mode !== "off", ae = (e) => {
-		let t = j((N ?? b ?? 20) + e);
-		ne(t), window.clearTimeout(ie.current), ie.current = window.setTimeout(() => {
+	], C = r?.boost_minutes ?? 30, w = r?.boost_temperature ?? 21, [k, A] = (0, u.useState)(!1), ee = a?.boost_min_temp ?? 5, M = a?.heat_max ?? 32, N = (e) => Math.min(M, Math.max(ee, Math.round(e * 2) / 2)), te = [.../* @__PURE__ */ new Set([...j, C])].filter((e) => e <= (a?.boost_max_minutes ?? 360)).sort((e, t) => e - t), [ne, re] = (0, u.useState)(null), P = (0, u.useRef)();
+	(0, u.useEffect)(() => () => window.clearTimeout(P.current), []), (0, u.useEffect)(() => re(null), [l?.setpoint, l?.mode]);
+	let ae = !c && !!l && l.mode !== "off", oe = (e) => {
+		let t = N((ne ?? b ?? 20) + e);
+		re(t), window.clearTimeout(P.current), P.current = window.setTimeout(() => {
 			h({
 				type: "hive_local/target",
 				temperature: t
-			}, `Set to ${t}°`).then(() => window.setTimeout(() => ne(null), 8e3));
+			}, `Set to ${t}°`).then(() => window.setTimeout(() => re(null), 8e3));
 		}, 1200);
-	}, oe = N ?? b, se = (e, t) => h({
+	}, se = ne ?? b, ce = (e, t) => h({
 		type: "hive_local/boost",
 		minutes: e,
 		...c ? {} : { temperature: t }
-	}, `Boosting for ${D(e)}`).then(() => k(!1)), ce = !!r?.holiday?.holding, le = l ? ce ? "Away at" : l.mode === "boost" ? "Boost to" : y && N == null ? "Frost" : l.mode === "manual" ? "Hold at" : "Target" : "", ue = l?.mode === "boost" && !ce, de = ue ? r?.preheat?.active_for ?? null : null, fe = de != null, pe = ue && !fe && r?.demand?.active ? E(r.demand.rooms) : null, me = "Waiting for the receiver…";
-	l && (me = l.mode === "off" ? "Off" : ue ? c ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Boosting ", /* @__PURE__ */ (0, f.jsx)(p, {
+	}, `Boosting for ${D(e)}`).then(() => A(!1)), le = !!r?.holiday?.holding, ue = l ? le ? "Away at" : l.mode === "boost" ? "Boost to" : y && ne == null ? "Frost" : l.mode === "manual" ? "Hold at" : "Target" : "", de = l?.mode === "boost" && !le, fe = de ? r?.preheat?.active_for ?? null : null, pe = fe != null, me = de && !pe && r?.demand?.active ? E(r.demand.rooms) : null, he = "Waiting for the receiver…";
+	l && (he = l.mode === "off" ? "Off" : de ? c ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Boosting ", /* @__PURE__ */ (0, f.jsx)(p, {
 		name: "rocket-launch",
 		className: "status-icon"
 	})] }) : /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
@@ -6486,7 +6521,7 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 			name: "check-circle-outline",
 			className: "status-icon done"
 		})
-	] })), l && fe && (me = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
+	] })), l && pe && (he = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
 		"Pre-heating to ",
 		/* @__PURE__ */ (0, f.jsxs)("b", { children: [l.setpoint, "°"] }),
 		" ",
@@ -6494,12 +6529,12 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 			name: "sun-clock",
 			className: "status-icon"
 		})
-	] })), l && pe && (me = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Heating for rooms ", /* @__PURE__ */ (0, f.jsx)(p, {
+	] })), l && me && (he = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Heating for rooms ", /* @__PURE__ */ (0, f.jsx)(p, {
 		name: "home-thermometer-outline",
 		className: "status-icon"
 	})] }));
-	let he = r?.holiday ?? null, ge = he ? `Away until ${T(he.until)}` : null;
-	l && he && !ue && !g && (me = c ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Off while away ", /* @__PURE__ */ (0, f.jsx)(p, {
+	let ge = r?.holiday ?? null, F = ge ? O(ge.until) : null;
+	l && ge && !de && !g && (he = c ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Off while away ", /* @__PURE__ */ (0, f.jsx)(p, {
 		name: "bag-suitcase",
 		className: "status-icon away"
 	})] }) : /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
@@ -6511,7 +6546,7 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 			className: "status-icon away"
 		})
 	] }));
-	let F = l ? ge && !ue ? ge : fe ? `Pre-heating for ${r?.preheat?.active_for}` : pe ? `Heating for ${pe}` : l.mode === "boost" ? l.boost_remaining == null ? "Boost" : `Boost · ${D(l.boost_remaining)} left` : l.mode === "schedule" ? "On schedule" : S.find((e) => e.id === l.mode)?.label : "", _e = s;
+	let _e = l ? F && !de ? F : pe ? `Pre-heating for ${r?.preheat?.active_for}` : me ? `Heating for ${me}` : l.mode === "boost" ? l.boost_remaining == null ? "Boost" : `Boost · ${D(l.boost_remaining)} left` : l.mode === "schedule" ? "On schedule" : S.find((e) => e.id === l.mode)?.label : "", ve = s;
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: `card device ${n} ${v} ${s ? "page" : ""}`,
 		children: [
@@ -6534,12 +6569,12 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 							className: "device-name",
 							children: [/* @__PURE__ */ (0, f.jsx)("span", { children: _[n] }), /* @__PURE__ */ (0, f.jsx)("span", {
 								className: "muted small",
-								children: i ? `${t.name} · ${F}` : F
+								children: i ? `${t.name} · ${_e}` : _e
 							})]
 						}),
 						/* @__PURE__ */ (0, f.jsx)("span", {
 							className: "device-status",
-							children: me
+							children: he
 						})
 					]
 				}), /* @__PURE__ */ (0, f.jsxs)("div", {
@@ -6552,20 +6587,20 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 							/* @__PURE__ */ (0, f.jsx)("small", { children: c ? "Now" : "Actual" })
 						]
 					}), /* @__PURE__ */ (0, f.jsxs)("button", {
-						className: `device-action ${ue ? "boosting" : ""}`,
+						className: `device-action ${de ? "boosting" : ""}`,
 						disabled: d || !l,
 						onClick: (e) => {
-							e.stopPropagation(), k(!0);
+							e.stopPropagation(), A(!0);
 						},
 						children: [
-							/* @__PURE__ */ (0, f.jsx)(p, { name: fe ? "sun-clock" : pe ? "home-thermometer-outline" : "rocket-launch" }),
+							/* @__PURE__ */ (0, f.jsx)(p, { name: pe ? "sun-clock" : me ? "home-thermometer-outline" : "rocket-launch" }),
 							" ",
-							fe ? "Pre-heating" : pe ? "For rooms" : ue ? "Boosting" : "Boost"
+							pe ? "Pre-heating" : me ? "For rooms" : de ? "Boosting" : "Boost"
 						]
 					})]
 				})]
 			}),
-			_e && /* @__PURE__ */ (0, f.jsxs)("div", {
+			ve && /* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "device-body",
 				children: [
 					!c && /* @__PURE__ */ (0, f.jsxs)("div", {
@@ -6574,45 +6609,45 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 							className: "target-text",
 							children: [/* @__PURE__ */ (0, f.jsx)("span", {
 								className: "target-label",
-								children: le || "Target"
+								children: ue || "Target"
 							}), /* @__PURE__ */ (0, f.jsx)("span", {
 								className: "muted small",
-								children: l ? ce && he ? `While you're away, until ${T(he.until)}` : l.mode === "off" ? "Turn the heating on to set a target" : l.mode === "schedule" ? "Until the next scheduled change" : l.mode === "boost" ? "Keeps the boost time left" : "Held until you change it" : ""
+								children: l ? le && ge ? ge.until ? `While you're away, until ${T(ge.until)}` : "While you're away" : l.mode === "off" ? "Turn the heating on to set a target" : l.mode === "schedule" ? "Until the next scheduled change" : l.mode === "boost" ? "Keeps the boost time left" : "Held until you change it" : ""
 							})]
 						}), /* @__PURE__ */ (0, f.jsxs)("div", {
 							className: "target-control",
 							children: [
 								/* @__PURE__ */ (0, f.jsx)("button", {
 									className: "round target-btn",
-									disabled: !P,
-									onClick: () => ae(-.5),
+									disabled: !ae,
+									onClick: () => oe(-.5),
 									"aria-label": "Lower the target",
 									children: /* @__PURE__ */ (0, f.jsx)(p, { name: "minus" })
 								}),
 								/* @__PURE__ */ (0, f.jsx)("span", {
-									className: `target-value ${N == null ? "" : "pending"}`,
-									children: oe != null && l?.mode !== "off" ? `${oe.toFixed(1)}°` : "–"
+									className: `target-value ${ne == null ? "" : "pending"}`,
+									children: se != null && l?.mode !== "off" ? `${se.toFixed(1)}°` : "–"
 								}),
 								/* @__PURE__ */ (0, f.jsx)("button", {
 									className: "round target-btn",
-									disabled: !P,
-									onClick: () => ae(.5),
+									disabled: !ae,
+									onClick: () => oe(.5),
 									"aria-label": "Raise the target",
 									children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
 								})
 							]
 						})]
 					}),
-					he && /* @__PURE__ */ (0, f.jsxs)("div", {
+					ge && /* @__PURE__ */ (0, f.jsxs)("div", {
 						className: "holiday-row",
 						children: [
 							/* @__PURE__ */ (0, f.jsx)(p, { name: "bag-suitcase" }),
 							/* @__PURE__ */ (0, f.jsxs)("span", {
 								className: "holiday-text",
 								children: [
-									ge,
+									ge.until ? F : "Away until you're back",
 									", then back to ",
-									he.restore_mode === "schedule" ? "the schedule" : S.find((e) => e.id === he.restore_mode)?.label.toLowerCase()
+									ge.restore_mode === "schedule" ? "the schedule" : S.find((e) => e.id === ge.restore_mode)?.label.toLowerCase()
 								]
 							}),
 							/* @__PURE__ */ (0, f.jsx)("button", {
@@ -6626,7 +6661,7 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 					/* @__PURE__ */ (0, f.jsx)("div", {
 						className: "segmented full",
 						children: S.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
-							className: l?.mode === e.id || (fe || pe) && e.id === "schedule" ? "on" : "",
+							className: l?.mode === e.id || (pe || me) && e.id === "schedule" ? "on" : "",
 							disabled: d || !l,
 							onClick: () => h({
 								type: "hive_local/mode",
@@ -6641,28 +6676,28 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 				className: "status error",
 				children: m.text
 			}),
-			O && /* @__PURE__ */ (0, f.jsx)(re, {
-				title: fe ? "Pre-heating" : pe ? "Heating for rooms" : ue ? "Boosting" : "Boost",
+			k && /* @__PURE__ */ (0, f.jsx)(ie, {
+				title: pe ? "Pre-heating" : me ? "Heating for rooms" : de ? "Boosting" : "Boost",
 				subtitle: i ? `${t.name} · ${_[n]}` : _[n],
 				water: c,
-				boosting: ue,
-				preheatFor: de,
-				demandFor: pe,
+				boosting: de,
+				preheatFor: fe,
+				demandFor: me,
 				remaining: l?.boost_remaining ?? null,
-				boostTarget: ue ? l?.setpoint ?? null : null,
+				boostTarget: de ? l?.setpoint ?? null : null,
 				defaultMinutes: C,
 				defaultTemp: w,
-				durations: M,
-				clampTemp: j,
+				durations: te,
+				clampTemp: N,
 				busy: d,
-				onBoost: se,
-				onStop: () => h({ type: "hive_local/cancel_boost" }, pe ? "Back to the schedule" : "Boost cancelled").then(() => k(!1)),
-				onClose: () => k(!1)
+				onBoost: ce,
+				onStop: () => h({ type: "hive_local/cancel_boost" }, me ? "Back to the schedule" : "Boost cancelled").then(() => A(!1)),
+				onClose: () => A(!1)
 			})
 		]
 	});
 }
-function re({ title: e, subtitle: t, water: n, boosting: r, preheatFor: i, demandFor: a, remaining: o, boostTarget: s, defaultMinutes: c, defaultTemp: l, durations: d, clampTemp: m, busy: h, onBoost: g, onStop: _, onClose: v }) {
+function ie({ title: e, subtitle: t, water: n, boosting: r, preheatFor: i, demandFor: a, remaining: o, boostTarget: s, defaultMinutes: c, defaultTemp: l, durations: d, clampTemp: m, busy: h, onBoost: g, onStop: _, onClose: v }) {
 	let [y, b] = (0, u.useState)(c), [x, S] = (0, u.useState)(l);
 	return (0, u.useEffect)(() => {
 		let e = (e) => e.key === "Escape" && v();
@@ -6759,14 +6794,14 @@ function re({ title: e, subtitle: t, water: n, boosting: r, preheatFor: i, deman
 	});
 }
 // src/Preheat.tsx
-var ie = [
+var P = [
 	60,
 	90,
 	120,
 	180
 ];
-function P({ getHass: e, device: t, info: n }) {
-	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = [.../* @__PURE__ */ new Set([...ie, n.max_lead])].sort((e, t) => e - t), s;
+function ae({ getHass: e, device: t, info: n }) {
+	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = [.../* @__PURE__ */ new Set([...P, n.max_lead])].sort((e, t) => e - t), s;
 	return s = n.enabled ? n.active_for ? `Pre-heating now, for ${n.active_for}.` : n.rate == null && n.rate_known === !1 ? "Working out how fast your home warms up…" : n.rate == null ? `Still learning how fast your home warms up (${n.warmups} of ${n.warmups_needed} warm-ups seen).` : n.schedule_known ? n.next?.skipped ? `Not pre-heating for ${n.next.at}: it was stopped early. Turn pre-heat off and on to start it again.` : n.next ? `Next: starts ${n.next.start} to reach ${n.next.setpoint}° by ${n.next.at}.` : "Nothing to pre-heat for yet." : "Reading the heating schedule…" : "Start heating early, so it's warm by the time the schedule says.", /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "card preheat",
 		children: [
@@ -6837,17 +6872,17 @@ function P({ getHass: e, device: t, info: n }) {
 	});
 }
 // src/ScheduleEditor.tsx
-var ae = [
+var oe = [
 	"monday",
 	"tuesday",
 	"wednesday",
 	"thursday",
 	"friday"
-], oe = ["saturday", "sunday"], se = (e) => e[0].toUpperCase() + e.slice(1, 3), ce = (e) => {
+], se = ["saturday", "sunday"], ce = (e) => e[0].toUpperCase() + e.slice(1, 3), le = (e) => {
 	let [t, n] = e.split(":").map(Number);
 	return t * 60 + n;
 };
-function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor: a, demandFor: o, source: s }) {
+function ue({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor: a, demandFor: o, source: s }) {
 	let [c, l] = (0, u.useState)({}), [d, m] = (0, u.useState)({}), [h, _] = (0, u.useState)("monday"), [v, y] = (0, u.useState)({ kind: "idle" }), [x, S] = (0, u.useState)(!1), C = t?.entry_id, w = n === "water", T = JSON.stringify(c) !== JSON.stringify(d), E = s?.noun ?? "receiver", D = (0, u.useCallback)(async () => {
 		y({
 			kind: "busy",
@@ -6925,26 +6960,26 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 				});
 			}
 		}
-	}, k = c[h] ?? [], ee = r.max_transitions, te = (e) => l((t) => ({
+	}, k = c[h] ?? [], A = r.max_transitions, ee = (e) => l((t) => ({
 		...t,
-		[h]: [...e].sort((e, t) => ce(e.time) - ce(t.time))
-	})), A = () => {
-		let e = k[k.length - 1], t = e ? ue(k, ce(e.time) + 60) : "06:00", n = w ? r.water_on : e?.setpoint ?? 20;
-		te([...k, {
+		[h]: [...e].sort((e, t) => le(e.time) - le(t.time))
+	})), j = () => {
+		let e = k[k.length - 1], t = e ? de(k, le(e.time) + 60) : "06:00", n = w ? r.water_on : e?.setpoint ?? 20;
+		ee([...k, {
 			time: t,
 			setpoint: n
 		}]);
-	}, j = (e) => l((t) => {
+	}, M = (e) => l((t) => {
 		let n = { ...t };
 		for (let t of e) n[t] = k.map((e) => ({ ...e }));
 		return n;
-	}), M = (0, u.useMemo)(() => {
+	}), N = (0, u.useMemo)(() => {
 		let e = Object.values(c).flat().map((e) => e.setpoint).filter((e) => e > r.heat_min);
 		return {
 			lo: Math.min(15, ...e),
 			hi: Math.max(24, ...e)
 		};
-	}, [c, r.heat_min]), N = g[((/* @__PURE__ */ new Date()).getDay() + 6) % 7], [ne, re] = (0, u.useState)(null), [ie, P] = (0, u.useState)(!1), le = g.filter((e) => JSON.stringify(c[e]) !== JSON.stringify(d[e])), me = g[(g.indexOf(h) + 1) % 7], he = (c[me] ?? [])[0]?.time, ge = (e) => w ? e.setpoint < r.water_on : pe(e.setpoint, r), F = "Stored on the receiver, so it keeps running without Home Assistant.";
+	}, [c, r.heat_min]), te = g[((/* @__PURE__ */ new Date()).getDay() + 6) % 7], [ne, re] = (0, u.useState)(null), [ie, P] = (0, u.useState)(!1), ae = g.filter((e) => JSON.stringify(c[e]) !== JSON.stringify(d[e])), ue = g[(g.indexOf(h) + 1) % 7], he = (c[ue] ?? [])[0]?.time, ge = (e) => w ? e.setpoint < r.water_on : me(e.setpoint, r), F = "Stored on the receiver, so it keeps running without Home Assistant.";
 	return s?.statusLine ? F = s.statusLine : i === "schedule" ? F = "Your schedule is running." : i === "manual" ? F = `Your schedule isn't being used: ${w ? "hot water is always on" : "heating is on Manual"}.` : i === "off" ? F = `Your schedule isn't being used: ${w ? "hot water" : "heating"} is off.` : i === "boost" && a ? F = `Your schedule is running, starting early so it's warm by ${a}.` : i === "boost" && o ? F = `Your schedule is running, with extra heat for ${o}.` : i === "boost" && (F = "Boosting now. Your schedule carries on after the boost."), /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: `sched ${s?.embedded ? "embedded" : ""}`,
 		children: [
@@ -6960,11 +6995,11 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 					role: "tab",
 					"aria-selected": e === h,
 					"aria-label": e,
-					className: `sched-day ${e === h ? "on" : ""} ${e === N ? "today" : ""}`,
+					className: `sched-day ${e === h ? "on" : ""} ${e === te ? "today" : ""}`,
 					onClick: () => {
 						_(e), re(null);
 					},
-					children: [e[0].toUpperCase(), le.includes(e) && /* @__PURE__ */ (0, f.jsx)("i", {
+					children: [e[0].toUpperCase(), ae.includes(e) && /* @__PURE__ */ (0, f.jsx)("i", {
 						className: "sched-dot",
 						"aria-label": "changed"
 					})]
@@ -6986,7 +7021,7 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 						]
 					}),
 					k.map((e, t) => {
-						let n = k[t + 1]?.time ?? (he ? `${he} (${se(me)})` : "00:00"), i = ge(e);
+						let n = k[t + 1]?.time ?? (he ? `${he} (${ce(ue)})` : "00:00"), i = ge(e);
 						return /* @__PURE__ */ (0, f.jsxs)("button", {
 							className: "slot",
 							onClick: () => re(t),
@@ -6994,7 +7029,7 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 							children: [
 								/* @__PURE__ */ (0, f.jsx)("span", {
 									className: `slot-badge ${i ? "off" : ""}`,
-									style: i ? void 0 : { borderColor: w ? "var(--hl-brand)" : de(e.setpoint, M, r) },
+									style: i ? void 0 : { borderColor: w ? "var(--hl-brand)" : fe(e.setpoint, N, r) },
 									children: i ? /* @__PURE__ */ (0, f.jsx)(p, { name: w ? "power" : "snowflake" }) : w ? "On" : `${e.setpoint}°`
 								}),
 								/* @__PURE__ */ (0, f.jsxs)("span", {
@@ -7015,15 +7050,15 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 					/* @__PURE__ */ (0, f.jsxs)("button", {
 						className: "slot slot-add",
 						onClick: () => {
-							A(), re(k.length);
+							j(), re(k.length);
 						},
-						disabled: x || k.length >= ee,
+						disabled: x || k.length >= A,
 						children: [/* @__PURE__ */ (0, f.jsx)("span", {
 							className: "slot-badge add",
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
 						}), /* @__PURE__ */ (0, f.jsx)("span", {
 							className: "slot-time",
-							children: k.length >= ee ? `${ee} times a day at most` : "Add a time"
+							children: k.length >= A ? `${A} times a day at most` : "Add a time"
 						})]
 					})
 				]
@@ -7037,7 +7072,7 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 					}),
 					/* @__PURE__ */ (0, f.jsx)("span", {
 						className: "sched-changed",
-						title: `Changed: ${le.map(se).join(", ")}`,
+						title: `Changed: ${ae.map(ce).join(", ")}`,
 						children: "Unsaved changes"
 					}),
 					/* @__PURE__ */ (0, f.jsx)("button", {
@@ -7080,39 +7115,39 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 						/* @__PURE__ */ (0, f.jsxs)("button", {
 							role: "menuitem",
 							onClick: () => {
-								P(!1), j(ae);
+								P(!1), M(oe);
 							},
 							disabled: x || !k.length,
 							children: [
 								/* @__PURE__ */ (0, f.jsx)(p, { name: "content-copy" }),
 								" Copy ",
-								se(h),
+								ce(h),
 								" to weekdays"
 							]
 						}),
 						/* @__PURE__ */ (0, f.jsxs)("button", {
 							role: "menuitem",
 							onClick: () => {
-								P(!1), j(oe);
+								P(!1), M(se);
 							},
 							disabled: x || !k.length,
 							children: [
 								/* @__PURE__ */ (0, f.jsx)(p, { name: "content-copy" }),
 								" Copy ",
-								se(h),
+								ce(h),
 								" to the weekend"
 							]
 						}),
 						/* @__PURE__ */ (0, f.jsxs)("button", {
 							role: "menuitem",
 							onClick: () => {
-								P(!1), j([...g]);
+								P(!1), M([...g]);
 							},
 							disabled: x || !k.length,
 							children: [
 								/* @__PURE__ */ (0, f.jsx)(p, { name: "content-copy" }),
 								" Copy ",
-								se(h),
+								ce(h),
 								" to every day"
 							]
 						})
@@ -7125,37 +7160,37 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 					children: /* @__PURE__ */ (0, f.jsx)(p, { name: ie ? "close" : "dots-horizontal" })
 				})]
 			}),
-			ne != null && k[ne] && /* @__PURE__ */ (0, f.jsx)(fe, {
+			ne != null && k[ne] && /* @__PURE__ */ (0, f.jsx)(pe, {
 				slot: k[ne],
 				dayName: h[0].toUpperCase() + h.slice(1),
 				isWater: w,
 				limits: r,
 				canDelete: !0,
-				onChange: (e) => te(k.map((t, n) => n === ne ? e : t)),
+				onChange: (e) => ee(k.map((t, n) => n === ne ? e : t)),
 				onDelete: () => {
-					te(k.filter((e, t) => t !== ne)), re(null);
+					ee(k.filter((e, t) => t !== ne)), re(null);
 				},
 				onClose: () => re(null)
 			})
 		]
 	});
 }
-function ue(e, t) {
-	let n = new Set(e.map((e) => ce(e.time))), r = Math.min(t, 1410);
+function de(e, t) {
+	let n = new Set(e.map((e) => le(e.time))), r = Math.min(t, 1410);
 	for (; n.has(r) && r < 1439;) r += 15;
 	return `${String(Math.floor(r / 60)).padStart(2, "0")}:${String(r % 60).padStart(2, "0")}`;
 }
-function de(e, t, n) {
+function fe(e, t, n) {
 	if (e <= n.heat_min) return "var(--hl-off-fill)";
 	let r = Math.min(1, Math.max(0, (e - t.lo) / Math.max(1, t.hi - t.lo)));
 	return `hsl(${Math.round(42 - 34 * r)} ${Math.round(88 + 4 * r)}% ${Math.round(64 - 14 * r)}%)`;
 }
-function fe({ slot: e, dayName: t, isWater: n, limits: r, canDelete: i, onChange: a, onDelete: o, onClose: s }) {
+function pe({ slot: e, dayName: t, isWater: n, limits: r, canDelete: i, onChange: a, onDelete: o, onClose: s }) {
 	(0, u.useEffect)(() => {
 		let e = (e) => e.key === "Escape" && s();
 		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
 	}, [s]);
-	let c = n ? e.setpoint < r.water_on : pe(e.setpoint, r), l = (e) => Math.min(r.heat_max, Math.max(5, Math.round(e * 2) / 2)), d = c ? 20 : e.setpoint;
+	let c = n ? e.setpoint < r.water_on : me(e.setpoint, r), l = (e) => Math.min(r.heat_max, Math.max(5, Math.round(e * 2) / 2)), d = c ? 20 : e.setpoint;
 	return /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: s,
@@ -7264,11 +7299,11 @@ function fe({ slot: e, dayName: t, isWater: n, limits: r, canDelete: i, onChange
 		})
 	});
 }
-function pe(e, t) {
+function me(e, t) {
 	return e <= t.heat_min || t.frost != null && e === t.frost;
 }
 // src/Stats.tsx
-var me = [
+var he = [
 	{
 		id: 1,
 		label: "D",
@@ -7284,10 +7319,10 @@ var me = [
 		label: "M",
 		name: "Month"
 	}
-], he = 3e5, ge = (e) => {
+], ge = 3e5, F = (e) => {
 	let t = Math.round(e);
 	return t < 60 ? `${t}m` : t % 60 ? `${Math.floor(t / 60)}h ${t % 60}m` : `${t / 60}h`;
-}, F = (e, t, n = 2) => {
+}, _e = (e, t, n = 2) => {
 	try {
 		return e.toLocaleString([], {
 			style: "currency",
@@ -7298,12 +7333,12 @@ var me = [
 	} catch {
 		return `${e.toFixed(n)} ${t}`;
 	}
-}, _e = (e, t) => F(e, t, 4), ve = (e, t) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleDateString([], t), ye = (e) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleTimeString([], {
+}, ve = (e, t) => _e(e, t, 4), ye = (e, t) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleDateString([], t), be = (e) => (/* @__PURE__ */ new Date(e * 1e3)).toLocaleTimeString([], {
 	hour: "2-digit",
 	minute: "2-digit"
 });
-function be(e, t, n) {
-	if (n === 1) return ve(e, {
+function xe(e, t, n) {
+	if (n === 1) return ye(e, {
 		weekday: "short",
 		day: "numeric",
 		month: "short"
@@ -7311,17 +7346,17 @@ function be(e, t, n) {
 	let r = t - 86400, i = /* @__PURE__ */ new Date(e * 1e3), a = /* @__PURE__ */ new Date(r * 1e3), o = (e) => e.toLocaleDateString([], { month: "short" });
 	return i.getMonth() === a.getMonth() ? `${i.getDate()}–${a.getDate()} ${o(a)}` : `${i.getDate()} ${o(i)} – ${a.getDate()} ${o(a)}`;
 }
-var xe = (e) => e.filter((e) => e != null);
-function Se(e) {
+var Se = (e) => e.filter((e) => e != null);
+function Ce(e) {
 	if (e.period === 1) {
 		let t = [];
 		for (let n = 0; n < e.series.length; n += 4) {
 			let r = e.series.slice(n, n + 4).filter((e) => e.heating != null);
 			if (!r.length) continue;
-			let i = xe(r.map((e) => e.current)), a = xe(e.series.slice(n, n + 4).map((e) => e.outdoor));
+			let i = Se(r.map((e) => e.current)), a = Se(e.series.slice(n, n + 4).map((e) => e.outdoor));
 			t.push({
 				key: e.series[n].t,
-				label: [ye(e.series[n].t), ""],
+				label: [be(e.series[n].t), ""],
 				minutes: r.reduce((e, t) => e + (t.heating ?? 0) * 15, 0),
 				avg: i.length ? i.reduce((e, t) => e + t, 0) / i.length : null,
 				min: i.length ? Math.min(...i) : null,
@@ -7334,7 +7369,7 @@ function Se(e) {
 	}
 	return e.days.filter((e) => e.heating_minutes != null).map((e) => ({
 		key: e.start,
-		label: [ve(e.start, { weekday: "short" }), ve(e.start, { day: "numeric" })],
+		label: [ye(e.start, { weekday: "short" }), ye(e.start, { day: "numeric" })],
 		minutes: e.heating_minutes,
 		avg: e.temp_avg,
 		min: e.temp_min,
@@ -7343,7 +7378,7 @@ function Se(e) {
 		outMax: e.outdoor_max
 	})).reverse();
 }
-function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
+function we({ getHass: e, devices: t, channel: n, roomId: r }) {
 	let i = n ?? (r ? "heat" : void 0), [a, o] = (0, u.useState)(t[0]?.entry_id), s = t.find((e) => e.entry_id === a) ?? t[0], c = i ?? "heat", [l, d] = (0, u.useState)(7), [m, h] = (0, u.useState)("time"), [g, _] = (0, u.useState)(0), [v, x] = (0, u.useState)(null), [S, C] = (0, u.useState)(""), [w, T] = (0, u.useState)(!0), E = c === "water", D = (0, u.useCallback)(() => {
 		(s || r) && e().callWS(r ? {
 			type: "hive_local/rooms/stats",
@@ -7374,10 +7409,10 @@ function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
 		return t.addEventListener?.("ready", D), () => t.removeEventListener?.("ready", D);
 	}, [e, D]), (0, u.useEffect)(() => {
 		if (T(!0), D(), g) return;
-		let e = setInterval(D, he);
+		let e = setInterval(D, ge);
 		return () => clearInterval(e);
 	}, [D, g]), !s && !r) return null;
-	let O = v && v.period === l && v.offset === g ? v : null, k = O ? Se(O) : [], ee = l === 1 ? "hour" : "day", te = !E && !!O?.outdoor, A = E ? null : O?.cost ?? null, j = E || m === "cost" && !A && O ? "time" : m;
+	let O = v && v.period === l && v.offset === g ? v : null, k = O ? Ce(O) : [], A = l === 1 ? "hour" : "day", ee = !E && !!O?.outdoor, j = E ? null : O?.cost ?? null, M = E || m === "cost" && !j && O ? "time" : m;
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "history",
 		children: [
@@ -7404,7 +7439,7 @@ function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
 					className: "history-toggle",
 					role: "radiogroup",
 					"aria-label": "Period",
-					children: me.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+					children: he.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 						role: "radio",
 						"aria-checked": e.id === l,
 						"aria-label": e.name,
@@ -7422,28 +7457,28 @@ function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
 					children: [
 						/* @__PURE__ */ (0, f.jsx)("button", {
 							role: "radio",
-							"aria-checked": j === "time",
+							"aria-checked": M === "time",
 							title: "Time on",
 							"aria-label": "Time on",
-							className: `wide ${j === "time" ? "on" : ""}`,
+							className: `wide ${M === "time" ? "on" : ""}`,
 							onClick: () => h("time"),
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "clock-outline" })
 						}),
 						/* @__PURE__ */ (0, f.jsx)("button", {
 							role: "radio",
-							"aria-checked": j === "temp",
+							"aria-checked": M === "temp",
 							title: "Temperature",
 							"aria-label": "Temperature",
-							className: `wide ${j === "temp" ? "on" : ""}`,
+							className: `wide ${M === "temp" ? "on" : ""}`,
 							onClick: () => h("temp"),
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "thermometer" })
 						}),
-						(A || m === "cost") && /* @__PURE__ */ (0, f.jsx)("button", {
+						(j || m === "cost") && /* @__PURE__ */ (0, f.jsx)("button", {
 							role: "radio",
-							"aria-checked": j === "cost",
+							"aria-checked": M === "cost",
 							title: "Estimated cost",
 							"aria-label": "Estimated cost",
-							className: `wide ${j === "cost" ? "on" : ""}`,
+							className: `wide ${M === "cost" ? "on" : ""}`,
 							onClick: () => h("cost"),
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "cash" })
 						})
@@ -7464,7 +7499,7 @@ function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
 						children: [
 							/* @__PURE__ */ (0, f.jsx)(p, { name: "calendar-blank-outline" }),
 							" ",
-							O ? be(O.start, O.period_end, l) : "…"
+							O ? xe(O.start, O.period_end, l) : "…"
 						]
 					}),
 					/* @__PURE__ */ (0, f.jsx)("button", {
@@ -7488,7 +7523,7 @@ function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
 				className: "muted history-empty",
 				children: [
 					"No history for this ",
-					me.find((e) => e.id === l).name.toLowerCase(),
+					he.find((e) => e.id === l).name.toLowerCase(),
 					". Home Assistant keeps 10 days unless",
 					" ",
 					/* @__PURE__ */ (0, f.jsx)("code", { children: "purge_keep_days" }),
@@ -7496,45 +7531,45 @@ function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
 				]
 			}),
 			O?.has_data && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
-				/* @__PURE__ */ (0, f.jsx)(Te, {
+				/* @__PURE__ */ (0, f.jsx)(Ee, {
 					data: O,
-					metric: j,
+					metric: M,
 					water: E,
 					room: !!r,
-					units: ee,
+					units: A,
 					rows: k,
-					cost: A
+					cost: j
 				}),
 				/* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "history-rows",
 					children: [k.length > 0 && !E && /* @__PURE__ */ (0, f.jsxs)("div", {
-						className: `history-key muted small ${te ? "with-outdoor" : ""}`,
-						children: [te && /* @__PURE__ */ (0, f.jsxs)("span", {
+						className: `history-key muted small ${ee ? "with-outdoor" : ""}`,
+						children: [ee && /* @__PURE__ */ (0, f.jsxs)("span", {
 							title: "Outside temperature",
 							children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "weather-partly-cloudy" }), " Outside"]
 						}), /* @__PURE__ */ (0, f.jsxs)("span", {
 							title: "Lowest and highest room temperature",
 							children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "thermometer" }), " Low · high"]
 						})]
-					}), k.map((e) => /* @__PURE__ */ (0, f.jsx)(Oe, {
+					}), k.map((e) => /* @__PURE__ */ (0, f.jsx)(ke, {
 						row: e,
-						metric: j,
+						metric: M,
 						water: E,
-						outdoor: te,
-						cost: A,
-						scale: we(k, j, l)
+						outdoor: ee,
+						cost: j,
+						scale: Te(k, M, l)
 					}, e.key))]
 				}),
-				j === "cost" && A && /* @__PURE__ */ (0, f.jsxs)("p", {
+				M === "cost" && j && /* @__PURE__ */ (0, f.jsxs)("p", {
 					className: "history-hint muted small",
 					children: [
 						"An estimate: the boiler's time on × ",
-						A.kw.toFixed(1),
+						j.kw.toFixed(1),
 						" kW × ",
-						_e(A.price, A.currency),
+						ve(j.price, j.currency),
 						" per kWh, at today's price.",
 						" ",
-						A.basis === "meter" ? "The kW is the boiler's average while on, learned from your gas meter." : `The kW is 40% of the boiler's ${A.boiler_kw ?? "?"} kW rating, as a modulating boiler rarely runs flat out. Pick a gas meter in Settings for a closer figure.`
+						j.basis === "meter" ? "The kW is the boiler's average while on, learned from your gas meter." : `The kW is 40% of the boiler's ${j.boiler_kw ?? "?"} kW rating, as a modulating boiler rarely runs flat out. Pick a gas meter in Settings for a closer figure.`
 					]
 				}),
 				!E && O.outdoor_entity == null && /* @__PURE__ */ (0, f.jsx)("p", {
@@ -7545,7 +7580,7 @@ function Ce({ getHass: e, devices: t, channel: n, roomId: r }) {
 		]
 	});
 }
-function we(e, t, n) {
+function Te(e, t, n) {
 	if (t === "time" || t === "cost") return {
 		lo: 0,
 		hi: Math.max(60, ...e.map((e) => e.minutes ?? 0))
@@ -7556,17 +7591,17 @@ function we(e, t, n) {
 		hi: Math.max(a, i + 4)
 	};
 }
-function Te({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o }) {
-	let s = Math.max(1, a.filter((e) => e.minutes != null).length), c = e.previous, l = !!c?.has_data && c.known_minutes >= .5 * e.known_minutes, u = l ? e.heating_minutes - c.heating_minutes : 0, d = e.temperature, p = (e) => o ? F(e / 60 * o.per_hour, o.currency) : "–", [m, h, g, _] = t === "cost" ? [
+function Ee({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o }) {
+	let s = Math.max(1, a.filter((e) => e.minutes != null).length), c = e.previous, l = !!c?.has_data && c.known_minutes >= .5 * e.known_minutes, u = l ? e.heating_minutes - c.heating_minutes : 0, d = e.temperature, p = (e) => o ? _e(e / 60 * o.per_hour, o.currency) : "–", [m, h, g, _] = t === "cost" ? [
 		"Estimated cost",
 		p(e.heating_minutes),
 		`Average per ${i}`,
 		p(e.heating_minutes / s)
 	] : t === "time" ? [
 		n ? "Hot water on" : r ? "Valves heating" : "Boiler on",
-		ge(e.heating_minutes),
+		F(e.heating_minutes),
 		`Average per ${i}`,
-		ge(e.heating_minutes / s)
+		F(e.heating_minutes / s)
 	] : [
 		"Average",
 		d.avg == null ? "–" : `${d.avg.toFixed(1)}°`,
@@ -7589,7 +7624,7 @@ function Te({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o 
 	}), /* @__PURE__ */ (0, f.jsxs)("p", {
 		className: "history-note muted small",
 		children: [
-			t === "time" && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${ge(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
+			t === "time" && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${F(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
 			t === "cost" && o && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${p(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
 			r ? "Started heating" : "Fired up",
 			" ",
@@ -7598,23 +7633,23 @@ function Te({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o 
 			e.cycles === 1 ? "" : "s",
 			e.boosts ? ` · ${e.boosts} boost${e.boosts === 1 ? "" : "s"}` : "",
 			t === "temp" && e.target_avg != null ? ` · average target ${e.target_avg.toFixed(1)}°` : "",
-			!n && Ee(e)
+			!n && De(e)
 		]
 	})] });
 }
-function Ee(e) {
+function De(e) {
 	let t = e.outdoor?.avg;
 	if (t == null) return "";
 	let n = e.previous?.outdoor_avg, r = n == null ? null : t - n, i = r == null ? "" : Math.abs(r) < .5 ? ", about the same as the period before" : `, ${Math.abs(r).toFixed(0)}° ${r < 0 ? "colder" : "milder"} than the period before`;
 	return ` · ${t.toFixed(0)}° outside${i}`;
 }
-function De(e, t) {
+function Oe(e, t) {
 	if (e == null || t == null) return "–";
 	let [n, r] = [e.toFixed(0), t.toFixed(0)];
 	return n === r ? `${n}°` : `${n}–${r}°`;
 }
-function Oe({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
-	let o = t === "temp" ? e.avg : e.minutes, s = o == null ? "–" : t === "time" ? ge(o) : t === "cost" && i ? F(o / 60 * i.per_hour, i.currency) : `${o.toFixed(1)}°`, c = o == null ? 0 : Math.max(.02, Math.min(1, (o - a.lo) / (a.hi - a.lo || 1)));
+function ke({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
+	let o = t === "temp" ? e.avg : e.minutes, s = o == null ? "–" : t === "time" ? F(o) : t === "cost" && i ? _e(o / 60 * i.per_hour, i.currency) : `${o.toFixed(1)}°`, c = o == null ? 0 : Math.max(.02, Math.min(1, (o - a.lo) / (a.hi - a.lo || 1)));
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: `history-row ${r ? "with-outdoor" : ""}`,
 		children: [
@@ -7636,7 +7671,7 @@ function Oe({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
 			r && /* @__PURE__ */ (0, f.jsx)("span", {
 				className: "history-outdoor",
 				title: "Lowest and highest outside temperature",
-				children: De(e.outMin, e.outMax)
+				children: Oe(e.outMin, e.outMax)
 			}),
 			!n && /* @__PURE__ */ (0, f.jsxs)("span", {
 				className: "history-temps",
@@ -7647,7 +7682,7 @@ function Oe({ row: e, metric: t, water: n, outdoor: r, cost: i, scale: a }) {
 	});
 }
 // src/DevicePage.tsx
-var ke = [
+var Ae = [
 	{
 		id: "control",
 		label: "Control"
@@ -7661,12 +7696,12 @@ var ke = [
 		label: "History"
 	}
 ];
-function Ae({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice: a, tab: o, onTab: s, onBack: c }) {
+function je({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice: a, tab: o, onTab: s, onBack: c }) {
 	let [l, d] = (0, u.useState)(o === "schedule");
 	(0, u.useEffect)(() => {
 		o === "schedule" && d(!0);
 	}, [o]);
-	let m = r?.status, h = [a ? t.name : null, m ? r?.holiday && (m.mode !== "boost" || r.holiday.holding) ? `Away until ${T(r.holiday.until)}` : m.mode === "schedule" ? "On schedule" : m.mode === "boost" ? r?.preheat?.active_for ? `Pre-heating for ${r.preheat.active_for}` : r?.demand?.active ? `Heating for ${E(r.demand.rooms)}` : "Boosting" : m.mode === "off" ? "Off" : n === "water" ? "Always on" : "Manual" : "Waiting for the receiver"].filter(Boolean).join(" · ");
+	let m = r?.status, h = [a ? t.name : null, m ? r?.holiday && (m.mode !== "boost" || r.holiday.holding) ? O(r.holiday.until) : m.mode === "schedule" ? "On schedule" : m.mode === "boost" ? r?.preheat?.active_for ? `Pre-heating for ${r.preheat.active_for}` : r?.demand?.active ? `Heating for ${E(r.demand.rooms)}` : "Boosting" : m.mode === "off" ? "Off" : n === "water" ? "Always on" : "Manual" : "Waiting for the receiver"].filter(Boolean).join(" · ");
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "device-page",
 		children: [
@@ -7688,7 +7723,7 @@ function Ae({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "page-tabs",
 				role: "tablist",
-				children: ke.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+				children: Ae.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 					role: "tab",
 					"aria-selected": e.id === o,
 					className: e.id === o ? "on" : "",
@@ -7696,7 +7731,7 @@ function Ae({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 					children: e.label
 				}, e.id))
 			}),
-			o === "control" && /* @__PURE__ */ (0, f.jsx)(ne, {
+			o === "control" && /* @__PURE__ */ (0, f.jsx)(re, {
 				getHass: e,
 				device: t,
 				channel: n,
@@ -7705,14 +7740,14 @@ function Ae({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 				limits: i,
 				page: !0
 			}),
-			o === "control" && n === "heat" && r?.preheat && /* @__PURE__ */ (0, f.jsx)(P, {
+			o === "control" && n === "heat" && r?.preheat && /* @__PURE__ */ (0, f.jsx)(ae, {
 				getHass: e,
 				device: t,
 				info: r.preheat
 			}),
 			l && /* @__PURE__ */ (0, f.jsx)("div", {
 				hidden: o !== "schedule",
-				children: /* @__PURE__ */ (0, f.jsx)(le, {
+				children: /* @__PURE__ */ (0, f.jsx)(ue, {
 					getHass: e,
 					device: t,
 					channel: n,
@@ -7722,7 +7757,7 @@ function Ae({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 					demandFor: m?.mode === "boost" && r?.demand?.active ? E(r.demand.rooms) : null
 				})
 			}),
-			o === "history" && /* @__PURE__ */ (0, f.jsx)(Ce, {
+			o === "history" && /* @__PURE__ */ (0, f.jsx)(we, {
 				getHass: e,
 				devices: [t],
 				channel: n
@@ -7731,14 +7766,14 @@ function Ae({ getHass: e, device: t, channel: n, info: r, limits: i, showDevice:
 	});
 }
 // src/Devices.tsx
-var je = 20, Me = 6e4;
-function Ne({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
+var Me = 20, Ne = 6e4;
+function Pe({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
 	let [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)(""), [l, d] = (0, u.useState)(!1), m = (0, u.useCallback)(() => {
 		e().callWS({ type: "hive_local/rooms/valves" }).then((e) => o(e.valves)).catch((e) => c(b(e)));
 	}, [e]);
 	(0, u.useEffect)(() => {
 		m();
-		let e = setInterval(m, Me);
+		let e = setInterval(m, Ne);
 		return () => clearInterval(e);
 	}, [m]);
 	let h = t.length > 1;
@@ -7755,11 +7790,11 @@ function Ne({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
 			}),
 			/* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "device-grid",
-				children: [t.map((e) => /* @__PURE__ */ (0, f.jsx)(Le, {
+				children: [t.map((e) => /* @__PURE__ */ (0, f.jsx)(Re, {
 					device: e,
 					status: n,
 					onOpen: (t) => i(e.entry_id, t)
-				}, e.entry_id)), a?.map((e) => /* @__PURE__ */ (0, f.jsx)(Re, { valve: e }, e.entity_id))]
+				}, e.entry_id)), a?.map((e) => /* @__PURE__ */ (0, f.jsx)(ze, { valve: e }, e.entity_id))]
 			}),
 			a && !a.length && /* @__PURE__ */ (0, f.jsx)("p", {
 				className: "muted",
@@ -7778,15 +7813,15 @@ function Ne({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i }) {
 					children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
 				})
 			}),
-			l && /* @__PURE__ */ (0, f.jsx)(ze, { onClose: () => d(!1) })
+			l && /* @__PURE__ */ (0, f.jsx)(Be, { onClose: () => d(!1) })
 		]
 	});
 }
-var Pe = {
+var Fe = {
 	z2m: "Zigbee2MQTT",
 	zha: "ZHA"
 };
-function Fe({ items: e }) {
+function Ie({ items: e }) {
 	return /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "facts",
 		children: e.map((e) => /* @__PURE__ */ (0, f.jsxs)("span", {
@@ -7799,13 +7834,13 @@ function Fe({ items: e }) {
 		}, e.text))
 	});
 }
-function Ie({ online: e, text: t }) {
+function Le({ online: e, text: t }) {
 	return /* @__PURE__ */ (0, f.jsxs)("span", {
 		className: `online ${e ? "" : "no"}`,
 		children: [/* @__PURE__ */ (0, f.jsx)("i", {}), t ?? (e ? "Online" : "Not responding")]
 	});
 }
-function Le({ device: e, status: t, onOpen: n }) {
+function Re({ device: e, status: t, onOpen: n }) {
 	let r = e.channels.some((n) => t[e.entry_id]?.[n]?.status);
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "card hw",
@@ -7824,15 +7859,15 @@ function Le({ device: e, status: t, onOpen: n }) {
 							children: ["Hive receiver", e.model ? ` · ${e.model}` : ""]
 						})]
 					}),
-					/* @__PURE__ */ (0, f.jsx)(Ie, {
+					/* @__PURE__ */ (0, f.jsx)(Le, {
 						online: r,
 						text: r ? "Online" : "Waiting"
 					})
 				]
 			}),
-			/* @__PURE__ */ (0, f.jsx)(Fe, { items: [{
+			/* @__PURE__ */ (0, f.jsx)(Ie, { items: [{
 				icon: "zigbee",
-				text: Pe[e.transport ?? "z2m"]
+				text: Fe[e.transport ?? "z2m"]
 			}, {
 				icon: "fire",
 				text: e.channels.includes("water") ? "Heating and hot water" : "Heating only"
@@ -7852,8 +7887,8 @@ function Le({ device: e, status: t, onOpen: n }) {
 		]
 	});
 }
-function Re({ valve: e }) {
-	let t = e.battery != null && !Number.isNaN(Number(e.battery)) ? Number(e.battery) : null, n = t != null && t < je;
+function ze({ valve: e }) {
+	let t = e.battery != null && !Number.isNaN(Number(e.battery)) ? Number(e.battery) : null, n = t != null && t < Me;
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: `card hw ${e.available ? "" : "off"}`,
 		children: [/* @__PURE__ */ (0, f.jsxs)("div", {
@@ -7870,9 +7905,9 @@ function Re({ valve: e }) {
 						children: "Hive radiator valve"
 					})]
 				}),
-				/* @__PURE__ */ (0, f.jsx)(Ie, { online: e.available })
+				/* @__PURE__ */ (0, f.jsx)(Le, { online: e.available })
 			]
-		}), /* @__PURE__ */ (0, f.jsx)(Fe, { items: [
+		}), /* @__PURE__ */ (0, f.jsx)(Ie, { items: [
 			{
 				icon: "home-outline",
 				text: e.room ?? "Not in a room"
@@ -7889,7 +7924,7 @@ function Re({ valve: e }) {
 		] })]
 	});
 }
-function ze({ onClose: e }) {
+function Be({ onClose: e }) {
 	let [t, n] = (0, u.useState)(!1);
 	return (0, u.useEffect)(() => {
 		let t = (t) => t.key === "Escape" && e();
@@ -7959,9 +7994,9 @@ function ze({ onClose: e }) {
 	});
 }
 // src/Rooms.tsx
-var Be = 20, Ve = (e) => e == null ? "–" : `${e.toFixed(1)}°`;
-function He({ valve: e, heating: t }) {
-	let n = e.battery == null ? null : Number(e.battery), r = n != null && !Number.isNaN(n) && n <= Be;
+var Ve = 20, He = (e) => e == null ? "–" : `${e.toFixed(1)}°`;
+function Ue({ valve: e, heating: t }) {
+	let n = e.battery == null ? null : Number(e.battery), r = n != null && !Number.isNaN(n) && n <= Ve;
 	return /* @__PURE__ */ (0, f.jsxs)("li", {
 		className: `valve ${e.available ? "" : "off"}`,
 		children: [
@@ -7976,11 +8011,11 @@ function He({ valve: e, heating: t }) {
 			e.available ? /* @__PURE__ */ (0, f.jsxs)("span", {
 				className: "valve-temps",
 				children: [
-					Ve(e.current_temperature),
+					He(e.current_temperature),
 					" ",
 					/* @__PURE__ */ (0, f.jsxs)("span", {
 						className: "muted",
-						children: ["→ ", Ve(e.target)]
+						children: ["→ ", He(e.target)]
 					})
 				]
 			}) : /* @__PURE__ */ (0, f.jsx)("span", {
@@ -8000,7 +8035,7 @@ function He({ valve: e, heating: t }) {
 		]
 	});
 }
-function Ue(e) {
+function We(e) {
 	if (!e.sensor || !e.external_sensor) return null;
 	let t = e.valve_states.length, n = (t) => e.valve_states.filter((e) => e.external_sensor === t).map((e) => e.name);
 	if (e.external_sensor === "off") return {
@@ -8031,11 +8066,11 @@ function Ue(e) {
 		warn: !1
 	};
 }
-var We = 8;
-function Ge({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: a, onToggle: o }) {
+var Ge = 8;
+function Ke({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: a, onToggle: o }) {
 	let [s, c] = (0, u.useState)(null), [l, d] = (0, u.useState)(null), m = (0, u.useRef)();
 	(0, u.useEffect)(() => () => window.clearTimeout(m.current), []);
-	let [h, g] = (0, u.useState)(""), _ = t.length > We, v = h.trim().toLowerCase(), y = r.trim().toLowerCase(), x = (e) => !!y && (e.area ?? "").toLowerCase() === y, S = (e) => {
+	let [h, g] = (0, u.useState)(""), _ = t.length > Ge, v = h.trim().toLowerCase(), y = r.trim().toLowerCase(), x = (e) => !!y && (e.area ?? "").toLowerCase() === y, S = (e) => {
 		let t = n.get(e.entity_id)?.room;
 		return t && t !== i ? t : null;
 	}, [C] = (0, u.useState)(() => new Set(a)), w = (e) => C.has(e.entity_id) ? 0 : x(e) ? 1 : S(e) ? 3 : 2, T = [...t].sort((e, t) => w(e) - w(t)), E = v ? T.filter((e) => e.name.toLowerCase().includes(v) || (e.area ?? "").toLowerCase().includes(v)) : T, D = async (t) => {
@@ -8091,7 +8126,7 @@ function Ge({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: 
 			E.length > 0 && /* @__PURE__ */ (0, f.jsx)("div", {
 				className: "valve-list",
 				children: E.map((e) => {
-					let t = n.get(e.entity_id), r = a.has(e.entity_id), i = t?.battery == null ? null : Number(t.battery), c = i != null && !Number.isNaN(i), l = c && i <= Be, u = S(e);
+					let t = n.get(e.entity_id), r = a.has(e.entity_id), i = t?.battery == null ? null : Number(t.battery), c = i != null && !Number.isNaN(i), l = c && i <= Ve, u = S(e);
 					return /* @__PURE__ */ (0, f.jsxs)("div", {
 						className: `valve-pick ${r ? "on" : ""}`,
 						children: [/* @__PURE__ */ (0, f.jsxs)("button", {
@@ -8150,7 +8185,7 @@ function Ge({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: 
 		]
 	}) : null;
 }
-function Ke({ dialog: e, label: t, onClose: n, children: r }) {
+function qe({ dialog: e, label: t, onClose: n, children: r }) {
 	return e ? /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: (e) => {
@@ -8169,13 +8204,13 @@ function Ke({ dialog: e, label: t, onClose: n, children: r }) {
 		children: r
 	});
 }
-function qe(e) {
-	return /* @__PURE__ */ (0, f.jsx)(Je, {
+function Je(e) {
+	return /* @__PURE__ */ (0, f.jsx)(Ye, {
 		...e,
 		dialog: !0
 	});
 }
-function Je({ getHass: e, room: t, onDone: n, dialog: r }) {
+function Ye({ getHass: e, room: t, onDone: n, dialog: r }) {
 	(0, u.useEffect)(() => {
 		if (!r) return;
 		let e = (e) => e.key === "Escape" && n();
@@ -8185,7 +8220,7 @@ function Je({ getHass: e, room: t, onDone: n, dialog: r }) {
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/candidates" }).then(a).catch((e) => T(b(e))), e().callWS({ type: "hive_local/rooms/valves" }).then((e) => D(new Map(e.valves.map((e) => [e.entity_id, e])))).catch(() => {});
 	}, [e]);
-	let O = (i?.receivers.length ?? 0) > 1, k = t && t.sensor === h && _ && (t.sensor_on_valves ?? !0) ? Ue(t) : null, ee = async (t) => {
+	let O = (i?.receivers.length ?? 0) > 1, k = t && t.sensor === h && _ && (t.sensor_on_valves ?? !0) ? We(t) : null, A = async (t) => {
 		x(!0), T("");
 		try {
 			await e().callWS(t), n();
@@ -8193,14 +8228,14 @@ function Je({ getHass: e, room: t, onDone: n, dialog: r }) {
 			T(b(e)), x(!1);
 		}
 	};
-	return /* @__PURE__ */ (0, f.jsxs)(Ke, {
+	return /* @__PURE__ */ (0, f.jsxs)(qe, {
 		dialog: !!r,
 		label: t ? `Edit ${t.name}` : "New room",
 		onClose: n,
 		children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: t ? `Edit ${t.name}` : "New room" }), /* @__PURE__ */ (0, f.jsxs)("form", {
 			className: "stack",
 			onSubmit: (e) => {
-				e.preventDefault(), ee({
+				e.preventDefault(), A({
 					type: "hive_local/rooms/save",
 					...t ? { room_id: t.id } : {},
 					name: c,
@@ -8237,7 +8272,7 @@ function Je({ getHass: e, room: t, onDone: n, dialog: r }) {
 							className: "muted small",
 							children: "No Hive radiator valves found. Pair them with ZHA or Zigbee2MQTT first."
 						}),
-						/* @__PURE__ */ (0, f.jsx)(Ge, {
+						/* @__PURE__ */ (0, f.jsx)(Ke, {
 							getHass: e,
 							valves: i?.valves ?? [],
 							info: E,
@@ -8340,7 +8375,7 @@ function Je({ getHass: e, room: t, onDone: n, dialog: r }) {
 								type: "button",
 								className: "danger",
 								disabled: y,
-								onClick: () => ee({
+								onClick: () => A({
 									type: "hive_local/rooms/delete",
 									room_id: t.id
 								}),
@@ -8365,7 +8400,7 @@ function Je({ getHass: e, room: t, onDone: n, dialog: r }) {
 		})]
 	});
 }
-var Ye = [
+var Xe = [
 	{
 		id: "schedule",
 		label: "Schedule"
@@ -8379,10 +8414,10 @@ var Ye = [
 		label: "Off"
 	}
 ];
-function Xe(e) {
-	return e.boost ? `Boost · ${D(e.boost.remaining)} left` : e.mode === "schedule" ? "On the valves' schedule" : e.mode === "off" ? "Off" : "Manual";
+function Ze(e) {
+	return e.boost ? `Boost · ${D(e.boost.remaining)} left` : e.away ? "Away" : e.mode === "schedule" ? "On the valves' schedule" : e.mode === "off" ? "Off" : "Manual";
 }
-function Ze({ getHass: e, room: t }) {
+function Qe({ getHass: e, room: t }) {
 	let [n, r] = (0, u.useState)(!1), [i, a] = (0, u.useState)(null), [o, s] = (0, u.useState)(!1), [c, l] = (0, u.useState)(""), d = (0, u.useRef)();
 	(0, u.useEffect)(() => () => window.clearTimeout(d.current), []);
 	let m = t.mode ?? "manual", h = (e) => `Didn't take on ${t.valve_states.filter((t) => e.includes(t.entity_id)).map((e) => e.name).join(", ")}. It may be asleep: press its dial to wake it and try again.`, g = i ?? t.boost?.temperature ?? t.target ?? t.target_range?.[1] ?? 20, _ = m !== "off" || !!t.boost, v = (n) => {
@@ -8415,7 +8450,7 @@ function Ze({ getHass: e, room: t }) {
 		} finally {
 			s(!1);
 		}
-	}, x = Ue(t), S = t.boost ? "Keeps the boost's time left" : m === "off" ? "Turn the room on to set a target" : m === "schedule" ? "Until the valves' next scheduled change" : t.target_range && i == null ? `The valves are set to ${Ve(t.target_range[0])}–${Ve(t.target_range[1])}` : "Held until you change it";
+	}, x = We(t), S = t.boost ? "Keeps the boost's time left" : m === "off" ? "Turn the room on to set a target" : m === "schedule" ? "Until the valves' next scheduled change" : t.target_range && i == null ? `The valves are set to ${He(t.target_range[0])}–${He(t.target_range[1])}` : "Held until you change it";
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "card room-control",
 		children: [
@@ -8466,7 +8501,7 @@ function Ze({ getHass: e, room: t }) {
 				className: "segmented full",
 				role: "radiogroup",
 				"aria-label": "Mode",
-				children: Ye.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+				children: Xe.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 					role: "radio",
 					"aria-checked": m === e.id,
 					className: m === e.id ? "on" : "",
@@ -8479,7 +8514,15 @@ function Ze({ getHass: e, room: t }) {
 				className: "muted small room-mode-note",
 				children: "The valves follow the schedule kept on them (the Schedule tab)."
 			}),
-			m === "off" && /* @__PURE__ */ (0, f.jsxs)("p", {
+			t.away && /* @__PURE__ */ (0, f.jsxs)("p", {
+				className: "muted small room-mode-note",
+				children: [
+					"Away: the valves hold frost protection, ",
+					t.frost ?? 12,
+					"°. The room goes back to how it was when you're back (choosing a mode here keeps that instead)."
+				]
+			}),
+			m === "off" && !t.away && /* @__PURE__ */ (0, f.jsxs)("p", {
 				className: "muted small room-mode-note",
 				children: [
 					"A Hive valve can't switch off, so they hold the room at frost protection, ",
@@ -8498,7 +8541,7 @@ function Ze({ getHass: e, room: t }) {
 					children: "Valves"
 				}), /* @__PURE__ */ (0, f.jsx)("ul", {
 					className: "valves",
-					children: t.valve_states.map((e) => /* @__PURE__ */ (0, f.jsx)(He, {
+					children: t.valve_states.map((e) => /* @__PURE__ */ (0, f.jsx)(Ue, {
 						valve: e,
 						heating: t.heating_valves.includes(e.entity_id)
 					}, e.entity_id))
@@ -8512,7 +8555,7 @@ function Ze({ getHass: e, room: t }) {
 					children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "pencil-outline" }), " Edit room"]
 				})
 			}),
-			n && /* @__PURE__ */ (0, f.jsx)(Je, {
+			n && /* @__PURE__ */ (0, f.jsx)(Ye, {
 				getHass: e,
 				room: t,
 				onDone: () => r(!1),
@@ -8521,11 +8564,11 @@ function Ze({ getHass: e, room: t }) {
 		]
 	});
 }
-function Qe(e) {
+function $e(e) {
 	let t = e.toLowerCase();
 	return /lounge|living|sitting|family|snug/.test(t) ? "sofa-outline" : /bed|nursery|guest/.test(t) ? "bed-outline" : /kitchen|dining/.test(t) ? "silverware-fork-knife" : /landing|hall|stair/.test(t) ? "stairs" : /study|office/.test(t) ? "desk" : /bath|shower|en-?suite|wc|toilet/.test(t) ? "shower" : "home-thermometer-outline";
 }
-function $e({ getHass: e, onDone: t }) {
+function et({ getHass: e, onDone: t }) {
 	let [n, r] = (0, u.useState)(null), [i, a] = (0, u.useState)(/* @__PURE__ */ new Map()), [o, s] = (0, u.useState)(/* @__PURE__ */ new Set()), [c, l] = (0, u.useState)({}), [d, m] = (0, u.useState)(!1), [h, g] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/suggest" }).then((e) => {
@@ -8550,7 +8593,7 @@ function $e({ getHass: e, onDone: t }) {
 		let n = new Set(t);
 		return n.has(e) ? n.delete(e) : n.add(e), n;
 	});
-	return /* @__PURE__ */ (0, f.jsxs)(Ke, {
+	return /* @__PURE__ */ (0, f.jsxs)(qe, {
 		dialog: !0,
 		label: "Set up your rooms",
 		onClose: t,
@@ -8611,7 +8654,7 @@ function $e({ getHass: e, onDone: t }) {
 								}),
 								/* @__PURE__ */ (0, f.jsx)("span", {
 									className: "device-icon",
-									children: /* @__PURE__ */ (0, f.jsx)(p, { name: Qe(e.name) })
+									children: /* @__PURE__ */ (0, f.jsx)(p, { name: $e(e.name) })
 								})
 							]
 						}), _ && r && /* @__PURE__ */ (0, f.jsxs)("select", {
@@ -8654,7 +8697,7 @@ function $e({ getHass: e, onDone: t }) {
 	});
 }
 // src/RoomSchedule.tsx
-var et = {
+var tt = {
 	max_transitions: 6,
 	heat_min: 5,
 	heat_max: 32,
@@ -8662,12 +8705,12 @@ var et = {
 	boost_max_minutes: 360,
 	water_on: 22,
 	water_off: 1
-}, tt = (e) => e[0].toUpperCase() + e.slice(1, 3);
-function nt(e) {
+}, nt = (e) => e[0].toUpperCase() + e.slice(1, 3);
+function rt(e) {
 	return e == null ? "its clock isn't set" : `its clock is ${Math.round(Math.abs(e) / 60)} min ${e < 0 ? "behind" : "ahead"}`;
 }
-function rt({ getHass: e, room: t, onClose: n, page: r }) {
-	let [i, a] = (0, u.useState)([]), [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)(et);
+function it({ getHass: e, room: t, onClose: n, page: r }) {
+	let [i, a] = (0, u.useState)([]), [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)(tt);
 	(0, u.useEffect)(() => {
 		let e = (e) => !r && e.key === "Escape" && n?.();
 		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
@@ -8682,19 +8725,19 @@ function rt({ getHass: e, room: t, onClose: n, page: r }) {
 				room_id: t.id
 			});
 			a(n.valves), s(n.differs), l({
-				...et,
+				...tt,
 				...n.limits
 			});
 			let r = n.limits.frost;
 			if (r == null) return n;
-			let i = 0, o = Object.fromEntries(Object.entries(n.schedule).map(([e, t]) => [e, (t ?? []).map((e) => e.setpoint <= et.heat_min && e.setpoint !== r ? (i++, {
+			let i = 0, o = Object.fromEntries(Object.entries(n.schedule).map(([e, t]) => [e, (t ?? []).map((e) => e.setpoint <= tt.heat_min && e.setpoint !== r ? (i++, {
 				...e,
 				setpoint: r
 			}) : e)]));
 			return i ? {
 				...n,
 				edited: o,
-				note: `Off used to keep the valves at ${et.heat_min}°; it's now frost protection, ${r}°. Save to write the change to the valves.`
+				note: `Off used to keep the valves at ${tt.heat_min}°; it's now frost protection, ${r}°. Save to write the change to the valves.`
 			} : n;
 		},
 		write: async (n) => {
@@ -8702,7 +8745,7 @@ function rt({ getHass: e, room: t, onClose: n, page: r }) {
 				type: "hive_local/rooms/schedule/set",
 				room_id: t.id,
 				schedule: n
-			}), i = g.filter((e) => e in r.schedule).map(tt).join(", "), a = r.valves.filter((e) => e.clock?.set).map((e) => e.name), o = r.valves.filter((e) => e.error), s = [o.length ? `Wrote ${i} to ${r.valves.length - o.length} of ${r.valves.length} valves. ${o.map((e) => `${e.name}: ${e.error}`).join(" ")}` : `Wrote ${i} to ${r.valves.length === 1 ? "the valve" : `all ${r.valves.length} valves`}. Read back to confirm they kept it.`, a.length ? `Set the clock on ${a.join(", ")}.` : ""];
+			}), i = g.filter((e) => e in r.schedule).map(nt).join(", "), a = r.valves.filter((e) => e.clock?.set).map((e) => e.name), o = r.valves.filter((e) => e.error), s = [o.length ? `Wrote ${i} to ${r.valves.length - o.length} of ${r.valves.length} valves. ${o.map((e) => `${e.name}: ${e.error}`).join(" ")}` : `Wrote ${i} to ${r.valves.length === 1 ? "the valve" : `all ${r.valves.length} valves`}. Read back to confirm they kept it.`, a.length ? `Set the clock on ${a.join(", ")}.` : ""];
 			return {
 				schedule: r.schedule,
 				note: s.filter(Boolean).join(" "),
@@ -8714,9 +8757,9 @@ function rt({ getHass: e, room: t, onClose: n, page: r }) {
 		t.id,
 		t.mode
 	]), m = [];
-	for (let e of i) e.error ? m.push(`${e.name} didn't answer: ${e.error}`) : e.complete || m.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && m.push(`${e.name}: ${nt(e.clock.offset)}. It's set when you save.`);
+	for (let e of i) e.error ? m.push(`${e.name} didn't answer: ${e.error}`) : e.complete || m.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && m.push(`${e.name}: ${rt(e.clock.offset)}. It's set when you save.`);
 	let h = t.mode === "schedule" ? i.filter((e) => e.schedule_mode === !1) : [];
-	h.length && m.push(`${h.map((e) => e.name).join(", ")} ${h.length === 1 ? "isn't" : "aren't"} following the schedule yet: choose Manual and then Schedule again on the Control tab.`), o.length && i.length > 1 && m.push(`The valves have different times on ${o.map(tt).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
+	h.length && m.push(`${h.map((e) => e.name).join(", ")} ${h.length === 1 ? "isn't" : "aren't"} following the schedule yet: choose Manual and then Schedule again on the Control tab.`), o.length && i.length > 1 && m.push(`The valves have different times on ${o.map(nt).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
 	let _ = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
 		r ? null : /* @__PURE__ */ (0, f.jsxs)("div", {
 			className: "room-schedule-head",
@@ -8743,7 +8786,7 @@ function rt({ getHass: e, room: t, onClose: n, page: r }) {
 			className: "room-schedule-notes small",
 			children: m.map((e) => /* @__PURE__ */ (0, f.jsx)("li", { children: e }, e))
 		}),
-		/* @__PURE__ */ (0, f.jsx)(le, {
+		/* @__PURE__ */ (0, f.jsx)(ue, {
 			getHass: e,
 			limits: c,
 			source: d
@@ -8772,7 +8815,7 @@ function rt({ getHass: e, room: t, onClose: n, page: r }) {
 	});
 }
 // src/RoomPage.tsx
-var it = [
+var at = [
 	{
 		id: "control",
 		label: "Control"
@@ -8786,7 +8829,7 @@ var it = [
 		label: "History"
 	}
 ];
-function at({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, onTab: o, onBack: s }) {
+function ot({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, onTab: o, onBack: s }) {
 	let [c, l] = (0, u.useState)(null), [d, m] = (0, u.useState)(!1);
 	(0, u.useEffect)(() => {
 		let n = e().connection.subscribeMessage((e) => {
@@ -8803,7 +8846,7 @@ function at({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 	if ((0, u.useEffect)(() => {
 		a === "schedule" && g(!0);
 	}, [a]), !c) return null;
-	let _ = n.length > 1, v = r[c.receiver ?? n[0]?.entry_id ?? ""]?.heat, y = [_ ? c.receiver_name : null, Xe(c)].filter(Boolean).join(" · ");
+	let _ = n.length > 1, v = r[c.receiver ?? n[0]?.entry_id ?? ""]?.heat, y = [_ ? c.receiver_name : null, Ze(c)].filter(Boolean).join(" · ");
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "device-page room-page",
 		children: [
@@ -8825,7 +8868,7 @@ function at({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "page-tabs",
 				role: "tablist",
-				children: it.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+				children: at.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 					role: "tab",
 					"aria-selected": e.id === a,
 					className: e.id === a ? "on" : "",
@@ -8833,7 +8876,7 @@ function at({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 					children: e.label
 				}, e.id))
 			}),
-			a === "control" && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsx)(N, {
+			a === "control" && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsx)(ne, {
 				getHass: e,
 				room: c,
 				showReceiver: !1,
@@ -8841,19 +8884,19 @@ function at({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 				defaultMinutes: v?.boost_minutes ?? 60,
 				defaultTemp: v?.boost_temperature ?? 21,
 				page: !0
-			}), /* @__PURE__ */ (0, f.jsx)(Ze, {
+			}), /* @__PURE__ */ (0, f.jsx)(Qe, {
 				getHass: e,
 				room: c
 			})] }),
 			h && /* @__PURE__ */ (0, f.jsx)("div", {
 				hidden: a !== "schedule",
-				children: /* @__PURE__ */ (0, f.jsx)(rt, {
+				children: /* @__PURE__ */ (0, f.jsx)(it, {
 					getHass: e,
 					room: c,
 					page: !0
 				})
 			}),
-			a === "history" && /* @__PURE__ */ (0, f.jsx)(Ce, {
+			a === "history" && /* @__PURE__ */ (0, f.jsx)(we, {
 				getHass: e,
 				devices: n,
 				roomId: c.id
@@ -8862,7 +8905,7 @@ function at({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, o
 	});
 }
 // src/Settings.tsx
-function ot({ getHass: e, devices: t, status: n }) {
+function st({ getHass: e, devices: t, status: n }) {
 	let [r, i] = (0, u.useState)(null), [a, o] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/settings" }).then(i).catch((e) => o(b(e)));
@@ -8924,40 +8967,40 @@ function ot({ getHass: e, devices: t, status: n }) {
 					})
 				})]
 			}),
-			r && /* @__PURE__ */ (0, f.jsx)(ut, {
+			r && /* @__PURE__ */ (0, f.jsx)(dt, {
 				data: r,
 				save: s
 			}),
-			/* @__PURE__ */ (0, f.jsx)(ft, { getHass: e }),
+			/* @__PURE__ */ (0, f.jsx)(pt, { getHass: e }),
 			t.map((r) => /* @__PURE__ */ (0, f.jsxs)("section", {
 				className: "settings-section",
 				children: [/* @__PURE__ */ (0, f.jsx)("h3", { children: t.length > 1 ? r.name : "Receiver" }), /* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "settings-group",
-					children: [r.channels.map((t) => /* @__PURE__ */ (0, f.jsx)(ht, {
+					children: [r.channels.map((t) => /* @__PURE__ */ (0, f.jsx)(gt, {
 						getHass: e,
 						device: r,
 						channel: t,
 						info: n[r.entry_id]?.[t]
-					}, t)), n[r.entry_id]?.heat?.demand && /* @__PURE__ */ (0, f.jsx)(_t, {
+					}, t)), n[r.entry_id]?.heat?.demand && /* @__PURE__ */ (0, f.jsx)(vt, {
 						getHass: e,
 						device: r,
 						info: n[r.entry_id].heat.demand
 					})]
 				})]
 			}, r.entry_id)),
-			/* @__PURE__ */ (0, f.jsx)(ct, { getHass: e })
+			/* @__PURE__ */ (0, f.jsx)(lt, { getHass: e })
 		]
 	});
 }
-var st = (e, t, n = `${t}s`) => `${e} ${e === 1 ? t : n}`;
-function ct({ getHass: e }) {
+var ct = (e, t, n = `${t}s`) => `${e} ${e === 1 ? t : n}`;
+function lt({ getHass: e }) {
 	let [t, n] = (0, u.useState)(null), [r, i] = (0, u.useState)(!1), [a, o] = (0, u.useState)(""), s = (t) => {
 		i(!0), e().callWS({ type: t }).then((e) => {
 			n(e), o("");
 		}).catch((e) => o(b(e))).finally(() => i(!1));
 	};
 	if ((0, u.useEffect)(() => s("hive_local/tidy"), [e]), !t || !t.receiver.length && !t.valves.length) return null;
-	let c = [t.receiver.length ? `${st(t.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${t.receiver.length === 1 ? "is" : "are"} disabled` : null, t.valves.length ? `${st(t.valves.length, "room valve")} ${t.valves.length === 1 ? "is" : "are"} hidden` : null].filter(Boolean), l = t.pending ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them." : `Done: ${c.join(", and ")}. Switch any back in their entity settings, or Undo.`;
+	let c = [t.receiver.length ? `${ct(t.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${t.receiver.length === 1 ? "is" : "are"} disabled` : null, t.valves.length ? `${ct(t.valves.length, "room valve")} ${t.valves.length === 1 ? "is" : "are"} hidden` : null].filter(Boolean), l = t.pending ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them." : `Done: ${c.join(", and ")}. Switch any back in their entity settings, or Undo.`;
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "settings-section",
 		children: [
@@ -9002,7 +9045,7 @@ function ct({ getHass: e }) {
 		]
 	});
 }
-var lt = [
+var ut = [
 	6,
 	9,
 	12,
@@ -9019,11 +9062,11 @@ var lt = [
 	45,
 	50
 ];
-function ut({ data: e, save: t }) {
+function dt({ data: e, save: t }) {
 	let [n, r] = (0, u.useState)(null), i = (0, u.useRef)(null), a = (0, u.useRef)(), o = e.boiler_kw, s = (e) => {
 		if (o == null) return t({ boiler_kw: 24 });
-		t({ boiler_kw: (e > 0 ? lt.find((e) => e > o) : [...lt].reverse().find((e) => e < o)) ?? o });
-	}, c = dt[e.currency], l = n ?? e.fixed_price, d = (n, o = 0) => {
+		t({ boiler_kw: (e > 0 ? ut.find((e) => e > o) : [...ut].reverse().find((e) => e < o)) ?? o });
+	}, c = ft[e.currency], l = n ?? e.fixed_price, d = (n, o = 0) => {
 		let s = i.current ?? e.fixed_price ?? .06, c = o > 15 ? .001 : 1e-4, l = Math.max(0, Math.round((n > 0 ? Math.floor(s / c + 1e-6) + 1 : Math.ceil(s / c - 1e-6) - 1) * c * 1e4) / 1e4);
 		i.current = l, r(l), window.clearTimeout(a.current), a.current = window.setTimeout(() => {
 			t({
@@ -9034,7 +9077,7 @@ function ut({ data: e, save: t }) {
 	}, m = (n) => t(n === "fixed" && e.fixed_price == null ? {
 		price_source: n,
 		fixed_price: e.price ?? .06
-	} : { price_source: n || null }), h = e.fit, g = e.gas_meter ? h ? `Learned ${h.kw.toFixed(1)} kW while heating from ${h.days} days${h.baseline >= .5 ? ` (plus ${h.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.` : e.learned_at ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours." : "Learning from the last 14 days…" : "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for.", _ = e.price_source === "fixed" ? "Your unit rate, below." : e.price_source === "energy" && e.energy_price == null ? "The Energy dashboard has no gas price (or it can't be read)." : e.price_source && e.price_source !== "fixed" && e.price == null ? "That entity has no price right now." : ((t) => t == null ? null : `${_e(t, e.currency)} per kWh`)(e.price) ?? "Pick where the price comes from.";
+	} : { price_source: n || null }), h = e.fit, g = e.gas_meter ? h ? `Learned ${h.kw.toFixed(1)} kW while heating from ${h.days} days${h.baseline >= .5 ? ` (plus ${h.baseline.toFixed(0)} kWh a day for hot water and cooking)` : ""}.` : e.learned_at ? "Not enough yet: it needs at least 4 days of readings with the heating on. Checked every 6 hours." : "Learning from the last 14 days…" : "Learns the boiler's real average output from your gas use. Hot water and cooking on the same meter are allowed for.", _ = e.price_source === "fixed" ? "Your unit rate, below." : e.price_source === "energy" && e.energy_price == null ? "The Energy dashboard has no gas price (or it can't be read)." : e.price_source && e.price_source !== "fixed" && e.price == null ? "That entity has no price right now." : ((t) => t == null ? null : `${ve(t, e.currency)} per kWh`)(e.price) ?? "Pick where the price comes from.";
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "settings-section",
 		children: [
@@ -9090,7 +9133,7 @@ function ut({ data: e, save: t }) {
 							}),
 							/* @__PURE__ */ (0, f.jsxs)("div", {
 								className: "settings-controls",
-								children: [/* @__PURE__ */ (0, f.jsx)(vt, {
+								children: [/* @__PURE__ */ (0, f.jsx)(yt, {
 									value: o == null ? "Not set" : `${o.toLocaleString()} kW`,
 									onLower: () => s(-1),
 									onRaise: () => s(1)
@@ -9165,8 +9208,8 @@ function ut({ data: e, save: t }) {
 							}),
 							/* @__PURE__ */ (0, f.jsx)("div", {
 								className: "settings-controls",
-								children: /* @__PURE__ */ (0, f.jsx)(vt, {
-									value: l == null ? "–" : c ? `${(l * 100).toFixed(2)}${c}` : _e(l, e.currency),
+								children: /* @__PURE__ */ (0, f.jsx)(yt, {
+									value: l == null ? "–" : c ? `${(l * 100).toFixed(2)}${c}` : ve(l, e.currency),
 									onLower: (e) => d(-1, e),
 									onRaise: (e) => d(1, e),
 									hold: !0
@@ -9179,7 +9222,7 @@ function ut({ data: e, save: t }) {
 		]
 	});
 }
-var dt = {
+var ft = {
 	GBP: "p",
 	EUR: "c",
 	USD: "¢",
@@ -9188,7 +9231,7 @@ var dt = {
 	NZD: "c",
 	IEP: "p"
 };
-function ft({ getHass: e }) {
+function pt({ getHass: e }) {
 	let [t, n] = (0, u.useState)(null), [r, i] = (0, u.useState)([]), [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)(!1), [l, d] = (0, u.useState)(0);
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/suggest" }).then((e) => d(e.rooms.length)).catch(() => {});
@@ -9269,11 +9312,11 @@ function ft({ getHass: e }) {
 					})
 				]
 			}),
-			s && /* @__PURE__ */ (0, f.jsx)($e, {
+			s && /* @__PURE__ */ (0, f.jsx)(et, {
 				getHass: e,
 				onDone: () => c(!1)
 			}),
-			a && /* @__PURE__ */ (0, f.jsx)(qe, {
+			a && /* @__PURE__ */ (0, f.jsx)(Je, {
 				getHass: e,
 				room: a === "new" ? void 0 : t?.find((e) => e.id === a),
 				onDone: () => o(null)
@@ -9281,7 +9324,7 @@ function ft({ getHass: e }) {
 		]
 	});
 }
-var pt = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, mt = [
+var mt = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, ht = [
 	15,
 	30,
 	45,
@@ -9292,7 +9335,7 @@ var pt = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60
 	240,
 	360
 ];
-function ht({ getHass: e, device: t, channel: n, info: r }) {
+function gt({ getHass: e, device: t, channel: n, info: r }) {
 	let [i, a] = (0, u.useState)(null), o = (0, u.useRef)(), s = i ?? r;
 	if (!s) return null;
 	let c = (r, i) => {
@@ -9309,8 +9352,8 @@ function ht({ getHass: e, device: t, channel: n, info: r }) {
 			}).finally(() => a(null));
 		}, 800);
 	}, l = (e) => {
-		let t = mt.findIndex((e) => e >= s.boost_minutes), n = t < 0 ? mt.length - 1 : t;
-		return mt[Math.min(mt.length - 1, Math.max(0, n + e))];
+		let t = ht.findIndex((e) => e >= s.boost_minutes), n = t < 0 ? ht.length - 1 : t;
+		return ht[Math.min(ht.length - 1, Math.max(0, n + e))];
 	}, d = n === "water";
 	return /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "settings-row",
@@ -9328,12 +9371,12 @@ function ht({ getHass: e, device: t, channel: n, info: r }) {
 			}),
 			/* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "settings-controls",
-				children: [/* @__PURE__ */ (0, f.jsx)(vt, {
+				children: [/* @__PURE__ */ (0, f.jsx)(yt, {
 					label: "How long",
-					value: pt(s.boost_minutes),
+					value: mt(s.boost_minutes),
 					onLower: () => c("boost_minutes", l(-1)),
 					onRaise: () => c("boost_minutes", l(1))
-				}), !d && /* @__PURE__ */ (0, f.jsx)(vt, {
+				}), !d && /* @__PURE__ */ (0, f.jsx)(yt, {
 					label: "Temperature",
 					value: `${s.boost_temperature.toFixed(1)}°`,
 					onLower: () => c("boost_temperature", Math.max(5, s.boost_temperature - .5)),
@@ -9357,7 +9400,7 @@ function ht({ getHass: e, device: t, channel: n, info: r }) {
 			}),
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "settings-controls",
-				children: /* @__PURE__ */ (0, f.jsx)(vt, {
+				children: /* @__PURE__ */ (0, f.jsx)(yt, {
 					value: `${s.frost_temperature.toFixed(1)}°`,
 					onLower: () => c("frost_temperature", Math.max(5, s.frost_temperature - .5)),
 					onRaise: () => c("frost_temperature", Math.min(16, s.frost_temperature + .5))
@@ -9366,7 +9409,7 @@ function ht({ getHass: e, device: t, channel: n, info: r }) {
 		]
 	})] });
 }
-var gt = {
+var _t = {
 	warm: "On. The rooms are warm.",
 	no_rooms: "On, but no room has recent valve readings.",
 	stopped: "Stopped for now: it starts again once the rooms are warm.",
@@ -9377,8 +9420,8 @@ var gt = {
 	preheat: "On. Pre-heating comes first.",
 	waiting: "On. The boiler rests a few minutes between requests."
 };
-function _t({ getHass: e, device: t, info: n }) {
-	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = n.enabled ? n.active ? `On. Heating for ${E(n.rooms)} now.` : gt[n.reason ?? ""] ?? "On." : "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does.", s = (e, t, n) => /* @__PURE__ */ (0, f.jsx)("div", {
+function vt({ getHass: e, device: t, info: n }) {
+	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = n.enabled ? n.active ? `On. Heating for ${E(n.rooms)} now.` : _t[n.reason ?? ""] ?? "On." : "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does.", s = (e, t, n) => /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "segmented",
 		role: "radiogroup",
 		"aria-label": n,
@@ -9441,8 +9484,8 @@ function _t({ getHass: e, device: t, info: n }) {
 		})
 	] });
 }
-function vt({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
-	let a = yt(n, i), o = yt(r, i);
+function yt({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
+	let a = I(n, i), o = I(r, i);
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "adjust",
 		children: [e && /* @__PURE__ */ (0, f.jsx)("span", {
@@ -9471,7 +9514,7 @@ function vt({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
 		})]
 	});
 }
-function yt(e, t) {
+function I(e, t) {
 	let n = (0, u.useRef)(e);
 	n.current = e;
 	let r = (0, u.useRef)(), i = () => window.clearTimeout(r.current);
@@ -9494,7 +9537,7 @@ function yt(e, t) {
 	} : { onClick: () => e(0) };
 }
 // src/App.tsx
-var I = [
+var bt = [
 	{
 		id: "overview",
 		label: "Overview",
@@ -9516,7 +9559,7 @@ var I = [
 		icon: "tune-variant"
 	}
 ];
-function bt({ getHass: e, narrow: t, onToggleMenu: n }) {
+function xt({ getHass: e, narrow: t, onToggleMenu: n }) {
 	let [r, i] = (0, u.useState)([]), [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)({}), [l, d] = (0, u.useState)("overview"), [m, g] = (0, u.useState)(null), [_, v] = (0, u.useState)("control"), [y, x] = (0, u.useState)(null), [S, C] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/devices" }).then((e) => {
@@ -9555,7 +9598,7 @@ function bt({ getHass: e, narrow: t, onToggleMenu: n }) {
 				/* @__PURE__ */ (0, f.jsx)("nav", {
 					className: "tabs",
 					role: "tablist",
-					children: I.map((e) => /* @__PURE__ */ (0, f.jsxs)("button", {
+					children: bt.map((e) => /* @__PURE__ */ (0, f.jsxs)("button", {
 						role: "tab",
 						"aria-selected": e.id === l,
 						className: e.id === l ? "on" : "",
@@ -9573,7 +9616,7 @@ function bt({ getHass: e, narrow: t, onToggleMenu: n }) {
 				className: "empty-state",
 				children: [/* @__PURE__ */ (0, f.jsx)(h, { size: 56 }), /* @__PURE__ */ (0, f.jsx)("p", { children: "No receivers yet. Add one under Settings → Devices & services → Add integration → Hive Local." })]
 			}),
-			O && a ? /* @__PURE__ */ (0, f.jsx)(Ae, {
+			O && a ? /* @__PURE__ */ (0, f.jsx)(je, {
 				getHass: e,
 				device: O,
 				channel: m.channel,
@@ -9583,7 +9626,7 @@ function bt({ getHass: e, narrow: t, onToggleMenu: n }) {
 				tab: _,
 				onTab: v,
 				onBack: () => g(null)
-			}, `${m.entry}-${m.channel}`) : y ? /* @__PURE__ */ (0, f.jsx)(at, {
+			}, `${m.entry}-${m.channel}`) : y ? /* @__PURE__ */ (0, f.jsx)(ot, {
 				getHass: e,
 				roomId: y,
 				devices: r,
@@ -9593,7 +9636,7 @@ function bt({ getHass: e, narrow: t, onToggleMenu: n }) {
 				onTab: v,
 				onBack: T
 			}, y) : /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
-				l === "overview" && /* @__PURE__ */ (0, f.jsx)(A, {
+				l === "overview" && /* @__PURE__ */ (0, f.jsx)(M, {
 					getHass: e,
 					devices: r,
 					status: s,
@@ -9601,18 +9644,18 @@ function bt({ getHass: e, narrow: t, onToggleMenu: n }) {
 					onOpenDevice: E,
 					onOpenRoom: w
 				}),
-				l === "devices" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Ne, {
+				l === "devices" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Pe, {
 					getHass: e,
 					devices: r,
 					status: s,
 					limits: a,
 					onOpenDevice: E
 				}),
-				l === "stats" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Ce, {
+				l === "stats" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(we, {
 					getHass: e,
 					devices: r
 				}),
-				l === "settings" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(ot, {
+				l === "settings" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(st, {
 					getHass: e,
 					devices: r,
 					status: s
@@ -9622,7 +9665,7 @@ function bt({ getHass: e, narrow: t, onToggleMenu: n }) {
 	});
 }
 // src/styles.ts
-var xt = "\n:host {\n  /* One accent for everything that's on or active (heating, hot water, boosting, the selected tab):\n     HA's heating orange. Heating and hot water share it. */\n  --hl-brand: var(--state-climate-heat-color, #ff8100);\n  --hl-heat: var(--hl-brand);\n  /* Main buttons and selected chips use the accent too, not HA's blue. */\n  --hl-accent: var(--hl-brand);\n  --hl-water: var(--hl-brand);\n  --hl-idle: var(--secondary-text-color, #727272);\n  --hl-off: var(--disabled-text-color, #9e9e9e);\n  --hl-off-fill: color-mix(in srgb, var(--secondary-text-color, #888) 18%, transparent);\n  --hl-radius: 18px;\n  --hl-soft: color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent);\n  display: block; height: 100%;\n  background: var(--primary-background-color);\n  color: var(--primary-text-color);\n  font-family: var(--ha-font-family-body, var(--paper-font-body1_-_font-family, Roboto, sans-serif));\n  -webkit-font-smoothing: antialiased;\n}\n* { box-sizing: border-box; }\n.panel { min-height: 100%; background: var(--primary-background-color); }\n.icon-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; --mdc-icon-size: 20px; }\n.spacer { flex: 1; }\n.muted { color: var(--secondary-text-color); font-size: 14px; }\n.small { font-size: 12px; }\n\n/* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */\nheader { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }\n/* In the companion app HA already places the panel below the status bar / Dynamic Island,\n   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own\n   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */\nheader::before { content: \"\"; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }\n.toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }\n.brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }\n.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }\n.logo-mark { display: block; flex: none; }\n.empty-state .logo-mark { opacity: .9; }\n.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; margin-right: -10px; border-radius: 50%; }\n.toolbar-row .menu:hover { background: rgba(255,255,255,.12); }\n/* Pills. flex-shrink 0: when they don't fit beside the logo, the tabs wrap onto their own row instead of squashing. */\n.tabs { display: flex; align-items: center; gap: 4px; flex: 1 0 auto; padding: 10px 0; margin: 0 -8px 0 -4px; overflow-x: auto; scrollbar-width: none; }\n.tabs::-webkit-scrollbar { display: none; }\n.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; opacity: .75; padding: 0 14px; font-weight: 500; letter-spacing: .01em; }\n.tabs button:hover:not(:disabled) { opacity: .95; background: color-mix(in srgb, currentColor 7%, transparent); }\n.tabs button:active:not(:disabled) { transform: none; }\n.tabs button.on, .tabs button.on:hover:not(:disabled) { opacity: 1; background: color-mix(in srgb, currentColor 13%, transparent); }\n.tabs .icon-wrap { --mdc-icon-size: 18px; }\n\nmain { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }\n.stack { display: flex; flex-direction: column; gap: 16px; }\n\n/* Cards */\n.card { background: var(--card-background-color); border-radius: var(--hl-radius); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }\n.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n.title { display: flex; align-items: center; gap: 12px; }\n.title-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; --mdc-icon-size: 22px; color: var(--secondary-text-color); background: var(--hl-soft); }\n.card.heat { --hl-accent: var(--hl-heat); }\n.card.water { --hl-accent: var(--hl-water); }\nh2 { font-size: 18px; font-weight: 500; margin: 0; }\nh3 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--secondary-text-color); margin: 6px 0 -4px; }\n\n/* Controls */\nbutton { font: inherit; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); cursor: pointer; transition: background .15s, border-color .15s, opacity .15s, transform .1s; }\nbutton:hover:not(:disabled) { background: var(--hl-soft); }\nbutton:active:not(:disabled) { transform: scale(.98); }\nbutton:disabled { opacity: .45; cursor: default; }\nbutton:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }\nbutton.primary { background: var(--hl-accent, var(--primary-color)); color: var(--text-primary-color, #fff); border-color: transparent; }\nbutton.primary:hover:not(:disabled) { background: var(--hl-accent, var(--primary-color)); filter: brightness(1.08); }\nbutton.ghost { border-color: transparent; background: transparent; color: var(--secondary-text-color); padding-right: 6px; }\nbutton.round { width: 36px; height: 36px; padding: 0; border-radius: 50%; }\nbutton.danger { color: var(--error-color); border-color: transparent; background: transparent; }\nselect, input[type=time], input[type=text] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }\n.toolbar, .actions, .inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }\n.inline-row { gap: 12px; }\n\n.segmented { display: inline-flex; padding: 3px; gap: 3px; border-radius: 12px; background: var(--hl-soft); }\n.segmented.full { display: flex; }\n.segmented.full button { flex: 1; }\n.segmented button { border: 0; border-radius: 9px; background: transparent; padding: 7px 12px; color: var(--secondary-text-color); }\n.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); font-weight: 500; }\n.segmented .raw { padding: 7px 10px; }\n\n.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--secondary-text-color); white-space: nowrap; }\n.chip .icon-wrap { --mdc-icon-size: 14px; }\n.chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }\n.chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }\n.channel-switch { align-self: flex-start; }\n.channel-switch .icon-wrap { --mdc-icon-size: 18px; }\n.chips { display: flex; flex-wrap: wrap; gap: 8px; }\n.chip-btn { border-radius: 999px; padding: 6px 14px; }\n.chip-btn.on { background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 16%, transparent); border-color: var(--hl-accent, var(--primary-color)); color: var(--hl-accent, var(--primary-color)); font-weight: 500; }\n\n.status { padding: 10px 14px; border-radius: 10px; font-size: 14px; background: var(--hl-soft); }\n.status.ok { background: color-mix(in srgb, var(--success-color, #43a047) 14%, transparent); }\n.status.error { background: color-mix(in srgb, var(--error-color, #db4437) 14%, transparent); color: var(--error-color); }\n.status.busy { opacity: .8; }\n\n.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 48px 16px; color: var(--secondary-text-color); }\n.empty-state .icon-wrap { --mdc-icon-size: 48px; opacity: .5; }\n\n/* Overview: quick actions, filter pills and device cards */\n.home { display: flex; flex-direction: column; gap: 12px; }\n.home-section { font-size: 19px; font-weight: 700; letter-spacing: -.01em; text-transform: none; letter-spacing: 0; color: var(--primary-text-color); margin: 6px 0 0; }\n.quick { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; }\n.quick::-webkit-scrollbar { display: none; }\n.quick-action { flex: none; padding: 0; gap: 0; border-radius: 14px; overflow: hidden; align-items: stretch; background: var(--card-background-color); }\n.quick-icon { padding-left: 14px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); }\n.quick-icon .icon-wrap { --mdc-icon-size: 22px; }\n.quick-label { padding: 14px 16px 14px 10px; white-space: nowrap; }\n.pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }\n.pills::-webkit-scrollbar { display: none; }\n.pill { flex: none; border-radius: 999px; padding: 8px 16px; background: var(--card-background-color); }\n.pill .icon-wrap { --mdc-icon-size: 18px; }\n.pill.on, .pill.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; border-color: transparent; font-weight: 500; }\n/* Cards in a row share its height. */\n.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: stretch; }\n.card.device { padding: 0; gap: 0; overflow: hidden; height: 100%; }\n.device-head { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 20px; cursor: pointer; outline: none; transition: background .15s; }\n.device-head:hover { background: color-mix(in srgb, var(--primary-text-color) 3%, transparent); }\n.device-head:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color); }\n.device-row { display: flex; align-items: center; gap: 12px; }\n/* Our own icon tile: a rounded square with the logo's warm gradient (not a diamond). */\n/* Icons: grey, in a shaded rounded box. */\n.device-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); background: var(--hl-soft); }\n.device-icon .icon-wrap { --mdc-icon-size: 22px; }\n.device-name { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; font-weight: 500; }\n.device-name .small { font-weight: 400; }\n.device-status { font-size: 14px; color: var(--secondary-text-color); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }\n.device-status b { color: var(--primary-text-color); font-weight: 600; }\n.status-icon { --mdc-icon-size: 18px; color: var(--hl-heat); }\n.water .status-icon { color: var(--hl-water); }\n.device-big { flex: 1; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; }\n.device-big span { font-size: 30px; line-height: 1.1; }\n.device-big small { grid-column: 1 / -1; font-size: 13px; letter-spacing: 0; color: var(--secondary-text-color); margin-top: 4px; font-weight: 400; }\n.device-action { min-width: 120px; height: 50px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 500; color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 12%, transparent); }\n.device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }\n.device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }\n.status-icon.done { color: var(--success-color, #43a047); }\n.status-icon.away { color: var(--secondary-text-color); }\n.stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }\n.device.heat { --hl-accent: var(--hl-heat); }\n.device.water { --hl-accent: var(--hl-water); }\n.device-name .warn { color: var(--warning-color, #ffa600); font-weight: 500; }\n\n\n.device-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; border-top: 1px solid var(--divider-color); }\n.schedule-link { align-self: center; }\n\n/* Boost sheet: slides up from the bottom on phones, a centred dialog on wider screens */\n.sheet-backdrop { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); animation: hl-fade .15s ease-out; }\n.sheet { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; padding: 14px 20px 18px; border-radius: 24px; background: var(--card-background-color); color: var(--primary-text-color); }\n.sheet.heat { --hl-accent: var(--hl-heat); }\n.sheet.water { --hl-accent: var(--hl-water); }\n.sheet-handle { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--divider-color); }\n.sheet-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }\n.sheet-title h2 { font-size: 24px; }\n.sheet-field { display: flex; flex-direction: column; gap: 10px; }\n.sheet-label { font-size: 14px; color: var(--secondary-text-color); }\n.sheet-temp { display: flex; align-items: center; gap: 12px; }\n.sheet-step { width: 52px; height: 52px; flex: none; border-color: var(--divider-color); }\n.sheet-step .icon-wrap { --mdc-icon-size: 24px; }\n.sheet-temp-value { flex: 1; text-align: center; padding: 14px 0; border-radius: 18px; color: #fff; font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; background: linear-gradient(135deg, #FF9F43, #F0532B); }\n.sheet-lengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }\n.sheet-lengths button { height: 46px; padding: 0 6px; border-radius: 12px; }\n.sheet-lengths button.on, .sheet-lengths button.on:hover:not(:disabled) { background: var(--hl-accent); border-color: transparent; color: #fff; font-weight: 500; }\n.sheet-live { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; padding: 8px 0; }\n.sheet-live .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); }\n.sheet-go { height: 52px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 600; color: #fff; background: var(--hl-accent); }\n.sheet-go:hover:not(:disabled) { background: var(--hl-accent); filter: brightness(1.06); }\n.sheet-go.stop { color: var(--error-color, #db4437); background: color-mix(in srgb, var(--error-color, #db4437) 12%, transparent); }\n.sheet-cancel { align-self: center; padding: 8px 16px; font-size: 15px; }\n@keyframes hl-fade { from { opacity: 0; } }\n@keyframes hl-rise { from { transform: translateY(40px); opacity: 0; } }\n\n/* Device controls (opened from a card) */\n.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }\n.channel { gap: 16px; }\n.holiday-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--hl-soft); }\n.holiday-row > .icon-wrap { --mdc-icon-size: 20px; color: var(--secondary-text-color); }\n.holiday-text { flex: 1; }\n.holiday-row > button { padding: 6px 12px; }\n.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }\n.target-text { display: flex; flex-direction: column; gap: 2px; }\n.target-label { font-size: 16px; font-weight: 500; }\n.target-control { display: inline-flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.target-btn { width: 44px; height: 44px; background: var(--card-background-color); }\n.target-btn .icon-wrap { --mdc-icon-size: 22px; }\n.target-value { min-width: 76px; text-align: center; font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }\n.target-value.pending { color: var(--hl-heat); }\n.card-actions { display: flex; align-items: center; gap: 8px; }\n\n.stepper { background: var(--card-background-color); }\n.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }\n.stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }\n.stepper button.round:hover { background: var(--card-background-color); }\n.stepper-value { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }\n\n/* Schedule: a status line, a strip of day circles, and the day's time slots */\n.sched { display: flex; flex-direction: column; gap: 14px; position: relative; padding-bottom: 72px; }\n\n.sched-status { margin: 0; font-size: 14px; }\n.sched-days { display: flex; justify-content: space-between; gap: 4px; padding: 12px 10px; border-radius: 16px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.sched-day { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: transparent; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }\n.sched-day:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.sched-day.today { border-color: var(--hl-brand); color: var(--hl-brand); }\n.sched-day.on, .sched-day.on:hover:not(:disabled) { background: var(--hl-brand); border-color: var(--hl-brand); color: #fff; }\n.sched-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning-color, #ffa600); border: 2px solid var(--card-background-color); }\n.sched-list { display: flex; flex-direction: column; gap: 4px; }\n.sched-empty { margin: 8px 4px; }\n.slot { justify-content: flex-start; gap: 18px; padding: 10px 8px; border: 0; border-radius: 16px; background: transparent; text-align: left; }\n.slot:hover:not(:disabled) { background: var(--hl-soft); }\n.slot-badge { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid var(--hl-brand); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; color: var(--primary-text-color); font-variant-numeric: tabular-nums; }\n.slot-badge.off { border-color: var(--divider-color); color: var(--secondary-text-color); }\n.slot-badge.off .icon-wrap, .slot-badge.add .icon-wrap { --mdc-icon-size: 24px; }\n.slot-badge.add { border: 2px dashed var(--divider-color); color: var(--secondary-text-color); }\n.slot-time { flex: 1; font-size: 20px; font-variant-numeric: tabular-nums; }\n.slot-add .slot-time { font-size: 16px; color: var(--secondary-text-color); }\n.slot-chev { color: var(--secondary-text-color); }\n/* Unwritten changes: a dark bar across the bottom, above the tab bar on phones. */\n.sched-save { position: sticky; bottom: 16px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--primary-text-color); color: var(--card-background-color); }\n.sched-save-icon { --mdc-icon-size: 20px; opacity: .8; }\n.sched-undo { border: 0; background: transparent; color: inherit; opacity: .8; padding: 10px 12px; }\n.sched-undo:hover:not(:disabled) { background: color-mix(in srgb, var(--card-background-color) 12%, transparent); opacity: 1; }\n.sched-write { border: 0; border-radius: 12px; padding: 10px 20px; background: var(--hl-brand); color: #fff; font-weight: 600; }\n.sched-write:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab-wrap.raised { bottom: 96px; }\n.sched-changed { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }\n.fab-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 4; }\n.fab { width: 56px; height: 56px; padding: 0; border-radius: 50%; border: 0; background: var(--hl-brand); color: #fff; }\n.fab:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab .icon-wrap { --mdc-icon-size: 26px; }\n.fab-backdrop { position: fixed; inset: 0; }\n.fab-menu { position: absolute; right: 0; bottom: 66px; min-width: 260px; display: flex; flex-direction: column; padding: 6px; border-radius: 16px; background: var(--card-background-color); border: 1px solid var(--divider-color); }\n.fab-menu button { justify-content: flex-start; gap: 10px; border: 0; border-radius: 10px; padding: 12px; background: transparent; }\n.fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }\n.sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }\n.sheet-note { margin: -6px 0 0; text-align: center; }\n.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }\n.room-sheet .sheet-live .heating { color: var(--hl-heat); }\n.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }\n.room-sheet-actions .sheet-cancel { align-self: auto; }\n.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }\n.room-sensor-note.warn { color: var(--warning-color, #ffa600); }\n.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }\n.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }\n.sensor-toggle-main:hover:not(:disabled) { background: transparent; }\n.sensor-toggle .warn { color: var(--warning-color, #ffa600); }\n.room-sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: transparent; text-align: left; justify-content: flex-start; }\n.room-sheet-row > span:nth-child(2) { flex: 1; }\n.room-sheet-row .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule { max-width: 520px; gap: 14px; }\n.room-schedule-head { display: flex; align-items: center; gap: 10px; }\n.room-schedule-head .page-title { flex: 1; min-width: 0; }\n.room-schedule-head h2 { font-size: 20px; }\n.room-schedule-note { margin: 0; }\n.room-schedule-mode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--divider-color); }\n.room-schedule-mode-text { flex: 1; }\n.room-schedule-mode .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule-notes { margin: 0; padding: 10px 14px 10px 28px; border-radius: 10px; background: color-mix(in srgb, var(--warning-color, #ffa600) 12%, transparent); display: flex; flex-direction: column; gap: 4px; }\n/* In a dialog the save bar and the ... button stick to its bottom instead of the page's. */\n.sched.embedded { padding-bottom: 0; }\n.sched.embedded .sched-save { bottom: 0; }\n.sched.embedded .fab-wrap { position: sticky; right: auto; bottom: 0; align-self: flex-end; }\n.sched.embedded .fab-wrap.raised { bottom: 64px; }\n.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }\n.valve-picker { display: flex; flex-direction: column; gap: 8px; }\n.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }\n.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }\n.valve-search input::-webkit-search-cancel-button { display: none; }\n.valve-search .round { width: 30px; height: 30px; }\n.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }\n.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow-y: auto; max-height: 300px; overscroll-behavior: contain; }\n.valve-pick { flex: none; display: flex; align-items: center; gap: 8px; padding-right: 10px; }\n.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }\n.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }\n.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }\n.valve-pick-main:hover:not(:disabled) { background: transparent; }\n.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }\n.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }\n.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }\n.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }\n.valve-pick .warn { color: var(--warning-color, #ffa600); }\n.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }\n.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }\n.setup-list { display: flex; flex-direction: column; gap: 8px; }\n.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }\n.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }\n.setup-room.on select { margin: 0 14px 12px 48px; }\n.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }\n.setup-room-main:hover:not(:disabled) { background: transparent; }\n.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }\n.setup-room-text .muted { font-weight: 400; }\n.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }\n.danger-text { color: var(--error-color, #db4437); }\n\n/* Rooms */\n.dot-heating { width: 10px; height: 10px; border-radius: 50%; background: var(--hl-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl-accent) 20%, transparent); flex: none; }\n.zone { display: flex; flex-direction: column; gap: 10px; }\n.zone h3 { margin: 4px 0 0; }\n/* Room for the + button under the last room / device. */\n.devices-page { padding-bottom: 72px; }\n.add-options { display: flex; flex-direction: column; gap: 8px; }\n.add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }\n.add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }\n.add-text b { font-size: 16px; font-weight: 500; }\n.room.heating { --hl-accent: var(--hl-heat); }\n.chip.heating { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.room-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }\n.room-temp { font-size: 44px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }\n.room-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }\n.room-target { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }\n.valves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }\n.valve { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--divider-color); font-size: 14px; }\n.valve.off { opacity: .6; }\n.valve-icon { color: var(--secondary-text-color); --mdc-icon-size: 18px; }\n.valve-icon.heating { color: var(--hl-heat); }\n.valve-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.valve-temps { font-variant-numeric: tabular-nums; white-space: nowrap; }\n.battery { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.battery .icon-wrap { --mdc-icon-size: 16px; }\n.battery.low { color: var(--warning-color, #ffa600); font-weight: 500; }\n.room-editor h2 { margin: 0; }\n.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }\n.field > span, .field legend { font-size: 13px; font-weight: 500; color: var(--secondary-text-color); padding: 0; margin-bottom: 6px; }\n.field input[type=text], .field select { width: 100%; max-width: 420px; }\n.checklist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 0; }\n.checklist > .muted { width: 100%; }\n.pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }\n\n/* A device's own page (heating or hot water), opened from its Overview card */\n.device-page { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n.device-page .history { max-width: none; }\n.page-head { display: flex; align-items: center; gap: 6px; margin-left: -8px; }\n.page-head .round { width: 44px; height: 44px; }\n.page-head .round .icon-wrap { --mdc-icon-size: 26px; }\n.page-title { display: flex; flex-direction: column; }\n.page-title h2 { font-size: 24px; font-weight: 700; }\n.page-tabs { margin-top: -6px; }\n.card.device.page .device-head, .device-head.static { cursor: default; }\n.device-head.static:hover { background: transparent; }\n.room-device.off { opacity: .6; }\n/* Devices tab: about the hardware, not controlling it */\n.card.hw { gap: 12px; padding: 18px; }\n.card.hw.off .device-name, .card.hw.off .facts { opacity: .6; }\n.hw-head { display: flex; align-items: center; gap: 12px; }\n.online { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--secondary-text-color); white-space: nowrap; }\n.online i { width: 8px; height: 8px; border-radius: 50%; background: var(--success-color, #43a047); }\n.online.no { color: var(--warning-color, #ffa600); }\n.online.no i { background: var(--warning-color, #ffa600); }\n.facts { display: flex; flex-wrap: wrap; gap: 6px; }\n.fact { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); }\n.fact .icon-wrap { --mdc-icon-size: 15px; }\n.fact.warn { color: var(--warning-color, #ffa600); background: color-mix(in srgb, var(--warning-color, #ffa600) 14%, transparent); font-weight: 500; }\n.hw-links { display: flex; gap: 8px; border-top: 1px solid var(--divider-color); margin: 0 -18px -18px; padding: 6px 8px; }\n.hw-link { flex: 1; justify-content: space-between; border: 0; background: transparent; padding: 10px; font-weight: 500; }\n.hw-link .icon-wrap { color: var(--secondary-text-color); }\n/* The page title already names it. */\n.card.device.page .device-icon, .card.device.page .device-name { display: none; }\n.history-title { font-size: 24px; font-weight: 700; margin: 4px 0 -4px; }\n.card.device.page .device-head:hover { background: transparent; }\n\n/* Stats: heating history, after the Hive app's */\n.history { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n/* Underlined tabs: receivers on Stats, Control · Schedule · History on a device page. */\n.history-tabs, .page-tabs { display: flex; border-bottom: 1px solid var(--divider-color); overflow-x: auto; scrollbar-width: none; }\n.history-tabs button, .page-tabs button { flex: 1 0 auto; border: 0; border-radius: 0; background: transparent; padding: 12px 16px; color: var(--secondary-text-color); border-bottom: 2px solid transparent; margin-bottom: -1px; }\n.history-tabs button.on, .page-tabs button.on { color: var(--hl-brand); border-bottom-color: var(--hl-brand); font-weight: 500; }\n.history-controls { display: flex; justify-content: space-between; gap: 12px; }\n.history-toggle { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.history-toggle button { min-width: 44px; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--primary-text-color); }\n.history-toggle button.wide { min-width: 60px; }\n.history-toggle button.on, .history-toggle button.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; }\n.history-toggle .icon-wrap { --mdc-icon-size: 22px; }\n.history-date { display: flex; align-items: center; justify-content: space-between; }\n.history-date .round { width: 40px; height: 40px; }\n.history-range { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--hl-brand) 10%, transparent); color: var(--hl-brand); font-weight: 500; }\n.history-range .icon-wrap { --mdc-icon-size: 18px; }\n.history-summary { display: flex; align-items: center; padding: 22px 12px; border-radius: 18px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.history-summary > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }\n.history-summary b { font-size: 30px; font-weight: 500; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }\n.history-summary i { width: 1px; align-self: stretch; background: var(--divider-color); }\n.history-note { margin: -6px 0 0; text-align: center; }\n.history-empty { text-align: center; margin: 24px 0; }\n.history-rows { display: flex; flex-direction: column; gap: 6px; }\n.history-key { align-self: flex-end; display: inline-flex; align-items: center; gap: 4px; }\n.history-key .icon-wrap { --mdc-icon-size: 16px; }\n.history-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 12px; min-height: 40px; }\n.history-day { font-size: 15px; color: var(--secondary-text-color); white-space: nowrap; }\n.history-day span { display: inline-block; min-width: 20px; margin-left: 4px; }\n.history-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.history-bar i { display: block; height: 14px; max-width: calc(100% - 64px); border-radius: 999px; background: var(--hl-brand); flex: none; }\n.history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.history-temps span { color: var(--primary-text-color); }\n.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }\n.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }\n.history-key span { display: inline-flex; align-items: center; gap: 4px; }\n.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-hint { text-align: center; margin: 0; }\n\n/* Settings: grouped rows, like a phone's settings */\n.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }\n.settings-section { display: flex; flex-direction: column; gap: 8px; }\n.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }\n.settings-help { margin: -2px 4px 2px; }\n.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }\n.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }\n.settings-group > * + * { border-top: 1px solid var(--divider-color); }\n.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }\n.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }\n.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }\n.settings-row select { max-width: 220px; }\n.room-control { display: flex; flex-direction: column; gap: 14px; }\n.room-control .room-sensor-note { margin-top: 0; justify-content: flex-start; text-align: left; }\n.room-mode-note { margin: -4px 0 0; }\n.room-schedule-page { max-width: none; display: flex; flex-direction: column; gap: 12px; }\n.room-schedule-page .room-schedule-head { justify-content: flex-end; }\n.tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }\n.stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }\n.settings-chevron { color: var(--secondary-text-color); }\n.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }\n.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }\n.adjust .stepper-value { min-width: 72px; text-align: center; }\n@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }\ncode { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }\n\n@media (max-width: 600px) {\n  /* Room at the bottom for the tab bar (and the phone's home indicator). */\n  main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }\n  .card { padding: 14px; }\n  .grid { grid-template-columns: 1fr; }\n  .device-grid { grid-template-columns: 1fr; }\n    .device-big { font-size: 46px; }\n  .sheet-backdrop { align-items: flex-end; padding: 0; }\n  .fab-wrap { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); }\n  /* Above the bottom tab bar. */\n  .sched-save { bottom: calc(84px + env(safe-area-inset-bottom)); }\n  .fab-wrap.raised { bottom: calc(156px + env(safe-area-inset-bottom)); }\n  .sched.embedded .sched-save, .sched.embedded .fab-wrap { bottom: 0; right: auto; }\n  .sched.embedded .fab-wrap.raised { bottom: 64px; }\n  .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }\n  /* Phones: the tabs become a bar along the bottom, in thumb reach. */\n  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;\n    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;\n    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); }\n  .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }\n  .tabs button:hover:not(:disabled) { background: transparent; }\n  .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }\n  .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }\n  .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }\n}\n", St = class extends HTMLElement {
+var St = "\n:host {\n  /* One accent for everything that's on or active (heating, hot water, boosting, the selected tab):\n     HA's heating orange. Heating and hot water share it. */\n  --hl-brand: var(--state-climate-heat-color, #ff8100);\n  --hl-heat: var(--hl-brand);\n  /* Main buttons and selected chips use the accent too, not HA's blue. */\n  --hl-accent: var(--hl-brand);\n  --hl-water: var(--hl-brand);\n  --hl-idle: var(--secondary-text-color, #727272);\n  --hl-off: var(--disabled-text-color, #9e9e9e);\n  --hl-off-fill: color-mix(in srgb, var(--secondary-text-color, #888) 18%, transparent);\n  --hl-radius: 18px;\n  --hl-soft: color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent);\n  display: block; height: 100%;\n  background: var(--primary-background-color);\n  color: var(--primary-text-color);\n  font-family: var(--ha-font-family-body, var(--paper-font-body1_-_font-family, Roboto, sans-serif));\n  -webkit-font-smoothing: antialiased;\n}\n* { box-sizing: border-box; }\n.panel { min-height: 100%; background: var(--primary-background-color); }\n.icon-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; --mdc-icon-size: 20px; }\n.spacer { flex: 1; }\n.muted { color: var(--secondary-text-color); font-size: 14px; }\n.small { font-size: 12px; }\n\n/* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */\nheader { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }\n/* In the companion app HA already places the panel below the status bar / Dynamic Island,\n   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own\n   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */\nheader::before { content: \"\"; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }\n.toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }\n.brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }\n.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }\n.logo-mark { display: block; flex: none; }\n.empty-state .logo-mark { opacity: .9; }\n.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; margin-right: -10px; border-radius: 50%; }\n.toolbar-row .menu:hover { background: rgba(255,255,255,.12); }\n/* Pills. flex-shrink 0: when they don't fit beside the logo, the tabs wrap onto their own row instead of squashing. */\n.tabs { display: flex; align-items: center; gap: 4px; flex: 1 0 auto; padding: 10px 0; margin: 0 -8px 0 -4px; overflow-x: auto; scrollbar-width: none; }\n.tabs::-webkit-scrollbar { display: none; }\n.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; opacity: .75; padding: 0 14px; font-weight: 500; letter-spacing: .01em; }\n.tabs button:hover:not(:disabled) { opacity: .95; background: color-mix(in srgb, currentColor 7%, transparent); }\n.tabs button:active:not(:disabled) { transform: none; }\n.tabs button.on, .tabs button.on:hover:not(:disabled) { opacity: 1; background: color-mix(in srgb, currentColor 13%, transparent); }\n.tabs .icon-wrap { --mdc-icon-size: 18px; }\n\nmain { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }\n.stack { display: flex; flex-direction: column; gap: 16px; }\n\n/* Cards */\n.card { background: var(--card-background-color); border-radius: var(--hl-radius); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }\n.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n.title { display: flex; align-items: center; gap: 12px; }\n.title-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; --mdc-icon-size: 22px; color: var(--secondary-text-color); background: var(--hl-soft); }\n.card.heat { --hl-accent: var(--hl-heat); }\n.card.water { --hl-accent: var(--hl-water); }\nh2 { font-size: 18px; font-weight: 500; margin: 0; }\nh3 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--secondary-text-color); margin: 6px 0 -4px; }\n\n/* Controls */\nbutton { font: inherit; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); cursor: pointer; transition: background .15s, border-color .15s, opacity .15s, transform .1s; }\nbutton:hover:not(:disabled) { background: var(--hl-soft); }\nbutton:active:not(:disabled) { transform: scale(.98); }\nbutton:disabled { opacity: .45; cursor: default; }\nbutton:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }\nbutton.primary { background: var(--hl-accent, var(--primary-color)); color: var(--text-primary-color, #fff); border-color: transparent; }\nbutton.primary:hover:not(:disabled) { background: var(--hl-accent, var(--primary-color)); filter: brightness(1.08); }\nbutton.ghost { border-color: transparent; background: transparent; color: var(--secondary-text-color); padding-right: 6px; }\nbutton.round { width: 36px; height: 36px; padding: 0; border-radius: 50%; }\nbutton.danger { color: var(--error-color); border-color: transparent; background: transparent; }\nselect, input[type=time], input[type=text] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }\n.toolbar, .actions, .inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }\n.inline-row { gap: 12px; }\n\n.segmented { display: inline-flex; padding: 3px; gap: 3px; border-radius: 12px; background: var(--hl-soft); }\n.segmented.full { display: flex; }\n.segmented.full button { flex: 1; }\n.segmented button { border: 0; border-radius: 9px; background: transparent; padding: 7px 12px; color: var(--secondary-text-color); }\n.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); font-weight: 500; }\n.segmented .raw { padding: 7px 10px; }\n\n.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--secondary-text-color); white-space: nowrap; }\n.chip .icon-wrap { --mdc-icon-size: 14px; }\n.chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }\n.chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }\n.channel-switch { align-self: flex-start; }\n.channel-switch .icon-wrap { --mdc-icon-size: 18px; }\n.chips { display: flex; flex-wrap: wrap; gap: 8px; }\n.chip-btn { border-radius: 999px; padding: 6px 14px; }\n.chip-btn.on { background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 16%, transparent); border-color: var(--hl-accent, var(--primary-color)); color: var(--hl-accent, var(--primary-color)); font-weight: 500; }\n\n.status { padding: 10px 14px; border-radius: 10px; font-size: 14px; background: var(--hl-soft); }\n.status.ok { background: color-mix(in srgb, var(--success-color, #43a047) 14%, transparent); }\n.status.error { background: color-mix(in srgb, var(--error-color, #db4437) 14%, transparent); color: var(--error-color); }\n.status.busy { opacity: .8; }\n\n.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 48px 16px; color: var(--secondary-text-color); }\n.empty-state .icon-wrap { --mdc-icon-size: 48px; opacity: .5; }\n\n/* Overview: quick actions, filter pills and device cards */\n.home { display: flex; flex-direction: column; gap: 12px; }\n.home-section { font-size: 19px; font-weight: 700; letter-spacing: -.01em; text-transform: none; letter-spacing: 0; color: var(--primary-text-color); margin: 6px 0 0; }\n.quick { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; }\n.quick::-webkit-scrollbar { display: none; }\n.quick-action { flex: none; padding: 0; gap: 0; border-radius: 14px; overflow: hidden; align-items: stretch; background: var(--card-background-color); }\n.quick-icon { padding-left: 14px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); }\n.quick-icon .icon-wrap { --mdc-icon-size: 22px; }\n.quick-label { padding: 14px 16px 14px 10px; white-space: nowrap; }\n.pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }\n.pills::-webkit-scrollbar { display: none; }\n.pill { flex: none; border-radius: 999px; padding: 8px 16px; background: var(--card-background-color); }\n.pill .icon-wrap { --mdc-icon-size: 18px; }\n.pill.on, .pill.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; border-color: transparent; font-weight: 500; }\n/* Cards in a row share its height. */\n.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: stretch; }\n.card.device { padding: 0; gap: 0; overflow: hidden; height: 100%; }\n.device-head { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 20px; cursor: pointer; outline: none; transition: background .15s; }\n.device-head:hover { background: color-mix(in srgb, var(--primary-text-color) 3%, transparent); }\n.device-head:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color); }\n.device-row { display: flex; align-items: center; gap: 12px; }\n/* Our own icon tile: a rounded square with the logo's warm gradient (not a diamond). */\n/* Icons: grey, in a shaded rounded box. */\n.device-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); background: var(--hl-soft); }\n.device-icon .icon-wrap { --mdc-icon-size: 22px; }\n.device-name { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; font-weight: 500; }\n.device-name .small { font-weight: 400; }\n.device-status { font-size: 14px; color: var(--secondary-text-color); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }\n.device-status b { color: var(--primary-text-color); font-weight: 600; }\n.status-icon { --mdc-icon-size: 18px; color: var(--hl-heat); }\n.water .status-icon { color: var(--hl-water); }\n.device-big { flex: 1; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; }\n.device-big span { font-size: 30px; line-height: 1.1; }\n.device-big small { grid-column: 1 / -1; font-size: 13px; letter-spacing: 0; color: var(--secondary-text-color); margin-top: 4px; font-weight: 400; }\n.device-action { min-width: 120px; height: 50px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 500; color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 12%, transparent); }\n.device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }\n.device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }\n.status-icon.done { color: var(--success-color, #43a047); }\n.status-icon.away { color: var(--secondary-text-color); }\n.stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }\n.device.heat { --hl-accent: var(--hl-heat); }\n.device.water { --hl-accent: var(--hl-water); }\n.device-name .warn { color: var(--warning-color, #ffa600); font-weight: 500; }\n\n\n.device-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; border-top: 1px solid var(--divider-color); }\n.schedule-link { align-self: center; }\n\n/* Boost sheet: slides up from the bottom on phones, a centred dialog on wider screens */\n.sheet-backdrop { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); animation: hl-fade .15s ease-out; }\n.sheet { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; padding: 14px 20px 18px; border-radius: 24px; background: var(--card-background-color); color: var(--primary-text-color); }\n.sheet.heat { --hl-accent: var(--hl-heat); }\n.sheet.water { --hl-accent: var(--hl-water); }\n.sheet-handle { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--divider-color); }\n.sheet-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }\n.sheet-title h2 { font-size: 24px; }\n.sheet-field { display: flex; flex-direction: column; gap: 10px; }\n.sheet-label { font-size: 14px; color: var(--secondary-text-color); }\n.sheet-temp { display: flex; align-items: center; gap: 12px; }\n.sheet-step { width: 52px; height: 52px; flex: none; border-color: var(--divider-color); }\n.sheet-step .icon-wrap { --mdc-icon-size: 24px; }\n.sheet-temp-value { flex: 1; text-align: center; padding: 14px 0; border-radius: 18px; color: #fff; font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; background: linear-gradient(135deg, #FF9F43, #F0532B); }\n.sheet-lengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }\n.sheet-lengths button { height: 46px; padding: 0 6px; border-radius: 12px; }\n.sheet-lengths button.on, .sheet-lengths button.on:hover:not(:disabled) { background: var(--hl-accent); border-color: transparent; color: #fff; font-weight: 500; }\n.sheet-live { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; padding: 8px 0; }\n.sheet-live .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); }\n.sheet-go { height: 52px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 600; color: #fff; background: var(--hl-accent); }\n.sheet-go:hover:not(:disabled) { background: var(--hl-accent); filter: brightness(1.06); }\n.sheet-go.stop { color: var(--error-color, #db4437); background: color-mix(in srgb, var(--error-color, #db4437) 12%, transparent); }\n.sheet-cancel { align-self: center; padding: 8px 16px; font-size: 15px; }\n@keyframes hl-fade { from { opacity: 0; } }\n@keyframes hl-rise { from { transform: translateY(40px); opacity: 0; } }\n\n/* Device controls (opened from a card) */\n.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }\n.channel { gap: 16px; }\n.holiday-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--hl-soft); }\n.holiday-row > .icon-wrap { --mdc-icon-size: 20px; color: var(--secondary-text-color); }\n.holiday-text { flex: 1; }\n.holiday-row > button { padding: 6px 12px; }\n.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }\n.target-text { display: flex; flex-direction: column; gap: 2px; }\n.target-label { font-size: 16px; font-weight: 500; }\n.target-control { display: inline-flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.target-btn { width: 44px; height: 44px; background: var(--card-background-color); }\n.target-btn .icon-wrap { --mdc-icon-size: 22px; }\n.target-value { min-width: 76px; text-align: center; font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }\n.target-value.pending { color: var(--hl-heat); }\n.card-actions { display: flex; align-items: center; gap: 8px; }\n\n.stepper { background: var(--card-background-color); }\n.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }\n.stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }\n.stepper button.round:hover { background: var(--card-background-color); }\n.stepper-value { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }\n\n/* Schedule: a status line, a strip of day circles, and the day's time slots */\n.sched { display: flex; flex-direction: column; gap: 14px; position: relative; padding-bottom: 72px; }\n\n.sched-status { margin: 0; font-size: 14px; }\n.sched-days { display: flex; justify-content: space-between; gap: 4px; padding: 12px 10px; border-radius: 16px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.sched-day { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: transparent; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }\n.sched-day:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.sched-day.today { border-color: var(--hl-brand); color: var(--hl-brand); }\n.sched-day.on, .sched-day.on:hover:not(:disabled) { background: var(--hl-brand); border-color: var(--hl-brand); color: #fff; }\n.sched-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning-color, #ffa600); border: 2px solid var(--card-background-color); }\n.sched-list { display: flex; flex-direction: column; gap: 4px; }\n.sched-empty { margin: 8px 4px; }\n.slot { justify-content: flex-start; gap: 18px; padding: 10px 8px; border: 0; border-radius: 16px; background: transparent; text-align: left; }\n.slot:hover:not(:disabled) { background: var(--hl-soft); }\n.slot-badge { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid var(--hl-brand); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; color: var(--primary-text-color); font-variant-numeric: tabular-nums; }\n.slot-badge.off { border-color: var(--divider-color); color: var(--secondary-text-color); }\n.slot-badge.off .icon-wrap, .slot-badge.add .icon-wrap { --mdc-icon-size: 24px; }\n.slot-badge.add { border: 2px dashed var(--divider-color); color: var(--secondary-text-color); }\n.slot-time { flex: 1; font-size: 20px; font-variant-numeric: tabular-nums; }\n.slot-add .slot-time { font-size: 16px; color: var(--secondary-text-color); }\n.slot-chev { color: var(--secondary-text-color); }\n/* Unwritten changes: a dark bar across the bottom, above the tab bar on phones. */\n.sched-save { position: sticky; bottom: 16px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--primary-text-color); color: var(--card-background-color); }\n.sched-save-icon { --mdc-icon-size: 20px; opacity: .8; }\n.sched-undo { border: 0; background: transparent; color: inherit; opacity: .8; padding: 10px 12px; }\n.sched-undo:hover:not(:disabled) { background: color-mix(in srgb, var(--card-background-color) 12%, transparent); opacity: 1; }\n.sched-write { border: 0; border-radius: 12px; padding: 10px 20px; background: var(--hl-brand); color: #fff; font-weight: 600; }\n.sched-write:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab-wrap.raised { bottom: 96px; }\n.sched-changed { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }\n.fab-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 4; }\n.fab { width: 56px; height: 56px; padding: 0; border-radius: 50%; border: 0; background: var(--hl-brand); color: #fff; }\n.fab:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab .icon-wrap { --mdc-icon-size: 26px; }\n.fab-backdrop { position: fixed; inset: 0; }\n.fab-menu { position: absolute; right: 0; bottom: 66px; min-width: 260px; display: flex; flex-direction: column; padding: 6px; border-radius: 16px; background: var(--card-background-color); border: 1px solid var(--divider-color); }\n.fab-menu button { justify-content: flex-start; gap: 10px; border: 0; border-radius: 10px; padding: 12px; background: transparent; }\n.fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }\n.sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }\n.sheet-note { margin: -6px 0 0; text-align: center; }\n.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }\n.room-sheet .sheet-live .heating { color: var(--hl-heat); }\n.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }\n.room-sheet-actions .sheet-cancel { align-self: auto; }\n.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }\n.room-sensor-note.warn { color: var(--warning-color, #ffa600); }\n.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }\n.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }\n.sensor-toggle-main:hover:not(:disabled) { background: transparent; }\n.sensor-toggle .warn { color: var(--warning-color, #ffa600); }\n.room-sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: transparent; text-align: left; justify-content: flex-start; }\n.room-sheet-row > span:nth-child(2) { flex: 1; }\n.room-sheet-row .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule { max-width: 520px; gap: 14px; }\n.room-schedule-head { display: flex; align-items: center; gap: 10px; }\n.room-schedule-head .page-title { flex: 1; min-width: 0; }\n.room-schedule-head h2 { font-size: 20px; }\n.room-schedule-note { margin: 0; }\n.room-schedule-mode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--divider-color); }\n.room-schedule-mode-text { flex: 1; }\n.room-schedule-mode .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule-notes { margin: 0; padding: 10px 14px 10px 28px; border-radius: 10px; background: color-mix(in srgb, var(--warning-color, #ffa600) 12%, transparent); display: flex; flex-direction: column; gap: 4px; }\n/* In a dialog the save bar and the ... button stick to its bottom instead of the page's. */\n.sched.embedded { padding-bottom: 0; }\n.sched.embedded .sched-save { bottom: 0; }\n.sched.embedded .fab-wrap { position: sticky; right: auto; bottom: 0; align-self: flex-end; }\n.sched.embedded .fab-wrap.raised { bottom: 64px; }\n.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }\n.valve-picker { display: flex; flex-direction: column; gap: 8px; }\n.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }\n.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }\n.valve-search input::-webkit-search-cancel-button { display: none; }\n.valve-search .round { width: 30px; height: 30px; }\n.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }\n.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow-y: auto; max-height: 300px; overscroll-behavior: contain; }\n.valve-pick { flex: none; display: flex; align-items: center; gap: 8px; padding-right: 10px; }\n.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }\n.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }\n.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }\n.valve-pick-main:hover:not(:disabled) { background: transparent; }\n.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }\n.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }\n.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }\n.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }\n.valve-pick .warn { color: var(--warning-color, #ffa600); }\n.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }\n.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }\n.setup-list { display: flex; flex-direction: column; gap: 8px; }\n.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }\n.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }\n.setup-room.on select { margin: 0 14px 12px 48px; }\n.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }\n.setup-room-main:hover:not(:disabled) { background: transparent; }\n.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }\n.setup-room-text .muted { font-weight: 400; }\n.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }\n.danger-text { color: var(--error-color, #db4437); }\n\n/* Rooms */\n.dot-heating { width: 10px; height: 10px; border-radius: 50%; background: var(--hl-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl-accent) 20%, transparent); flex: none; }\n.zone { display: flex; flex-direction: column; gap: 10px; }\n.zone h3 { margin: 4px 0 0; }\n/* Room for the + button under the last room / device. */\n.devices-page { padding-bottom: 72px; }\n.add-options { display: flex; flex-direction: column; gap: 8px; }\n.add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }\n.add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }\n.add-text b { font-size: 16px; font-weight: 500; }\n.room.heating { --hl-accent: var(--hl-heat); }\n.chip.heating { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.room-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }\n.room-temp { font-size: 44px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }\n.room-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }\n.room-target { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }\n.valves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }\n.valve { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--divider-color); font-size: 14px; }\n.valve.off { opacity: .6; }\n.valve-icon { color: var(--secondary-text-color); --mdc-icon-size: 18px; }\n.valve-icon.heating { color: var(--hl-heat); }\n.valve-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.valve-temps { font-variant-numeric: tabular-nums; white-space: nowrap; }\n.battery { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.battery .icon-wrap { --mdc-icon-size: 16px; }\n.battery.low { color: var(--warning-color, #ffa600); font-weight: 500; }\n.room-editor h2 { margin: 0; }\n.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }\n.field > span, .field legend { font-size: 13px; font-weight: 500; color: var(--secondary-text-color); padding: 0; margin-bottom: 6px; }\n.field input[type=text], .field select { width: 100%; max-width: 420px; }\n.checklist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 0; }\n.checklist > .muted { width: 100%; }\n.pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }\n\n/* A device's own page (heating or hot water), opened from its Overview card */\n.device-page { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n.device-page .history { max-width: none; }\n.page-head { display: flex; align-items: center; gap: 6px; margin-left: -8px; }\n.page-head .round { width: 44px; height: 44px; }\n.page-head .round .icon-wrap { --mdc-icon-size: 26px; }\n.page-title { display: flex; flex-direction: column; }\n.page-title h2 { font-size: 24px; font-weight: 700; }\n.page-tabs { margin-top: -6px; }\n.card.device.page .device-head, .device-head.static { cursor: default; }\n.device-head.static:hover { background: transparent; }\n.room-device.off { opacity: .6; }\n/* Devices tab: about the hardware, not controlling it */\n.card.hw { gap: 12px; padding: 18px; }\n.card.hw.off .device-name, .card.hw.off .facts { opacity: .6; }\n.hw-head { display: flex; align-items: center; gap: 12px; }\n.online { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--secondary-text-color); white-space: nowrap; }\n.online i { width: 8px; height: 8px; border-radius: 50%; background: var(--success-color, #43a047); }\n.online.no { color: var(--warning-color, #ffa600); }\n.online.no i { background: var(--warning-color, #ffa600); }\n.facts { display: flex; flex-wrap: wrap; gap: 6px; }\n.fact { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); }\n.fact .icon-wrap { --mdc-icon-size: 15px; }\n.fact.warn { color: var(--warning-color, #ffa600); background: color-mix(in srgb, var(--warning-color, #ffa600) 14%, transparent); font-weight: 500; }\n.hw-links { display: flex; gap: 8px; border-top: 1px solid var(--divider-color); margin: 0 -18px -18px; padding: 6px 8px; }\n.hw-link { flex: 1; justify-content: space-between; border: 0; background: transparent; padding: 10px; font-weight: 500; }\n.hw-link .icon-wrap { color: var(--secondary-text-color); }\n/* The page title already names it. */\n.card.device.page .device-icon, .card.device.page .device-name { display: none; }\n.history-title { font-size: 24px; font-weight: 700; margin: 4px 0 -4px; }\n.card.device.page .device-head:hover { background: transparent; }\n\n/* Stats: heating history, after the Hive app's */\n.history { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n/* Underlined tabs: receivers on Stats, Control · Schedule · History on a device page. */\n.history-tabs, .page-tabs { display: flex; border-bottom: 1px solid var(--divider-color); overflow-x: auto; scrollbar-width: none; }\n.history-tabs button, .page-tabs button { flex: 1 0 auto; border: 0; border-radius: 0; background: transparent; padding: 12px 16px; color: var(--secondary-text-color); border-bottom: 2px solid transparent; margin-bottom: -1px; }\n.history-tabs button.on, .page-tabs button.on { color: var(--hl-brand); border-bottom-color: var(--hl-brand); font-weight: 500; }\n.history-controls { display: flex; justify-content: space-between; gap: 12px; }\n.history-toggle { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.history-toggle button { min-width: 44px; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--primary-text-color); }\n.history-toggle button.wide { min-width: 60px; }\n.history-toggle button.on, .history-toggle button.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; }\n.history-toggle .icon-wrap { --mdc-icon-size: 22px; }\n.history-date { display: flex; align-items: center; justify-content: space-between; }\n.history-date .round { width: 40px; height: 40px; }\n.history-range { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--hl-brand) 10%, transparent); color: var(--hl-brand); font-weight: 500; }\n.history-range .icon-wrap { --mdc-icon-size: 18px; }\n.history-summary { display: flex; align-items: center; padding: 22px 12px; border-radius: 18px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.history-summary > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }\n.history-summary b { font-size: 30px; font-weight: 500; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }\n.history-summary i { width: 1px; align-self: stretch; background: var(--divider-color); }\n.history-note { margin: -6px 0 0; text-align: center; }\n.history-empty { text-align: center; margin: 24px 0; }\n.history-rows { display: flex; flex-direction: column; gap: 6px; }\n.history-key { align-self: flex-end; display: inline-flex; align-items: center; gap: 4px; }\n.history-key .icon-wrap { --mdc-icon-size: 16px; }\n.history-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 12px; min-height: 40px; }\n.history-day { font-size: 15px; color: var(--secondary-text-color); white-space: nowrap; }\n.history-day span { display: inline-block; min-width: 20px; margin-left: 4px; }\n.history-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.history-bar i { display: block; height: 14px; max-width: calc(100% - 64px); border-radius: 999px; background: var(--hl-brand); flex: none; }\n.history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.history-temps span { color: var(--primary-text-color); }\n.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }\n.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }\n.history-key span { display: inline-flex; align-items: center; gap: 4px; }\n.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-hint { text-align: center; margin: 0; }\n\n/* Settings: grouped rows, like a phone's settings */\n.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }\n.settings-section { display: flex; flex-direction: column; gap: 8px; }\n.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }\n.settings-help { margin: -2px 4px 2px; }\n.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }\n.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }\n.settings-group > * + * { border-top: 1px solid var(--divider-color); }\n.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }\n.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }\n.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }\n.settings-row select { max-width: 220px; }\n.room-control { display: flex; flex-direction: column; gap: 14px; }\n.room-control .room-sensor-note { margin-top: 0; justify-content: flex-start; text-align: left; }\n.room-mode-note { margin: -4px 0 0; }\n.room-schedule-page { max-width: none; display: flex; flex-direction: column; gap: 12px; }\n.room-schedule-page .room-schedule-head { justify-content: flex-end; }\n.tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }\n.stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }\n.settings-chevron { color: var(--secondary-text-color); }\n.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }\n.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }\n.adjust .stepper-value { min-width: 72px; text-align: center; }\n@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }\ncode { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }\n\n@media (max-width: 600px) {\n  /* Room at the bottom for the tab bar (and the phone's home indicator). */\n  main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }\n  .card { padding: 14px; }\n  .grid { grid-template-columns: 1fr; }\n  .device-grid { grid-template-columns: 1fr; }\n    .device-big { font-size: 46px; }\n  .sheet-backdrop { align-items: flex-end; padding: 0; }\n  .fab-wrap { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); }\n  /* Above the bottom tab bar. */\n  .sched-save { bottom: calc(84px + env(safe-area-inset-bottom)); }\n  .fab-wrap.raised { bottom: calc(156px + env(safe-area-inset-bottom)); }\n  .sched.embedded .sched-save, .sched.embedded .fab-wrap { bottom: 0; right: auto; }\n  .sched.embedded .fab-wrap.raised { bottom: 64px; }\n  .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }\n  /* Phones: the tabs become a bar along the bottom, in thumb reach. */\n  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;\n    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;\n    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); }\n  .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }\n  .tabs button:hover:not(:disabled) { background: transparent; }\n  .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }\n  .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }\n  .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }\n}\n", Ct = class extends HTMLElement {
 	_hass;
 	_narrow = !1;
 	_root;
@@ -9636,7 +9679,7 @@ var xt = "\n:host {\n  /* One accent for everything that's on or active (heating
 	connectedCallback() {
 		if (!this._root) {
 			let e = this.shadowRoot ?? this.attachShadow({ mode: "open" }), t = document.createElement("style");
-			t.textContent = xt;
+			t.textContent = St;
 			let n = document.createElement("div");
 			e.append(t, n), this._root = (0, d.createRoot)(n);
 		}
@@ -9646,7 +9689,7 @@ var xt = "\n:host {\n  /* One accent for everything that's on or active (heating
 		this._root?.unmount(), this._root = void 0, this.shadowRoot?.replaceChildren();
 	}
 	_render() {
-		this._root && this._hass && this._root.render(/* @__PURE__ */ (0, f.jsx)(bt, {
+		this._root && this._hass && this._root.render(/* @__PURE__ */ (0, f.jsx)(xt, {
 			getHass: () => this._hass,
 			narrow: this._narrow,
 			onToggleMenu: () => this.dispatchEvent(new Event("hass-toggle-menu", {
@@ -9656,4 +9699,4 @@ var xt = "\n:host {\n  /* One accent for everything that's on or active (heating
 		}));
 	}
 };
-customElements.get("hive-local-panel") || customElements.define("hive-local-panel", St);
+customElements.get("hive-local-panel") || customElements.define("hive-local-panel", Ct);

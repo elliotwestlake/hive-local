@@ -41,3 +41,8 @@ export const roomsLabel = (rooms: string[]) =>
 
 export const formatMinutes =(m: number) =>
   m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`;
+
+/** "Away until Sat 14:00", or just "Away" for the Away toggle (until you're back). */
+export function awayText(until: string | null | undefined): string {
+  return until ? `Away until ${formatUntil(until)}` : "Away";
+}

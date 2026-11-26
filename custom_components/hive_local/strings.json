@@ -141,6 +141,9 @@
       },
       "heat_room_demand_outside_schedule": {
         "name": "Rooms can heat outside the schedule"
+      },
+      "away": {
+        "name": "Away"
       }
     }
   },
