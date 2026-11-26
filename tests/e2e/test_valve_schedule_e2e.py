@@ -267,10 +267,12 @@ async def test_zha_valve_read_and_write(hass: HomeAssistant, hass_storage, hass_
     assert valve.time_writes == [expected_time]
     assert expected_time["time_zone"] == 0 and expected_time["dst_shift"] == 3600
     assert expected_time["dst_start"] == zcl_time(datetime(2026, 3, 29, 1, tzinfo=UTC))
-    values = [420, 2050] + [1350, 500] * 5
+    # Only the day's own transitions, as Zigbee2MQTT sends them to the Ally (no padding to 6:
+    # repeated times may be refused).
+    values = [420, 2050, 1350, 500]
     assert valve.schedule_writes == [
-        {"num_transitions_for_sequence": 6, "day_of_week_for_sequence": 0x02, "mode_for_sequence": 1, "values": values, "disable_default_response": False},
-        {"num_transitions_for_sequence": 6, "day_of_week_for_sequence": 0x40, "mode_for_sequence": 1, "values": values, "disable_default_response": False},
+        {"num_transitions_for_sequence": 2, "day_of_week_for_sequence": 0x02, "mode_for_sequence": 1, "values": values, "disable_default_response": False},
+        {"num_transitions_for_sequence": 2, "day_of_week_for_sequence": 0x40, "mode_for_sequence": 1, "values": values, "disable_default_response": False},
     ]
     result = msg["result"]
     assert result["commands"] == 2 and result["failed"] == []
@@ -356,6 +358,30 @@ async def test_room_with_zha_and_z2m_valves(hass: HomeAssistant, hass_storage, h
                                "schedule": {"tuesday": new}})
     assert msg["success"], msg
     sets = [json.loads(c.args[1]) for c in mqtt_mock.async_publish.call_args_list if c.args[0] == f"{Z2M_TOPIC}/set"]
-    assert sets == [{"schedule_tuesday": "07:00/20.5 22:30/5 22:30/5 22:30/5 22:30/5 22:30/5"}]
+    assert sets == [{"schedule_tuesday": "07:00/20.5 22:30/5"}]
     assert [w["day_of_week_for_sequence"] for w in valve.schedule_writes] == [0x04]
     assert msg["result"]["commands"] == 2 and msg["result"]["failed"] == []
+
+
+async def test_requests_to_a_sleeping_valve_are_tried_again():
+    """A valve that's asleep misses the request (a delivery failure); keep trying until it wakes."""
+    from zigpy.exceptions import DeliveryError
+
+    from custom_components.hive_local.transports.zha import send_when_awake
+
+    calls = []
+
+    async def request(*args, **kwargs):
+        calls.append((args, kwargs))
+        if len(calls) < 3:
+            raise DeliveryError("Failed to deliver message: <sl_Status.FAIL: 1>")
+        return "answered"
+
+    with patch("custom_components.hive_local.transports.zha.asyncio.sleep") as sleep:
+        assert await send_when_awake(request, 1, wake_wait=60, label="Valve", expect_reply=False) == "answered"
+    assert len(calls) == 3 and calls[0] == ((1,), {"expect_reply": False}) and sleep.await_count == 2
+
+    calls.clear()
+    with pytest.raises(DeliveryError):
+        await send_when_awake(request, wake_wait=0)  # without a wait: the first failure stands
+    assert len(calls) == 1

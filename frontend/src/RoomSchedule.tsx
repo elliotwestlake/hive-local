@@ -94,7 +94,7 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
     try {
       const r = await getHass().callWS<{ failed: string[] }>({ type: "hive_local/rooms/schedule/mode", room_id: room.id, enabled });
       const names = valves.filter((v) => r.failed.includes(v.entity_id)).map((v) => v.name);
-      if (names.length) setModeNote({ kind: "error", text: `Didn't take on ${names.join(", ")}. It may be asleep; try again shortly.` });
+      if (names.length) setModeNote({ kind: "error", text: `Didn't take on ${names.join(", ")}. It may be asleep: press its dial to wake it and try again.` });
       else {
         setModeNote({ kind: "ok", text: enabled ? "The valves now follow their schedule." : "The valves stay at their target now." });
         setValves((vs) => vs.map((v) => ({ ...v, schedule_mode: enabled })));
@@ -132,7 +132,7 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
           <span className="chip unsaved">Experimental</span>
         </div>
         <p className="muted small room-schedule-note">
-          Not yet tried on real Hive valves. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times.
+          Not yet tried on real Hive valves. The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times.
         </p>
 
         {valves.length > 0 && (

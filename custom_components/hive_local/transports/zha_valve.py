@@ -20,10 +20,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
-from ..const import VALVE_READ_TIMEOUT
+from ..const import VALVE_READ_TIMEOUT, VALVE_WAKE_WAIT
 from ..trv import VALVE_ENDPOINT, clamp_schedule, clock_offset, clock_ok, time_attributes
 from .base import Schedule
-from .zha import read_weekly_schedule, write_weekly_schedule
+from .zha import read_weekly_schedule, send_when_awake, write_weekly_schedule
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,9 +70,12 @@ class ZHAValve:
         except LookupError as err:
             raise HomeAssistantError(str(err)) from err
 
+    async def _send(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        return await send_when_awake(request, *args, wake_wait=VALVE_WAKE_WAIT, label=self.label, **kwargs)
+
     async def async_read(self) -> Schedule:
         thermostat, _time = self._clusters()
-        schedule, raw = await read_weekly_schedule(thermostat, VALVE_READ_TIMEOUT)
+        schedule, raw = await read_weekly_schedule(thermostat, VALVE_READ_TIMEOUT, wake_wait=VALVE_WAKE_WAIT, label=self.label)
         _LOGGER.debug("%s weekly schedule: %s", self.label, raw)
         return clamp_schedule(schedule)
 
@@ -80,11 +83,13 @@ class ZHAValve:
         thermostat, _time = self._clusters()
         # The valve isn't a Hive receiver: Z2M doesn't disable its default response, so
         # wait for it and find out at once if a day was refused.
-        return await write_weekly_schedule(thermostat, schedule, label=self.label, confirm=True)
+        return await write_weekly_schedule(
+            thermostat, schedule, label=self.label, confirm=True, pad=False, wake_wait=VALVE_WAKE_WAIT
+        )
 
     async def _read_clock(self, cluster: Cluster) -> dict[str, Any]:
         try:
-            values, _failed = await cluster.read_attributes(list(TIME_ATTRS), allow_cache=False)
+            values, _failed = await self._send(cluster.read_attributes, list(TIME_ATTRS), allow_cache=False)
         except (TimeoutError, ZigbeeException) as err:
             raise HomeAssistantError(f"Couldn't read its clock: {err}") from err
         return _plain(values)
@@ -105,7 +110,7 @@ class ZHAValve:
         attrs = time_attributes(dt_util.utcnow(), tz)
         _LOGGER.info("Setting the clock on %s (it was %s s out): %s", self.label, offset, attrs)
         try:
-            result = await cluster.write_attributes(attrs)
+            result = await self._send(cluster.write_attributes, attrs)
         except (TimeoutError, ZigbeeException) as err:
             raise HomeAssistantError(f"Couldn't set its clock: {err}") from err
         if failed := [r for r in result[0] if r.status != Status.SUCCESS]:
@@ -119,7 +124,7 @@ class ZHAValve:
         """Whether the valve follows its weekly schedule (None: couldn't tell)."""
         thermostat, _time = self._clusters()
         try:
-            values, _failed = await thermostat.read_attributes([SCHEDULE_MODE], allow_cache=False)
+            values, _failed = await self._send(thermostat.read_attributes, [SCHEDULE_MODE], allow_cache=False)
         except (TimeoutError, ZigbeeException):
             return None
         value = _plain(values).get(SCHEDULE_MODE)
@@ -128,7 +133,7 @@ class ZHAValve:
     async def async_set_schedule_mode(self, enabled: bool) -> None:
         thermostat, _time = self._clusters()
         try:
-            result = await thermostat.write_attributes({SCHEDULE_MODE: 0x01 if enabled else 0x00})
+            result = await self._send(thermostat.write_attributes, {SCHEDULE_MODE: 0x01 if enabled else 0x00})
         except (TimeoutError, ZigbeeException) as err:
             raise HomeAssistantError(f"It didn't respond: {err}") from err
         if failed := [r for r in result[0] if r.status != Status.SUCCESS]:

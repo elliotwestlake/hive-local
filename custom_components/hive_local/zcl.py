@@ -197,10 +197,10 @@ def day_bits(days: list[str]) -> int:
     return bits
 
 
-def schedule_commands(schedule: dict[str, list[dict[str, Any]]]) -> list[dict[str, Any]]:
-    """Keyword args for `cluster.set_weekly_schedule`, one per day."""
+def schedule_commands(schedule: dict[str, list[dict[str, Any]]], pad: bool = True) -> list[dict[str, Any]]:
+    """Keyword args for `cluster.set_weekly_schedule`, one per day (see schedule.per_day for `pad`)."""
     commands = []
-    for days, transitions in per_day(schedule):
+    for days, transitions in per_day(schedule, pad):
         values: list[int] = []
         for t in transitions:
             values += [hhmm_to_minutes(t["time"]), _centi(t["setpoint"])]

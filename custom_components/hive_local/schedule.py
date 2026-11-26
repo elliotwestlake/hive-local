@@ -181,14 +181,16 @@ def validate(
 
 def per_day(
     schedule: dict[str, list[dict[str, Any]]],
+    pad: bool = True,
 ) -> list[tuple[list[str], list[dict[str, Any]]]]:
-    """One command per day, Monday first, each padded to 6 transitions.
+    """One command per day, Monday first, each padded to 6 transitions (receivers; Hive
+    valves take just their own, as Zigbee2MQTT sends them: `pad=False`).
 
     Identical days used to share one command (a multi-day bitmap). Until we know
     Hive receivers handle those, every day is sent on its own; it's a few more
     commands but can't spill onto days that weren't meant to change.
     """
-    return [([day], pad_transitions(schedule[day])) for day in DAYS if day in schedule]
+    return [([day], pad_transitions(schedule[day]) if pad else list(schedule[day])) for day in DAYS if day in schedule]
 
 
 def to_z2m_payloads(

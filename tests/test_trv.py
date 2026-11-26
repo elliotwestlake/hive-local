@@ -46,11 +46,11 @@ def test_parse_z2m_state():
     }
 
 
-def test_z2m_payloads_one_per_day_padded():
+def test_z2m_payloads_one_per_day_not_padded():
     day = [{"time": "06:30", "setpoint": 20.5}, {"time": "22:00", "setpoint": 5.0}]
     assert v.z2m_payloads({"saturday": day, "monday": day}) == [
-        {"schedule_monday": "06:30/20.5 22:00/5 22:00/5 22:00/5 22:00/5 22:00/5"},
-        {"schedule_saturday": "06:30/20.5 22:00/5 22:00/5 22:00/5 22:00/5 22:00/5"},
+        {"schedule_monday": "06:30/20.5 22:00/5"},
+        {"schedule_saturday": "06:30/20.5 22:00/5"},
     ]
 
 

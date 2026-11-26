@@ -20,7 +20,7 @@ import re
 from datetime import UTC, datetime, timedelta, tzinfo
 from typing import Any
 
-from .schedule import DAYS, minutes_to_hhmm, pad_transitions, tidy_transitions, valid_minutes
+from .schedule import DAYS, minutes_to_hhmm, tidy_transitions, valid_minutes
 
 VALVE_ENDPOINT = 1
 # The Ally's setpoints run 5-35 °C; it has no "off", its lowest setpoint does that job.
@@ -108,7 +108,7 @@ def parse_z2m_state(payload: Any) -> dict[str, list[dict[str, Any]]]:
 
 def z2m_day_text(transitions: list[dict[str, Any]]) -> str:
     """A day for Zigbee2MQTT, padded to 6 transitions like every write (see schedule.py)."""
-    return " ".join(f"{t['time']}/{t['setpoint']:g}" for t in pad_transitions(transitions))
+    return " ".join(f"{t['time']}/{t['setpoint']:g}" for t in transitions)
 
 
 def z2m_payloads(schedule: dict[str, list[dict[str, Any]]]) -> list[dict[str, str]]:

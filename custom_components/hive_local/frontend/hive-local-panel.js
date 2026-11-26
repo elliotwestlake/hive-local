@@ -6867,7 +6867,7 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 				text: `Only got ${r}/7 days — try reading again`
 			} : {
 				kind: "error",
-				text: s ? `No reply from the ${w}. They sleep between checks; try again in a minute.` : "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online."
+				text: s ? `No reply from the ${w}. They sleep between check-ins: press a valve's dial to wake it and try again.` : "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online."
 			});
 		} catch (e) {
 			y({
@@ -7993,7 +7993,7 @@ function Ue({ getHass: e, room: t, onClose: n }) {
 			}), o = r.filter((e) => a.failed.includes(e.entity_id)).map((e) => e.name);
 			o.length ? h({
 				kind: "error",
-				text: `Didn't take on ${o.join(", ")}. It may be asleep; try again shortly.`
+				text: `Didn't take on ${o.join(", ")}. It may be asleep: press its dial to wake it and try again.`
 			}) : (h({
 				kind: "ok",
 				text: n ? "The valves now follow their schedule." : "The valves stay at their target now."
@@ -8054,7 +8054,7 @@ function Ue({ getHass: e, room: t, onClose: n }) {
 				}),
 				/* @__PURE__ */ (0, f.jsx)("p", {
 					className: "muted small room-schedule-note",
-					children: "Not yet tried on real Hive valves. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times."
+					children: "Not yet tried on real Hive valves. The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times."
 				}),
 				r.length > 0 && /* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "room-schedule-mode",

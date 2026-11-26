@@ -116,7 +116,30 @@ class _ScheduleListener:
             self.all_days.set()
 
 
-async def read_weekly_schedule(cluster: Cluster, timeout: float) -> tuple[Schedule, list[dict[str, Any]]]:
+# A sleepy device (a Hive valve) that misses a request fails its delivery: try again this often.
+WAKE_RETRY = 5.0
+
+
+async def send_when_awake(request: Any, *args: Any, wake_wait: float = 0, label: str = "", **kwargs: Any) -> Any:
+    """Make a zigpy request, trying again for up to `wake_wait` seconds while it fails to deliver.
+
+    A Hive valve sleeps and only checks in now and then; a message its parent holds for it
+    expires if it doesn't, and zigpy reports a delivery failure. Zigbee2MQTT queues them.
+    """
+    deadline = asyncio.get_running_loop().time() + wake_wait
+    while True:
+        try:
+            return await request(*args, **kwargs)
+        except (TimeoutError, ZigbeeException) as err:
+            if asyncio.get_running_loop().time() + WAKE_RETRY > deadline:
+                raise
+            _LOGGER.debug("%s didn't get it (%s); trying again while it's asleep", label or "The device", err)
+            await asyncio.sleep(WAKE_RETRY)
+
+
+async def read_weekly_schedule(
+    cluster: Cluster, timeout: float, *, wake_wait: float = 0, label: str = ""
+) -> tuple[Schedule, list[dict[str, Any]]]:
     """Ask a Thermostat cluster for its whole week: (days that came back, raw replies).
 
     Hive receivers and valves answer with one response per day, all with our TSN. With
@@ -126,8 +149,13 @@ async def read_weekly_schedule(cluster: Cluster, timeout: float) -> tuple[Schedu
     listener = _ScheduleListener()
     cluster.add_listener(listener)
     try:
-        await cluster.get_weekly_schedule(
-            days_to_return=ALL_DAYS, mode_to_return=SEQ_MODE_HEAT, expect_reply=False
+        await send_when_awake(
+            cluster.get_weekly_schedule,
+            days_to_return=ALL_DAYS,
+            mode_to_return=SEQ_MODE_HEAT,
+            expect_reply=False,
+            wake_wait=wake_wait,
+            label=label,
         )
         try:
             await asyncio.wait_for(listener.all_days.wait(), timeout)
@@ -141,7 +169,7 @@ async def read_weekly_schedule(cluster: Cluster, timeout: float) -> tuple[Schedu
 
 
 async def write_weekly_schedule(
-    cluster: Cluster, schedule: Schedule, *, label: str, confirm: bool = False
+    cluster: Cluster, schedule: Schedule, *, label: str, confirm: bool = False, pad: bool = True, wake_wait: float = 0
 ) -> int:
     """One set_weekly_schedule per day (schedule.per_day), half a second apart.
 
@@ -149,12 +177,12 @@ async def write_weekly_schedule(
     awaited (as for the receivers); with it, each day waits for the default response
     and a refusal raises.
     """
-    commands = schedule_commands(schedule)
+    commands = schedule_commands(schedule, pad)
     for command in commands:
         _LOGGER.debug("%s set_weekly_schedule: %s", label, command)
         try:
             if confirm:
-                result = await cluster.set_weekly_schedule(**command)
+                result = await send_when_awake(cluster.set_weekly_schedule, **command, wake_wait=wake_wait, label=label)
                 status = getattr(result, "status", Status.SUCCESS)
                 if status != Status.SUCCESS:
                     raise HomeAssistantError(f"It refused the schedule ({status!r})")

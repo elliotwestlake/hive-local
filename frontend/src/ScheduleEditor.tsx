@@ -88,7 +88,7 @@ export function ScheduleEditor({
           ? { kind: "ok", text: `Schedule read from the ${noun}` }
           : n
             ? { kind: "error", text: `Only got ${n}/7 days — try reading again` }
-            : { kind: "error", text: source ? `No reply from the ${noun}. They sleep between checks; try again in a minute.` : "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." },
+            : { kind: "error", text: source ? `No reply from the ${noun}. They sleep between check-ins: press a valve's dial to wake it and try again.` : "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." },
       );
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
