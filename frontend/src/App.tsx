@@ -7,7 +7,7 @@ import { Devices } from "./Devices";
 import { RoomSheet } from "./Rooms";
 import { Settings } from "./Settings";
 import { Stats } from "./Stats";
-import { errorText, type Channel, type Device, type Hass, type Limits, type StatusMap } from "./types";
+import { errorText, type Channel, type Device, type Hass, type Limits, type StatusMap, type VersionInfo } from "./types";
 
 interface Props {
   getHass: () => Hass;
@@ -35,6 +35,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   // A room opened (as a sheet) from its Overview card.
   const [openedRoom, setOpenedRoom] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [about, setAbout] = useState<VersionInfo | null>(null);
 
   useEffect(() => {
     getHass()
@@ -44,6 +45,11 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
         setLimits(r.limits);
       })
       .catch((e) => setError(errorText(e)));
+
+    getHass()
+      .callWS<VersionInfo>({ type: "hive_local/version" })
+      .then(setAbout)
+      .catch(() => {}); // an older backend: no version to show
 
     const unsub = getHass().connection.subscribeMessage<{ status: StatusMap }>(
       (msg) => setStatus(msg.status),
@@ -84,6 +90,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
               <button key={t.id} role="tab" aria-selected={t.id === tab} className={t.id === tab ? "on" : ""} onClick={() => goTo(t.id)}>
                 <Icon name={t.icon} />
                 <span>{t.label}</span>
+                {t.id === "settings" && about?.update?.available && <span className="tab-dot" aria-label="Update available" />}
               </button>
             ))}
           </nav>
@@ -120,7 +127,7 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
             )}
             {tab === "devices" && devices.length > 0 && <Devices getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} />}
             {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
-            {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} />}
+            {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} about={about} />}
           </>
         )}
         {openedRoom && (

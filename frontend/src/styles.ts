@@ -392,6 +392,10 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }
 .settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
 .settings-row select { max-width: 220px; }
+.update-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }
+.settings-text a { color: var(--hl-brand); }
+.tabs button { position: relative; }
+.tab-dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--hl-brand); }
 .stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .settings-chevron { color: var(--secondary-text-color); }
 .settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
@@ -422,5 +426,6 @@ code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--
   .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }
   .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }
   .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }
+  .tab-dot { top: 6px; right: calc(50% - 20px); }
 }
 `;

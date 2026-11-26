@@ -258,6 +258,11 @@ const hass = {
         if (SETTINGS_CHANGES.price_source === "fixed") SETTINGS_CHANGES.price = SETTINGS_CHANGES.fixed_price;
         return hass.callWS({ type: "hive_local/settings" });
       }
+      // ?update=1: the Marketplace has a newer release.
+      case "hive_local/version":
+        return { version: "0.10.0", update: { entity_id: "update.hive_local_update", available: params.get("update") === "1",
+          installed_version: "v0.10.0", latest_version: params.get("update") === "1" ? "v0.11.0" : "v0.10.0",
+          release_url: "https://github.com/elliotwestlake/hive-local/releases" } };
       case "hive_local/settings":
         return { ...(await hass.callWS({ type: "hive_local/settings/base" })), ...SETTINGS_CHANGES };
       case "hive_local/settings/base":

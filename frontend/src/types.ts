@@ -224,3 +224,15 @@ export interface Stats {
   period_end: number;
   series: StatsBucket[];
 }
+
+/** hive_local/version: our version, and the Marketplace's update entity for us (null if it isn't tracking us). */
+export interface VersionInfo {
+  version: string;
+  update: {
+    entity_id: string;
+    available: boolean;
+    installed_version: string | null;
+    latest_version: string | null;
+    release_url: string | null;
+  } | null;
+}

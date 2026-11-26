@@ -49,6 +49,10 @@ shot heating 900,660 "tab=Overview&open=1"
 shot phone-schedule 390,770 "tab=Overview&narrow=1&open=1&click=Schedule"
 shot phone-room 390,770 "tab=Overview&narrow=1&room=Lounge"
 shot phone-boost 390,770 "tab=Overview&narrow=1&click=Boost"
+# Version and updates: the About section in Settings, and the dot on the Settings tab.
+shot about-update 900,1310 "tab=Settings&update=1"
+shot about-current 900,1310 "tab=Settings"
+shot phone-update 390,770 "tab=Overview&narrow=1&update=1"
 
 # Framed versions, the hero and the social preview.
 frame_h() { echo $((34 + $1 + 56 + 72)); }
@@ -86,7 +90,7 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
                  ("phones", "phones")):
     dithered(src, f"{docs}/screenshots/{dst}.png")
 # Only for a PR, unquantized: 256 colours lose the light grey boxes.
-for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page"):
+for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page", "about-update", "about-current", "phone-update"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)

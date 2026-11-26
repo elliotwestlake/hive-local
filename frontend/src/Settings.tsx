@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 
 import { Icon } from "./Icon";
 import { RoomEditorDialog, RoomSetupDialog } from "./Rooms";
 import { unitPrice } from "./Stats";
-import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
+import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap, type VersionInfo } from "./types";
 
 /**
  * Settings: the outside temperature and heating cost (house-wide), rooms (setting them up; using them is on
@@ -33,7 +33,7 @@ interface SettingsData {
   currency: string;
 }
 
-export function Settings({ getHass, devices, status }: { getHass: () => Hass; devices: Device[]; status: StatusMap }) {
+export function Settings({ getHass, devices, status, about }: { getHass: () => Hass; devices: Device[]; status: StatusMap; about: VersionInfo | null }) {
   const [data, setData] = useState<SettingsData | null>(null);
   const [error, setError] = useState("");
 
@@ -97,7 +97,45 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
           </div>
         </section>
       ))}
+
+      {about && <About about={about} />}
     </div>
+  );
+}
+
+const bare = (v: string | null | undefined) => (v ?? "").replace(/^v/i, "");
+
+/** The installed version, and whether the Marketplace has a newer one (its update dialog installs it). */
+function About({ about }: { about: VersionInfo }) {
+  const update = about.update;
+  const openUpdate = (e: MouseEvent<HTMLElement>) =>
+    update && e.currentTarget.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: update.entity_id }, bubbles: true, composed: true }));
+  const note = !update
+    ? "Not installed through the Home Assistant Marketplace, so updates aren't checked."
+    : update.available
+      ? `Version ${bare(update.latest_version)} is available.`
+      : "Up to date.";
+  return (
+    <section className="settings-section">
+      <h3>About</h3>
+      <div className="settings-group">
+        <div className="settings-row">
+          <span className="device-icon"><Icon name={update?.available ? "update" : "information-outline"} /></span>
+          <div className="settings-text">
+            <span>Hive Local {bare(about.version)}</span>
+            <span className="muted small">
+              {note}
+              {update?.available && update.release_url && (
+                <> <a href={update.release_url} target="_blank" rel="noreferrer">What's new</a></>
+              )}
+            </span>
+          </div>
+          {update?.available && (
+            <button className="device-action update-action" onClick={openUpdate}>Update</button>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
