@@ -1,4 +1,4 @@
-"""hive_local.boost_heating / boost_water / cancel_boost_heating / cancel_boost_water / set_holiday / cancel_holiday."""
+"""hive_local.boost_heating / boost_water / cancel_boost_heating / cancel_boost_water / set_holiday / cancel_holiday / set_away / cancel_away."""
 
 from __future__ import annotations
 
@@ -38,6 +38,14 @@ SET_HOLIDAY_SCHEMA = vol.Schema(
     _DEVICE
     | {
         vol.Required(ATTR_UNTIL): cv.datetime,
+        vol.Optional(ATTR_TEMPERATURE): vol.All(
+            vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)
+        ),
+    }
+)
+SET_AWAY_SCHEMA = vol.Schema(
+    _DEVICE
+    | {
         vol.Optional(ATTR_TEMPERATURE): vol.All(
             vol.Coerce(float), vol.Range(BOOST_MIN_TEMP, HEAT_MAX)
         ),
@@ -104,8 +112,18 @@ def async_register(hass: HomeAssistant) -> None:
         for entry in _entries(hass, call):
             await entry.runtime_data.holiday.async_cancel()
 
+    async def set_away(call: ServiceCall) -> None:
+        """Away until you're back (the Away switch): every receiver unless device_id says which."""
+        try:
+            for entry in _entries(hass, call):
+                await entry.runtime_data.async_set_holiday(None, call.data.get(ATTR_TEMPERATURE))
+        except ScheduleError as err:
+            raise ServiceValidationError(str(err)) from err
+
     hass.services.async_register(DOMAIN, "set_holiday", set_holiday, SET_HOLIDAY_SCHEMA)
     hass.services.async_register(DOMAIN, "cancel_holiday", cancel_holiday, CANCEL_SCHEMA)
+    hass.services.async_register(DOMAIN, "set_away", set_away, SET_AWAY_SCHEMA)
+    hass.services.async_register(DOMAIN, "cancel_away", cancel_holiday, CANCEL_SCHEMA)
     hass.services.async_register(DOMAIN, "boost_heating", boost(CHANNEL_HEAT), BOOST_HEATING_SCHEMA)
     hass.services.async_register(DOMAIN, "boost_water", boost(CHANNEL_WATER), BOOST_WATER_SCHEMA)
     hass.services.async_register(DOMAIN, "cancel_boost_heating", cancel(CHANNEL_HEAT), CANCEL_SCHEMA)
