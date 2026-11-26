@@ -313,3 +313,55 @@ async def test_turning_the_valve_down_ends_the_request(hass, mqtt_mock, freezer)
     assert sets(mqtt_mock) == [BACK_TO_SCHEDULE]
     await report(hass, SCHEDULE)
     assert demand.run is None
+
+
+@pytest.mark.freeze_time("2026-11-30 10:00:00")
+async def test_overshoot_is_recorded(hass, mqtt_mock, freezer):
+    """After the rooms are warm we keep watching them, and record how far past the target they go."""
+    t0 = datetime(2026, 11, 30, 10, 0, 0)
+    entry = await setup(hass, freezer, t0)
+    demand = entry.runtime_data.demand
+    await hass.services.async_call("switch", "turn_on", {"entity_id": SWITCH}, blocking=True)
+    await hass.async_block_till_done()
+    assert sets(mqtt_mock) == [boost(30, 20.0)]
+    await report(hass, boosting())
+
+    # Warming, then warm at 19.9°: stopped.
+    for minute, current in ((5, 18.5), (10, 19.0), (15, 19.5)):
+        valve(hass, current)
+        await tick(hass, freezer, t0 + timedelta(minutes=minute))
+    mqtt_mock.async_publish.reset_mock()
+    valve(hass, 19.9)
+    await tick(hass, freezer, t0 + timedelta(minutes=20))
+    assert sets(mqtt_mock) == [BACK_TO_SCHEDULE]
+    await report(hass, SCHEDULE)
+    assert list(demand.coasts) == ["Bedroom"]
+    assert demand.coasts["Bedroom"].rate == 5.6  # °C/h: 18.5 → 19.9 over the last 15 min
+
+    # The radiator's still hot: it climbs to 20.6°, then cools.
+    for minute, current in ((25, 20.3), (30, 20.6), (35, 20.5)):
+        valve(hass, current)
+        await tick(hass, freezer, t0 + timedelta(minutes=minute))
+    assert demand.overshoot == {}
+    valve(hass, 20.3)
+    await tick(hass, freezer, t0 + timedelta(minutes=40))
+    assert demand.coasts == {}
+    [run] = demand.overshoot["Bedroom"]
+    assert run["overshoot"] == 0.6 and run["rise"] == 0.7 and run["minutes_to_peak"] == 10 and run["why"] == "warm"
+    assert not run["receiver_heated"] and not run["cut_short"]
+    assert sets(mqtt_mock) == [BACK_TO_SCHEDULE]  # recording only: nothing else sent
+    climate = hass.states.get("climate.receiver_heating")
+    assert climate.attributes["room_overshoot"] == {"Bedroom": {"median": None, "runs": 1}}
+    diag = demand.diagnostics()["overshoot"]["Bedroom"]
+    assert diag["median"] is None and diag["runs"][0]["stopped"] == "2026-11-30T10:20:00+00:00"
+
+    # Kept across a restart.
+    await tick(hass, freezer, t0 + timedelta(minutes=40, seconds=5))  # flush the store
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.demand.overshoot["Bedroom"] == [run]
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()

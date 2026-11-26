@@ -140,3 +140,48 @@ def test_ours_and_store():
     assert d.Run.from_store(run.as_store()) == run
     assert d.Run.from_store({"started": 1}) is None
     assert d.Run.from_store(None) is None
+
+
+def test_rise_rate_over_the_last_quarter_hour():
+    trail = [(0, 18.0), (5 * MIN, 18.5), (10 * MIN, 19.0), (20 * MIN, 19.5)]
+    assert d.rise_rate(trail, 20 * MIN) == 4.0  # 18.5 at 5 min → 19.5 at 20 min (the first one is too old)
+    assert d.rise_rate(trail[:1], 0) is None
+    assert d.rise_rate([(0, 18.0), (3 * MIN, 18.2)], 3 * MIN) is None  # too short to tell
+
+
+def test_coast_follows_the_room_to_its_peak():
+    need = d.Need("Bed", 19.9, 20.0, False)
+    coast = d.Coast.begin(need, 0, 1.2, "warm")
+    assert coast.peak == 19.9
+    coast = coast.update(20.4, 10 * MIN, False)
+    coast = coast.update(20.8, 20 * MIN, False)
+    assert not coast.over(20.8, 20 * MIN)
+    coast = coast.update(20.6, 25 * MIN, False)
+    assert coast.peak == 20.8 and not coast.over(20.6, 25 * MIN)
+    assert coast.over(20.5, 30 * MIN)  # 0.3° below the peak: past it
+    result = coast.result()
+    assert result == {"stopped": 0, "why": "warm", "target": 20.0, "stopped_at": 19.9, "peak": 20.8,
+                      "overshoot": 0.8, "rise": 0.9, "minutes_to_peak": 20, "rate": 1.2,
+                      "receiver_heated": False, "cut_short": False}
+
+
+def test_coast_ends_after_a_while_and_notes_the_receiver_firing():
+    coast = d.Coast.begin(d.Need("Bed", 20.0, 20.0, False), 0, None, "warm")
+    coast = coast.update(None, 10 * MIN, True)  # no reading: keeps the peak
+    assert coast.peak == 20.0 and coast.receiver_heated
+    assert not coast.over(None, 44 * MIN)
+    assert coast.over(None, 45 * MIN)
+    assert d.Coast.begin(d.Need("Bed", None, 20.0, True), 0, None, "warm") is None
+
+
+def test_median_overshoot_needs_three_clean_runs():
+    run = lambda o, **kw: {"why": "warm", "overshoot": o, "receiver_heated": False, "cut_short": False} | kw
+    assert d.median_overshoot([run(0.5), run(0.7)]) is None
+    assert d.median_overshoot([run(0.5), run(0.7), run(1.5)]) == 0.7
+    assert d.median_overshoot([run(0.5), run(0.7), run(1.5), run(0.9)]) == 0.8
+    noisy = [run(0.5), run(0.7), run(3.0, receiver_heated=True), run(2.0, why="schedule_off"), run(0.1, cut_short=True)]
+    assert d.median_overshoot(noisy) is None
+    runs = []
+    for i in range(12):
+        runs = d.keep_run(runs, run(i / 10))
+    assert len(runs) == d.KEEP_RUNS and runs[0]["overshoot"] == 0.2
