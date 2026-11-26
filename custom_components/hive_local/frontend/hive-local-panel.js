@@ -76,10 +76,10 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		});
 	}
 	var k = /\/+/g;
-	function A(e, t) {
+	function ee(e, t) {
 		return typeof e == "object" && e && e.key != null ? O("" + e.key) : t.toString(36);
 	}
-	function j(e, r, i, a, o) {
+	function te(e, r, i, a, o) {
 		var s = typeof e;
 		(s === "undefined" || s === "boolean") && (e = null);
 		var c = !1;
@@ -94,26 +94,26 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				case n: c = !0;
 			}
 		}
-		if (c) return c = e, o = o(c), e = a === "" ? "." + A(c, 0) : a, x(o) ? (i = "", e != null && (i = e.replace(k, "$&/") + "/"), j(o, r, i, "", function(e) {
+		if (c) return c = e, o = o(c), e = a === "" ? "." + ee(c, 0) : a, x(o) ? (i = "", e != null && (i = e.replace(k, "$&/") + "/"), te(o, r, i, "", function(e) {
 			return e;
 		})) : o != null && (D(o) && (o = E(o, i + (!o.key || c && c.key === o.key ? "" : ("" + o.key).replace(k, "$&/") + "/") + e)), r.push(o)), 1;
 		if (c = 0, a = a === "" ? "." : a + ":", x(e)) for (var l = 0; l < e.length; l++) {
 			s = e[l];
-			var u = a + A(s, l);
-			c += j(s, r, i, u, o);
+			var u = a + ee(s, l);
+			c += te(s, r, i, u, o);
 		}
-		else if (u = p(e), typeof u == "function") for (e = u.call(e), l = 0; !(s = e.next()).done;) s = s.value, u = a + A(s, l++), c += j(s, r, i, u, o);
+		else if (u = p(e), typeof u == "function") for (e = u.call(e), l = 0; !(s = e.next()).done;) s = s.value, u = a + ee(s, l++), c += te(s, r, i, u, o);
 		else if (s === "object") throw r = String(e), Error("Objects are not valid as a React child (found: " + (r === "[object Object]" ? "object with keys {" + Object.keys(e).join(", ") + "}" : r) + "). If you meant to render a collection of children, use an array instead.");
 		return c;
 	}
-	function ee(e, t, n) {
+	function A(e, t, n) {
 		if (e == null) return e;
 		var r = [], i = 0;
-		return j(e, r, "", "", function(e) {
+		return te(e, r, "", "", function(e) {
 			return t.call(n, e, i++);
 		}), r;
 	}
-	function te(e) {
+	function j(e) {
 		if (e._status === -1) {
 			var t = e._result;
 			t = t(), t.then(function(t) {
@@ -134,20 +134,20 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		throw Error("act(...) is not supported in production builds of React.");
 	}
 	e.Children = {
-		map: ee,
+		map: A,
 		forEach: function(e, t, n) {
-			ee(e, function() {
+			A(e, function() {
 				t.apply(this, arguments);
 			}, n);
 		},
 		count: function(e) {
 			var t = 0;
-			return ee(e, function() {
+			return A(e, function() {
 				t++;
 			}), t;
 		},
 		toArray: function(e) {
-			return ee(e, function(e) {
+			return A(e, function(e) {
 				return e;
 			}) || [];
 		},
@@ -208,7 +208,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				_status: -1,
 				_result: e
 			},
-			_init: te
+			_init: j
 		};
 	}, e.memo = function(e, t) {
 		return {
@@ -309,10 +309,10 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 	}
 	function b(e) {
 		if (h = !1, y(e), !m) {
-			if (n(c) !== null) m = !0, ee(x);
+			if (n(c) !== null) m = !0, A(x);
 			else {
 				var t = n(l);
-				t !== null && te(b, t.startTime - e);
+				t !== null && j(b, t.startTime - e);
 			}
 		}
 	}
@@ -332,7 +332,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			if (d !== null) var u = !0;
 			else {
 				var g = n(l);
-				g !== null && te(b, g.startTime - i), u = !1;
+				g !== null && j(b, g.startTime - i), u = !1;
 			}
 			return u;
 		} finally {
@@ -360,17 +360,17 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		v(O);
 	};
 	else if (typeof MessageChannel < "u") {
-		var A = new MessageChannel(), j = A.port2;
-		A.port1.onmessage = O, k = function() {
-			j.postMessage(null);
+		var ee = new MessageChannel(), te = ee.port2;
+		ee.port1.onmessage = O, k = function() {
+			te.postMessage(null);
 		};
 	} else k = function() {
 		g(O, 0);
 	};
-	function ee(e) {
+	function A(e) {
 		C = e, S || (S = !0, k());
 	}
-	function te(t, n) {
+	function j(t, n) {
 		w = g(function() {
 			t(e.unstable_now());
 		}, n);
@@ -378,7 +378,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 	e.unstable_IdlePriority = 5, e.unstable_ImmediatePriority = 1, e.unstable_LowPriority = 4, e.unstable_NormalPriority = 3, e.unstable_Profiling = null, e.unstable_UserBlockingPriority = 2, e.unstable_cancelCallback = function(e) {
 		e.callback = null;
 	}, e.unstable_continueExecution = function() {
-		m || p || (m = !0, ee(x));
+		m || p || (m = !0, A(x));
 	}, e.unstable_forceFrameRate = function(e) {
 		0 > e || 125 < e ? console.error("forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported") : T = 0 < e ? Math.floor(1e3 / e) : 5;
 	}, e.unstable_getCurrentPriorityLevel = function() {
@@ -441,7 +441,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			startTime: a,
 			expirationTime: s,
 			sortIndex: -1
-		}, a > o ? (r.sortIndex = a, t(l, r), n(c) === null && r === n(l) && (h ? (_(w), w = -1) : h = !0, te(b, a - o))) : (r.sortIndex = s, t(c, r), m || p || (m = !0, ee(x))), r;
+		}, a > o ? (r.sortIndex = a, t(l, r), n(c) === null && r === n(l) && (h ? (_(w), w = -1) : h = !0, j(b, a - o))) : (r.sortIndex = s, t(c, r), m || p || (m = !0, A(x))), r;
 	}, e.unstable_shouldYield = D, e.unstable_wrapCallback = function(e) {
 		var t = f;
 		return function() {
@@ -573,7 +573,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 		var i = y.hasOwnProperty(t) ? y[t] : null;
 		(i === null ? r || !(2 < t.length) || t[0] !== "o" && t[0] !== "O" || t[1] !== "n" && t[1] !== "N" : i.type !== 0) && (_(t, n, i, r) && (n = null), r || i === null ? h(t) && (n === null ? e.removeAttribute(t) : e.setAttribute(t, "" + n)) : i.mustUseProperty ? e[i.propertyName] = n === null ? i.type !== 3 && "" : n : (t = i.attributeName, r = i.attributeNamespace, n === null ? e.removeAttribute(t) : (i = i.type, n = i === 3 || i === 4 && !0 === n ? "" : "" + n, r ? e.setAttributeNS(r, t, n) : e.setAttribute(t, n))));
 	}
-	var C = t.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED, w = Symbol.for("react.element"), T = Symbol.for("react.portal"), E = Symbol.for("react.fragment"), D = Symbol.for("react.strict_mode"), O = Symbol.for("react.profiler"), k = Symbol.for("react.provider"), A = Symbol.for("react.context"), j = Symbol.for("react.forward_ref"), ee = Symbol.for("react.suspense"), te = Symbol.for("react.suspense_list"), M = Symbol.for("react.memo"), N = Symbol.for("react.lazy"), ne = Symbol.for("react.offscreen"), re = Symbol.iterator;
+	var C = t.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED, w = Symbol.for("react.element"), T = Symbol.for("react.portal"), E = Symbol.for("react.fragment"), D = Symbol.for("react.strict_mode"), O = Symbol.for("react.profiler"), k = Symbol.for("react.provider"), ee = Symbol.for("react.context"), te = Symbol.for("react.forward_ref"), A = Symbol.for("react.suspense"), j = Symbol.for("react.suspense_list"), M = Symbol.for("react.memo"), N = Symbol.for("react.lazy"), ne = Symbol.for("react.offscreen"), re = Symbol.iterator;
 	function ie(e) {
 		return typeof e != "object" || !e ? null : (e = re && e[re] || e["@@iterator"], typeof e == "function" ? e : null);
 	}
@@ -663,13 +663,13 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 			case T: return "Portal";
 			case O: return "Profiler";
 			case D: return "StrictMode";
-			case ee: return "Suspense";
-			case te: return "SuspenseList";
+			case A: return "Suspense";
+			case j: return "SuspenseList";
 		}
 		if (typeof e == "object") switch (e.$$typeof) {
-			case A: return (e.displayName || "Context") + ".Consumer";
+			case ee: return (e.displayName || "Context") + ".Consumer";
 			case k: return (e._context.displayName || "Context") + ".Provider";
-			case j:
+			case te:
 				var t = e.render;
 				return e = e.displayName, e ||= (e = t.displayName || t.name || "", e === "" ? "ForwardRef" : "ForwardRef(" + e + ")"), e;
 			case M: return t = e.displayName || null, t === null ? ue(e.type) || "Memo" : t;
@@ -5524,7 +5524,7 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 	function Jl(e) {
 		if (typeof e == "function") return +!!ql(e);
 		if (e != null) {
-			if (e = e.$$typeof, e === j) return 11;
+			if (e = e.$$typeof, e === te) return 11;
 			if (e === M) return 14;
 		}
 		return 2;
@@ -5546,18 +5546,18 @@ var e = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e
 				s = 8, i |= 8;
 				break;
 			case O: return e = Kl(12, n, t, i | 2), e.elementType = O, e.lanes = o, e;
-			case ee: return e = Kl(13, n, t, i), e.elementType = ee, e.lanes = o, e;
-			case te: return e = Kl(19, n, t, i), e.elementType = te, e.lanes = o, e;
+			case A: return e = Kl(13, n, t, i), e.elementType = A, e.lanes = o, e;
+			case j: return e = Kl(19, n, t, i), e.elementType = j, e.lanes = o, e;
 			case ne: return Ql(n, i, o, t);
 			default:
 				if (typeof e == "object" && e) switch (e.$$typeof) {
 					case k:
 						s = 10;
 						break a;
-					case A:
+					case ee:
 						s = 9;
 						break a;
-					case j:
+					case te:
 						s = 11;
 						break a;
 					case M:
@@ -6002,7 +6002,7 @@ function T(e) {
 	return Number.isNaN(t.getTime()) ? "" : `${((t.getTime() - Date.now()) / 864e5 < 6 ? S : C).format(t)} ${w.format(t)}`;
 }
 var E = (e) => e.length === 0 ? "rooms" : e.length <= 2 ? e.join(" and ") : `${e.length} rooms`, D = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, O = (e) => String(e).padStart(2, "0"), k = (e) => `${e.getFullYear()}-${O(e.getMonth() + 1)}-${O(e.getDate())}T${O(e.getHours())}:${O(e.getMinutes())}`;
-function A({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, onClose: o }) {
+function ee({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, onClose: o }) {
 	let [s, c] = (0, u.useState)(() => {
 		let e = /* @__PURE__ */ new Date();
 		return e.setDate(e.getDate() + 7), e.setHours(14, 0, 0, 0), k(e);
@@ -6092,13 +6092,13 @@ function A({ hasHeat: e, hasWater: t, frost: n, limits: r, busy: i, onGo: a, onC
 	});
 }
 // src/Overview.tsx
-var j = [
+var te = [
 	30,
 	60,
 	120,
 	180
 ];
-function ee({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOpenRoom: a }) {
+function A({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onOpenRoom: a }) {
 	let [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)("all");
 	(0, u.useEffect)(() => {
 		let t = e().connection.subscribeMessage((e) => s(e.rooms), { type: "hive_local/rooms/subscribe" });
@@ -6139,7 +6139,7 @@ function ee({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onO
 				className: "home-section",
 				children: "Quick actions"
 			}),
-			/* @__PURE__ */ (0, f.jsx)(te, {
+			/* @__PURE__ */ (0, f.jsx)(j, {
 				getHass: e,
 				devices: t,
 				status: n,
@@ -6191,7 +6191,7 @@ function ee({ getHass: e, devices: t, status: n, limits: r, onOpenDevice: i, onO
 		] })
 	});
 }
-function te({ getHass: e, devices: t, status: n, limits: r }) {
+function j({ getHass: e, devices: t, status: n, limits: r }) {
 	let [i, a] = (0, u.useState)(null), [o, s] = (0, u.useState)(null), [c, l] = (0, u.useState)(!1), d = t.length > 1, m = async (t, n, r) => {
 		a(t);
 		try {
@@ -6289,7 +6289,7 @@ function te({ getHass: e, devices: t, status: n, limits: r }) {
 			className: `status ${o.ok ? "ok" : "error"}`,
 			children: o.text
 		}),
-		c && /* @__PURE__ */ (0, f.jsx)(A, {
+		c && /* @__PURE__ */ (0, f.jsx)(ee, {
 			hasHeat: g.some(({ c: e }) => e === "heat"),
 			hasWater: g.some(({ c: e }) => e === "water"),
 			frost: v?.frost_temperature ?? 12,
@@ -6310,29 +6310,31 @@ var M = [
 	120,
 	180
 ];
-function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i, defaultTemp: a, onOpen: o }) {
-	let [s, c] = (0, u.useState)(!1), [l, d] = (0, u.useState)(!1), [m, h] = (0, u.useState)(""), g = async (n) => {
-		d(!0);
+function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i, defaultTemp: a, onOpen: o, page: s }) {
+	let [c, l] = (0, u.useState)(!1), [d, m] = (0, u.useState)(!1), [h, g] = (0, u.useState)(""), _ = async (n) => {
+		m(!0);
 		try {
 			await e().callWS({
 				room_id: t.id,
 				...n
-			}), h(""), c(!1);
+			}), g(""), l(!1);
 		} catch (e) {
-			h(b(e));
+			g(b(e));
 		} finally {
-			d(!1);
+			m(!1);
 		}
-	}, _ = t.boost ?? null, v = _ ? `${_.temperature}°` : t.target == null ? t.target_range ? `${t.target_range[0]}–${t.target_range[1]}°` : null : `${t.target}°`, y = _ ? `Boost · ${D(_.remaining)} left` : `${t.valves.length} valve${t.valves.length === 1 ? "" : "s"}`, x = (e) => Math.min(r?.heat_max ?? 32, Math.max(5, Math.round(e * 2) / 2)), S = Math.min(360, Math.max(15, i)), C = [.../* @__PURE__ */ new Set([...M, S])].sort((e, t) => e - t);
+	}, v = t.boost ?? null, y = v ? `${v.temperature}°` : t.target == null ? t.target_range ? `${t.target_range[0]}–${t.target_range[1]}°` : null : `${t.target}°`, x = v ? `Boost · ${D(v.remaining)} left` : `${t.valves.length} valve${t.valves.length === 1 ? "" : "s"}`, S = (e) => Math.min(r?.heat_max ?? 32, Math.max(5, Math.round(e * 2) / 2)), C = Math.min(360, Math.max(15, i)), w = [.../* @__PURE__ */ new Set([...M, C])].sort((e, t) => e - t);
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: `card device room-device ${t.heating ? "heating" : "idle"}`,
 		children: [
 			/* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "device-head",
-				role: "button",
-				tabIndex: 0,
-				onClick: o,
-				onKeyDown: (e) => e.key === "Enter" && o(),
+				...s ? {} : {
+					role: "button",
+					tabIndex: 0,
+					onClick: o,
+					onKeyDown: (e) => e.key === "Enter" && o?.()
+				},
 				children: [/* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "device-row",
 					children: [
@@ -6344,7 +6346,7 @@ function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i,
 							className: "device-name",
 							children: [/* @__PURE__ */ (0, f.jsx)("span", { children: t.name }), /* @__PURE__ */ (0, f.jsxs)("span", {
 								className: "muted small",
-								children: [n && t.receiver_name ? `${t.receiver_name} · ${y}` : y, t.battery_low ? /* @__PURE__ */ (0, f.jsxs)("span", {
+								children: [n && t.receiver_name ? `${t.receiver_name} · ${x}` : x, t.battery_low ? /* @__PURE__ */ (0, f.jsxs)("span", {
 									className: "warn",
 									children: [
 										" · battery ",
@@ -6365,13 +6367,13 @@ function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i,
 							className: "device-status",
 							children: t.heating ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
 								"Heating to ",
-								/* @__PURE__ */ (0, f.jsx)("b", { children: v }),
+								/* @__PURE__ */ (0, f.jsx)("b", { children: y }),
 								" ",
 								/* @__PURE__ */ (0, f.jsx)(p, {
 									name: "fire",
 									className: "status-icon heat"
 								})
-							] }) : v ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Target ", /* @__PURE__ */ (0, f.jsx)("b", { children: v })] }) : "No target"
+							] }) : y ? /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: ["Target ", /* @__PURE__ */ (0, f.jsx)("b", { children: y })] }) : "No target"
 						})
 					]
 				}), /* @__PURE__ */ (0, f.jsxs)("div", {
@@ -6384,43 +6386,43 @@ function N({ getHass: e, room: t, showReceiver: n, limits: r, defaultMinutes: i,
 							/* @__PURE__ */ (0, f.jsx)("small", { children: t.temperature_source === "sensor" ? "Actual" : "Valves" })
 						]
 					}), /* @__PURE__ */ (0, f.jsxs)("button", {
-						className: `device-action ${_ ? "boosting" : ""}`,
-						disabled: l,
+						className: `device-action ${v ? "boosting" : ""}`,
+						disabled: d,
 						onClick: (e) => {
-							e.stopPropagation(), c(!0);
+							e.stopPropagation(), l(!0);
 						},
 						children: [
 							/* @__PURE__ */ (0, f.jsx)(p, { name: "rocket-launch" }),
 							" ",
-							_ ? "Boosting" : "Boost"
+							v ? "Boosting" : "Boost"
 						]
 					})]
 				})]
 			}),
-			m && /* @__PURE__ */ (0, f.jsx)("div", {
+			h && /* @__PURE__ */ (0, f.jsx)("div", {
 				className: "status error",
-				children: m
+				children: h
 			}),
-			s && /* @__PURE__ */ (0, f.jsx)(re, {
-				title: _ ? "Boosting" : "Boost",
+			c && /* @__PURE__ */ (0, f.jsx)(re, {
+				title: v ? "Boosting" : "Boost",
 				subtitle: t.name,
 				water: !1,
-				boosting: !!_,
+				boosting: !!v,
 				preheatFor: null,
-				remaining: _?.remaining ?? null,
-				boostTarget: _?.temperature ?? null,
-				defaultMinutes: S,
-				defaultTemp: x(a),
-				durations: C,
-				clampTemp: x,
-				busy: l,
-				onBoost: (e, t) => g({
+				remaining: v?.remaining ?? null,
+				boostTarget: v?.temperature ?? null,
+				defaultMinutes: C,
+				defaultTemp: S(a),
+				durations: w,
+				clampTemp: S,
+				busy: d,
+				onBoost: (e, t) => _({
 					type: "hive_local/rooms/boost",
 					minutes: e,
 					temperature: t
 				}),
-				onStop: () => g({ type: "hive_local/rooms/cancel_boost" }),
-				onClose: () => c(!1)
+				onStop: () => _({ type: "hive_local/rooms/cancel_boost" }),
+				onClose: () => l(!1)
 			})
 		]
 	});
@@ -6439,10 +6441,10 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 			id: "off",
 			label: "Off"
 		}
-	], C = r?.boost_minutes ?? 30, w = r?.boost_temperature ?? 21, [O, k] = (0, u.useState)(!1), A = a?.boost_min_temp ?? 5, ee = a?.heat_max ?? 32, te = (e) => Math.min(ee, Math.max(A, Math.round(e * 2) / 2)), M = [.../* @__PURE__ */ new Set([...j, C])].filter((e) => e <= (a?.boost_max_minutes ?? 360)).sort((e, t) => e - t), [N, ne] = (0, u.useState)(null), ie = (0, u.useRef)();
+	], C = r?.boost_minutes ?? 30, w = r?.boost_temperature ?? 21, [O, k] = (0, u.useState)(!1), ee = a?.boost_min_temp ?? 5, A = a?.heat_max ?? 32, j = (e) => Math.min(A, Math.max(ee, Math.round(e * 2) / 2)), M = [.../* @__PURE__ */ new Set([...te, C])].filter((e) => e <= (a?.boost_max_minutes ?? 360)).sort((e, t) => e - t), [N, ne] = (0, u.useState)(null), ie = (0, u.useRef)();
 	(0, u.useEffect)(() => () => window.clearTimeout(ie.current), []), (0, u.useEffect)(() => ne(null), [l?.setpoint, l?.mode]);
 	let P = !c && !!l && l.mode !== "off", ae = (e) => {
-		let t = te((N ?? b ?? 20) + e);
+		let t = j((N ?? b ?? 20) + e);
 		ne(t), window.clearTimeout(ie.current), ie.current = window.setTimeout(() => {
 			h({
 				type: "hive_local/target",
@@ -6651,7 +6653,7 @@ function ne({ getHass: e, device: t, channel: n, info: r, showDevice: i, limits:
 				defaultMinutes: C,
 				defaultTemp: w,
 				durations: M,
-				clampTemp: te,
+				clampTemp: j,
 				busy: d,
 				onBoost: se,
 				onStop: () => h({ type: "hive_local/cancel_boost" }, pe ? "Back to the schedule" : "Boost cancelled").then(() => k(!1)),
@@ -6920,16 +6922,16 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 				});
 			}
 		}
-	}, k = c[h] ?? [], A = r.max_transitions, j = (e) => l((t) => ({
+	}, k = c[h] ?? [], ee = r.max_transitions, te = (e) => l((t) => ({
 		...t,
 		[h]: [...e].sort((e, t) => ce(e.time) - ce(t.time))
-	})), ee = () => {
+	})), A = () => {
 		let e = k[k.length - 1], t = e ? ue(k, ce(e.time) + 60) : "06:00", n = w ? r.water_on : e?.setpoint ?? 20;
-		j([...k, {
+		te([...k, {
 			time: t,
 			setpoint: n
 		}]);
-	}, te = (e) => l((t) => {
+	}, j = (e) => l((t) => {
 		let n = { ...t };
 		for (let t of e) n[t] = k.map((e) => ({ ...e }));
 		return n;
@@ -7010,15 +7012,15 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 					/* @__PURE__ */ (0, f.jsxs)("button", {
 						className: "slot slot-add",
 						onClick: () => {
-							ee(), re(k.length);
+							A(), re(k.length);
 						},
-						disabled: x || k.length >= A,
+						disabled: x || k.length >= ee,
 						children: [/* @__PURE__ */ (0, f.jsx)("span", {
 							className: "slot-badge add",
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
 						}), /* @__PURE__ */ (0, f.jsx)("span", {
 							className: "slot-time",
-							children: k.length >= A ? `${A} times a day at most` : "Add a time"
+							children: k.length >= ee ? `${ee} times a day at most` : "Add a time"
 						})]
 					})
 				]
@@ -7075,7 +7077,7 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 						/* @__PURE__ */ (0, f.jsxs)("button", {
 							role: "menuitem",
 							onClick: () => {
-								P(!1), te(ae);
+								P(!1), j(ae);
 							},
 							disabled: x || !k.length,
 							children: [
@@ -7088,7 +7090,7 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 						/* @__PURE__ */ (0, f.jsxs)("button", {
 							role: "menuitem",
 							onClick: () => {
-								P(!1), te(oe);
+								P(!1), j(oe);
 							},
 							disabled: x || !k.length,
 							children: [
@@ -7101,7 +7103,7 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 						/* @__PURE__ */ (0, f.jsxs)("button", {
 							role: "menuitem",
 							onClick: () => {
-								P(!1), te([...g]);
+								P(!1), j([...g]);
 							},
 							disabled: x || !k.length,
 							children: [
@@ -7126,9 +7128,9 @@ function le({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 				isWater: w,
 				limits: r,
 				canDelete: !0,
-				onChange: (e) => j(k.map((t, n) => n === ne ? e : t)),
+				onChange: (e) => te(k.map((t, n) => n === ne ? e : t)),
 				onDelete: () => {
-					j(k.filter((e, t) => t !== ne)), re(null);
+					te(k.filter((e, t) => t !== ne)), re(null);
 				},
 				onClose: () => re(null)
 			})
@@ -7335,51 +7337,57 @@ function xe(e) {
 		outMax: e.outdoor_max
 	})).reverse();
 }
-function Se({ getHass: e, devices: t, channel: n }) {
-	let [r, i] = (0, u.useState)(t[0]?.entry_id), a = t.find((e) => e.entry_id === r) ?? t[0], o = n ?? "heat", [s, c] = (0, u.useState)(7), [l, d] = (0, u.useState)("time"), [m, h] = (0, u.useState)(0), [g, _] = (0, u.useState)(null), [v, x] = (0, u.useState)(""), [S, C] = (0, u.useState)(!0), w = o === "water", T = (0, u.useCallback)(() => {
-		a && e().callWS({
+function Se({ getHass: e, devices: t, channel: n, roomId: r }) {
+	let i = n ?? (r ? "heat" : void 0), [a, o] = (0, u.useState)(t[0]?.entry_id), s = t.find((e) => e.entry_id === a) ?? t[0], c = i ?? "heat", [l, d] = (0, u.useState)(7), [m, h] = (0, u.useState)("time"), [g, _] = (0, u.useState)(0), [v, x] = (0, u.useState)(null), [S, C] = (0, u.useState)(""), [w, T] = (0, u.useState)(!0), E = c === "water", D = (0, u.useCallback)(() => {
+		(s || r) && e().callWS(r ? {
+			type: "hive_local/rooms/stats",
+			room_id: r,
+			days: l,
+			offset: g
+		} : {
 			type: "hive_local/stats",
-			entry_id: a.entry_id,
-			channel: o,
-			days: s,
-			offset: m
+			entry_id: s.entry_id,
+			channel: c,
+			days: l,
+			offset: g
 		}).then((e) => {
-			_(e), x("");
+			x(e), C("");
 		}).catch((e) => {
-			y(e) || x(b(e));
-		}).finally(() => C(!1));
+			y(e) || C(b(e));
+		}).finally(() => T(!1));
 	}, [
 		e,
-		a,
-		o,
 		s,
-		m
+		c,
+		l,
+		g,
+		r
 	]);
 	if ((0, u.useEffect)(() => {
 		let t = e().connection;
-		return t.addEventListener?.("ready", T), () => t.removeEventListener?.("ready", T);
-	}, [e, T]), (0, u.useEffect)(() => {
-		if (C(!0), T(), m) return;
-		let e = setInterval(T, me);
+		return t.addEventListener?.("ready", D), () => t.removeEventListener?.("ready", D);
+	}, [e, D]), (0, u.useEffect)(() => {
+		if (T(!0), D(), g) return;
+		let e = setInterval(D, me);
 		return () => clearInterval(e);
-	}, [T, m]), !a) return null;
-	let E = g && g.period === s && g.offset === m ? g : null, D = E ? xe(E) : [], O = s === 1 ? "hour" : "day", k = !w && !!E?.outdoor, A = w ? null : E?.cost ?? null, j = w || l === "cost" && !A && E ? "time" : l;
+	}, [D, g]), !s && !r) return null;
+	let O = v && v.period === l && v.offset === g ? v : null, k = O ? xe(O) : [], ee = l === 1 ? "hour" : "day", te = !E && !!O?.outdoor, A = E ? null : O?.cost ?? null, j = E || m === "cost" && !A && O ? "time" : m;
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "history",
 		children: [
-			!n && /* @__PURE__ */ (0, f.jsx)("h2", {
+			!i && /* @__PURE__ */ (0, f.jsx)("h2", {
 				className: "history-title",
 				children: "Heating history"
 			}),
-			!n && t.length > 1 && /* @__PURE__ */ (0, f.jsx)("div", {
+			!i && t.length > 1 && /* @__PURE__ */ (0, f.jsx)("div", {
 				className: "history-tabs",
 				role: "tablist",
 				children: t.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 					role: "tab",
-					"aria-selected": e.entry_id === a.entry_id,
-					className: e.entry_id === a.entry_id ? "on" : "",
+					"aria-selected": e.entry_id === s.entry_id,
+					className: e.entry_id === s.entry_id ? "on" : "",
 					onClick: () => {
-						i(e.entry_id), h(0);
+						o(e.entry_id), _(0);
 					},
 					children: e.name
 				}, e.entry_id))
@@ -7392,16 +7400,16 @@ function Se({ getHass: e, devices: t, channel: n }) {
 					"aria-label": "Period",
 					children: pe.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
 						role: "radio",
-						"aria-checked": e.id === s,
+						"aria-checked": e.id === l,
 						"aria-label": e.name,
 						title: e.name,
-						className: e.id === s ? "on" : "",
+						className: e.id === l ? "on" : "",
 						onClick: () => {
-							c(e.id), h(0);
+							d(e.id), _(0);
 						},
 						children: e.label
 					}, e.id))
-				}), !w && /* @__PURE__ */ (0, f.jsxs)("div", {
+				}), !E && /* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "history-toggle",
 					role: "radiogroup",
 					"aria-label": "Show",
@@ -7412,7 +7420,7 @@ function Se({ getHass: e, devices: t, channel: n }) {
 							title: "Time on",
 							"aria-label": "Time on",
 							className: `wide ${j === "time" ? "on" : ""}`,
-							onClick: () => d("time"),
+							onClick: () => h("time"),
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "clock-outline" })
 						}),
 						/* @__PURE__ */ (0, f.jsx)("button", {
@@ -7421,16 +7429,16 @@ function Se({ getHass: e, devices: t, channel: n }) {
 							title: "Temperature",
 							"aria-label": "Temperature",
 							className: `wide ${j === "temp" ? "on" : ""}`,
-							onClick: () => d("temp"),
+							onClick: () => h("temp"),
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "thermometer" })
 						}),
-						(A || l === "cost") && /* @__PURE__ */ (0, f.jsx)("button", {
+						(A || m === "cost") && /* @__PURE__ */ (0, f.jsx)("button", {
 							role: "radio",
 							"aria-checked": j === "cost",
 							title: "Estimated cost",
 							"aria-label": "Estimated cost",
 							className: `wide ${j === "cost" ? "on" : ""}`,
-							onClick: () => d("cost"),
+							onClick: () => h("cost"),
 							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "cash" })
 						})
 					]
@@ -7441,7 +7449,7 @@ function Se({ getHass: e, devices: t, channel: n }) {
 				children: [
 					/* @__PURE__ */ (0, f.jsx)("button", {
 						className: "round ghost",
-						onClick: () => h(m + 1),
+						onClick: () => _(g + 1),
 						"aria-label": "Earlier",
 						children: /* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-left" })
 					}),
@@ -7450,64 +7458,65 @@ function Se({ getHass: e, devices: t, channel: n }) {
 						children: [
 							/* @__PURE__ */ (0, f.jsx)(p, { name: "calendar-blank-outline" }),
 							" ",
-							E ? ye(E.start, E.period_end, s) : "…"
+							O ? ye(O.start, O.period_end, l) : "…"
 						]
 					}),
 					/* @__PURE__ */ (0, f.jsx)("button", {
 						className: "round ghost",
-						onClick: () => h(Math.max(0, m - 1)),
-						disabled: m === 0,
+						onClick: () => _(Math.max(0, g - 1)),
+						disabled: g === 0,
 						"aria-label": "Later",
 						children: /* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-right" })
 					})
 				]
 			}),
-			v && /* @__PURE__ */ (0, f.jsx)("div", {
+			S && /* @__PURE__ */ (0, f.jsx)("div", {
 				className: "status error",
-				children: v
+				children: S
 			}),
-			S && !E && /* @__PURE__ */ (0, f.jsx)("p", {
+			w && !O && /* @__PURE__ */ (0, f.jsx)("p", {
 				className: "muted history-empty",
 				children: "Loading…"
 			}),
-			E && !E.has_data && /* @__PURE__ */ (0, f.jsxs)("p", {
+			O && !O.has_data && /* @__PURE__ */ (0, f.jsxs)("p", {
 				className: "muted history-empty",
 				children: [
 					"No history for this ",
-					pe.find((e) => e.id === s).name.toLowerCase(),
+					pe.find((e) => e.id === l).name.toLowerCase(),
 					". Home Assistant keeps 10 days unless",
 					" ",
 					/* @__PURE__ */ (0, f.jsx)("code", { children: "purge_keep_days" }),
 					" is raised."
 				]
 			}),
-			E?.has_data && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
+			O?.has_data && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
 				/* @__PURE__ */ (0, f.jsx)(we, {
-					data: E,
+					data: O,
 					metric: j,
-					water: w,
-					units: O,
-					rows: D,
+					water: E,
+					room: !!r,
+					units: ee,
+					rows: k,
 					cost: A
 				}),
 				/* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "history-rows",
-					children: [D.length > 0 && !w && /* @__PURE__ */ (0, f.jsxs)("div", {
-						className: `history-key muted small ${k ? "with-outdoor" : ""}`,
-						children: [k && /* @__PURE__ */ (0, f.jsxs)("span", {
+					children: [k.length > 0 && !E && /* @__PURE__ */ (0, f.jsxs)("div", {
+						className: `history-key muted small ${te ? "with-outdoor" : ""}`,
+						children: [te && /* @__PURE__ */ (0, f.jsxs)("span", {
 							title: "Outside temperature",
 							children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "weather-partly-cloudy" }), " Outside"]
 						}), /* @__PURE__ */ (0, f.jsxs)("span", {
 							title: "Lowest and highest room temperature",
 							children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "thermometer" }), " Low · high"]
 						})]
-					}), D.map((e) => /* @__PURE__ */ (0, f.jsx)(De, {
+					}), k.map((e) => /* @__PURE__ */ (0, f.jsx)(De, {
 						row: e,
 						metric: j,
-						water: w,
-						outdoor: k,
+						water: E,
+						outdoor: te,
 						cost: A,
-						scale: Ce(D, j, s)
+						scale: Ce(k, j, l)
 					}, e.key))]
 				}),
 				j === "cost" && A && /* @__PURE__ */ (0, f.jsxs)("p", {
@@ -7522,7 +7531,7 @@ function Se({ getHass: e, devices: t, channel: n }) {
 						A.basis === "meter" ? "The kW is the boiler's average while on, learned from your gas meter." : `The kW is 40% of the boiler's ${A.boiler_kw ?? "?"} kW rating, as a modulating boiler rarely runs flat out. Pick a gas meter in Settings for a closer figure.`
 					]
 				}),
-				!w && E.outdoor_entity == null && /* @__PURE__ */ (0, f.jsx)("p", {
+				!E && O.outdoor_entity == null && /* @__PURE__ */ (0, f.jsx)("p", {
 					className: "history-hint muted small",
 					children: "To see the temperature outside here, pick a weather entity or outdoor sensor in the Settings tab."
 				})
@@ -7541,42 +7550,43 @@ function Ce(e, t, n) {
 		hi: Math.max(a, i + 4)
 	};
 }
-function we({ data: e, metric: t, water: n, units: r, rows: i, cost: a }) {
-	let o = Math.max(1, i.filter((e) => e.minutes != null).length), s = e.previous, c = !!s?.has_data && s.known_minutes >= .5 * e.known_minutes, l = c ? e.heating_minutes - s.heating_minutes : 0, u = e.temperature, d = (e) => a ? he(e / 60 * a.per_hour, a.currency) : "–", [p, m, h, g] = t === "cost" ? [
+function we({ data: e, metric: t, water: n, room: r, units: i, rows: a, cost: o }) {
+	let s = Math.max(1, a.filter((e) => e.minutes != null).length), c = e.previous, l = !!c?.has_data && c.known_minutes >= .5 * e.known_minutes, u = l ? e.heating_minutes - c.heating_minutes : 0, d = e.temperature, p = (e) => o ? he(e / 60 * o.per_hour, o.currency) : "–", [m, h, g, _] = t === "cost" ? [
 		"Estimated cost",
-		d(e.heating_minutes),
-		`Average per ${r}`,
-		d(e.heating_minutes / o)
+		p(e.heating_minutes),
+		`Average per ${i}`,
+		p(e.heating_minutes / s)
 	] : t === "time" ? [
-		n ? "Hot water on" : "Boiler on",
+		n ? "Hot water on" : r ? "Valves heating" : "Boiler on",
 		F(e.heating_minutes),
-		`Average per ${r}`,
-		F(e.heating_minutes / o)
+		`Average per ${i}`,
+		F(e.heating_minutes / s)
 	] : [
 		"Average",
-		u.avg == null ? "–" : `${u.avg.toFixed(1)}°`,
+		d.avg == null ? "–" : `${d.avg.toFixed(1)}°`,
 		"Lowest – highest",
-		u.min != null && u.max != null ? `${u.min.toFixed(1)}–${u.max.toFixed(1)}°` : "–"
+		d.min != null && d.max != null ? `${d.min.toFixed(1)}–${d.max.toFixed(1)}°` : "–"
 	];
 	return /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "history-summary",
 		children: [
 			/* @__PURE__ */ (0, f.jsxs)("div", { children: [/* @__PURE__ */ (0, f.jsx)("span", {
 				className: "muted",
-				children: p
-			}), /* @__PURE__ */ (0, f.jsx)("b", { children: m })] }),
+				children: m
+			}), /* @__PURE__ */ (0, f.jsx)("b", { children: h })] }),
 			/* @__PURE__ */ (0, f.jsx)("i", {}),
 			/* @__PURE__ */ (0, f.jsxs)("div", { children: [/* @__PURE__ */ (0, f.jsx)("span", {
 				className: "muted",
-				children: h
-			}), /* @__PURE__ */ (0, f.jsx)("b", { children: g })] })
+				children: g
+			}), /* @__PURE__ */ (0, f.jsx)("b", { children: _ })] })
 		]
 	}), /* @__PURE__ */ (0, f.jsxs)("p", {
 		className: "history-note muted small",
 		children: [
-			t === "time" && c && (Math.abs(l) < 1 ? "Same as the period before · " : `${F(Math.abs(l))} ${l > 0 ? "more" : "less"} than the period before · `),
-			t === "cost" && a && c && (Math.abs(l) < 1 ? "Same as the period before · " : `${d(Math.abs(l))} ${l > 0 ? "more" : "less"} than the period before · `),
-			"Fired up ",
+			t === "time" && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${F(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
+			t === "cost" && o && l && (Math.abs(u) < 1 ? "Same as the period before · " : `${p(Math.abs(u))} ${u > 0 ? "more" : "less"} than the period before · `),
+			r ? "Started heating" : "Fired up",
+			" ",
 			e.cycles,
 			" time",
 			e.cycles === 1 ? "" : "s",
@@ -7942,162 +7952,10 @@ function Re({ onClose: e }) {
 		})
 	});
 }
-// src/RoomSchedule.tsx
-var ze = {
-	max_transitions: 6,
-	heat_min: 5,
-	heat_max: 32,
-	boost_min_temp: 5,
-	boost_max_minutes: 360,
-	water_on: 22,
-	water_off: 1
-}, Be = (e) => e[0].toUpperCase() + e.slice(1, 3);
-function Ve(e) {
-	return e == null ? "its clock isn't set" : `its clock is ${Math.round(Math.abs(e) / 60)} min ${e < 0 ? "behind" : "ahead"}`;
-}
-function He({ getHass: e, room: t, onClose: n }) {
-	let [r, i] = (0, u.useState)([]), [a, o] = (0, u.useState)([]), [s, c] = (0, u.useState)(ze), [l, d] = (0, u.useState)(!1), [m, h] = (0, u.useState)(!1), [_, v] = (0, u.useState)(null);
-	(0, u.useEffect)(() => {
-		let e = (e) => e.key === "Escape" && n();
-		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
-	}, [n]);
-	let y = (0, u.useMemo)(() => ({
-		noun: "valves",
-		embedded: !0,
-		onReading: h,
-		statusLine: "Kept on each valve, so it runs without Home Assistant. Saving writes the changed days to every valve in the room.",
-		read: async () => {
-			let n = await e().callWS({
-				type: "hive_local/rooms/schedule/get",
-				room_id: t.id
-			});
-			return i(n.valves), o(n.differs), c({
-				...ze,
-				...n.limits
-			}), n;
-		},
-		write: async (n) => {
-			let r = await e().callWS({
-				type: "hive_local/rooms/schedule/set",
-				room_id: t.id,
-				schedule: n
-			}), i = g.filter((e) => e in r.schedule).map(Be).join(", "), a = r.valves.filter((e) => e.clock?.set).map((e) => e.name), o = r.valves.filter((e) => e.error), s = [o.length ? `Wrote ${i} to ${r.valves.length - o.length} of ${r.valves.length} valves. ${o.map((e) => `${e.name}: ${e.error}`).join(" ")}` : `Wrote ${i} to ${r.valves.length === 1 ? "the valve" : `all ${r.valves.length} valves`}. Read back to confirm they kept it.`, a.length ? `Set the clock on ${a.join(", ")}.` : ""];
-			return {
-				schedule: r.schedule,
-				note: s.filter(Boolean).join(" "),
-				error: o.length > 0
-			};
-		}
-	}), [e, t.id]), x = r.filter((e) => e.schedule_mode === !1), S = r.length > 0 && r.every((e) => e.schedule_mode === !0), C = async (n) => {
-		d(!0), v(null);
-		try {
-			let a = await e().callWS({
-				type: "hive_local/rooms/schedule/mode",
-				room_id: t.id,
-				enabled: n
-			}), o = r.filter((e) => a.failed.includes(e.entity_id)).map((e) => e.name);
-			o.length ? v({
-				kind: "error",
-				text: `Didn't take on ${o.join(", ")}. It may be asleep: press its dial to wake it and try again.`
-			}) : (v({
-				kind: "ok",
-				text: n ? "The valves now follow their schedule." : "The valves stay at their target now."
-			}), i((e) => e.map((e) => ({
-				...e,
-				schedule_mode: n
-			}))));
-		} catch (e) {
-			v({
-				kind: "error",
-				text: b(e)
-			});
-		} finally {
-			d(!1);
-		}
-	}, w = [];
-	for (let e of r) e.error ? w.push(`${e.name} didn't answer: ${e.error}`) : e.complete || w.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && w.push(`${e.name}: ${Ve(e.clock.offset)}. It's set when you save.`);
-	return a.length && r.length > 1 && w.push(`The valves have different times on ${a.map(Be).join(", ")}. This shows ${r.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`), /* @__PURE__ */ (0, f.jsx)("div", {
-		className: "sheet-backdrop",
-		onClick: (e) => {
-			e.stopPropagation(), n();
-		},
-		children: /* @__PURE__ */ (0, f.jsxs)("div", {
-			className: "sheet heat room-sheet room-schedule",
-			role: "dialog",
-			"aria-modal": "true",
-			"aria-label": `${t.name} schedule`,
-			onClick: (e) => e.stopPropagation(),
-			children: [
-				/* @__PURE__ */ (0, f.jsx)("span", { className: "sheet-handle" }),
-				/* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "room-schedule-head",
-					children: [
-						/* @__PURE__ */ (0, f.jsx)("button", {
-							className: "round ghost",
-							onClick: n,
-							"aria-label": "Back to the room",
-							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-left" })
-						}),
-						/* @__PURE__ */ (0, f.jsxs)("div", {
-							className: "page-title",
-							children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: "Schedule" }), /* @__PURE__ */ (0, f.jsxs)("span", {
-								className: "muted small",
-								children: [
-									t.name,
-									" · ",
-									t.valves.length,
-									" valve",
-									t.valves.length === 1 ? "" : "s"
-								]
-							})]
-						}),
-						/* @__PURE__ */ (0, f.jsx)("span", {
-							className: "chip unsaved",
-							children: "Experimental"
-						})
-					]
-				}),
-				/* @__PURE__ */ (0, f.jsx)("p", {
-					className: "muted small room-schedule-note",
-					children: "Not yet tried on real Hive valves. The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times."
-				}),
-				r.length > 0 && /* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "room-schedule-mode",
-					children: [
-						/* @__PURE__ */ (0, f.jsx)(p, { name: S ? "calendar-check-outline" : "calendar-remove-outline" }),
-						/* @__PURE__ */ (0, f.jsx)("span", {
-							className: "small room-schedule-mode-text",
-							children: S ? "The valves follow this schedule." : x.length ? `${x.length === r.length ? "The valves don't" : `${x.map((e) => e.name).join(", ")} doesn't`} follow a schedule: ${x.length === 1 ? "it stays" : "they stay"} at the target.` : "Couldn't tell whether the valves follow a schedule."
-						}),
-						/* @__PURE__ */ (0, f.jsx)("button", {
-							className: "ghost",
-							onClick: () => C(!S),
-							disabled: l || m,
-							children: S ? "Stop" : "Use it"
-						})
-					]
-				}),
-				_ && /* @__PURE__ */ (0, f.jsx)("div", {
-					className: `status ${_.kind} small`,
-					children: _.text
-				}),
-				w.length > 0 && /* @__PURE__ */ (0, f.jsx)("ul", {
-					className: "room-schedule-notes small",
-					children: w.map((e) => /* @__PURE__ */ (0, f.jsx)("li", { children: e }, e))
-				}),
-				/* @__PURE__ */ (0, f.jsx)(le, {
-					getHass: e,
-					limits: s,
-					source: y
-				})
-			]
-		})
-	});
-}
 // src/Rooms.tsx
-var Ue = 20, We = (e) => e == null ? "–" : `${e.toFixed(1)}°`;
-function Ge({ valve: e, heating: t }) {
-	let n = e.battery == null ? null : Number(e.battery), r = n != null && !Number.isNaN(n) && n <= Ue;
+var ze = 20, Be = (e) => e == null ? "–" : `${e.toFixed(1)}°`;
+function Ve({ valve: e, heating: t }) {
+	let n = e.battery == null ? null : Number(e.battery), r = n != null && !Number.isNaN(n) && n <= ze;
 	return /* @__PURE__ */ (0, f.jsxs)("li", {
 		className: `valve ${e.available ? "" : "off"}`,
 		children: [
@@ -8112,11 +7970,11 @@ function Ge({ valve: e, heating: t }) {
 			e.available ? /* @__PURE__ */ (0, f.jsxs)("span", {
 				className: "valve-temps",
 				children: [
-					We(e.current_temperature),
+					Be(e.current_temperature),
 					" ",
 					/* @__PURE__ */ (0, f.jsxs)("span", {
 						className: "muted",
-						children: ["→ ", We(e.target)]
+						children: ["→ ", Be(e.target)]
 					})
 				]
 			}) : /* @__PURE__ */ (0, f.jsx)("span", {
@@ -8136,7 +7994,7 @@ function Ge({ valve: e, heating: t }) {
 		]
 	});
 }
-function Ke(e) {
+function He(e) {
 	if (!e.sensor || !e.external_sensor) return null;
 	let t = e.valve_states.length, n = (t) => e.valve_states.filter((e) => e.external_sensor === t).map((e) => e.name);
 	if (e.external_sensor === "off") return {
@@ -8167,11 +8025,11 @@ function Ke(e) {
 		warn: !1
 	};
 }
-var qe = 8;
-function Je({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: a, onToggle: o }) {
+var Ue = 8;
+function We({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: a, onToggle: o }) {
 	let [s, c] = (0, u.useState)(null), [l, d] = (0, u.useState)(null), m = (0, u.useRef)();
 	(0, u.useEffect)(() => () => window.clearTimeout(m.current), []);
-	let [h, g] = (0, u.useState)(""), _ = t.length > qe, v = h.trim().toLowerCase(), y = r.trim().toLowerCase(), x = (e) => !!y && (e.area ?? "").toLowerCase() === y, S = (e) => {
+	let [h, g] = (0, u.useState)(""), _ = t.length > Ue, v = h.trim().toLowerCase(), y = r.trim().toLowerCase(), x = (e) => !!y && (e.area ?? "").toLowerCase() === y, S = (e) => {
 		let t = n.get(e.entity_id)?.room;
 		return t && t !== i ? t : null;
 	}, [C] = (0, u.useState)(() => new Set(a)), w = (e) => C.has(e.entity_id) ? 0 : x(e) ? 1 : S(e) ? 3 : 2, T = [...t].sort((e, t) => w(e) - w(t)), E = v ? T.filter((e) => e.name.toLowerCase().includes(v) || (e.area ?? "").toLowerCase().includes(v)) : T, D = async (t) => {
@@ -8227,7 +8085,7 @@ function Je({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: 
 			E.length > 0 && /* @__PURE__ */ (0, f.jsx)("div", {
 				className: "valve-list",
 				children: E.map((e) => {
-					let t = n.get(e.entity_id), r = a.has(e.entity_id), i = t?.battery == null ? null : Number(t.battery), c = i != null && !Number.isNaN(i), l = c && i <= Ue, u = S(e);
+					let t = n.get(e.entity_id), r = a.has(e.entity_id), i = t?.battery == null ? null : Number(t.battery), c = i != null && !Number.isNaN(i), l = c && i <= ze, u = S(e);
 					return /* @__PURE__ */ (0, f.jsxs)("div", {
 						className: `valve-pick ${r ? "on" : ""}`,
 						children: [/* @__PURE__ */ (0, f.jsxs)("button", {
@@ -8286,7 +8144,7 @@ function Je({ getHass: e, valves: t, info: n, roomName: r, thisRoom: i, chosen: 
 		]
 	}) : null;
 }
-function Ye({ dialog: e, label: t, onClose: n, children: r }) {
+function Ge({ dialog: e, label: t, onClose: n, children: r }) {
 	return e ? /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: (e) => {
@@ -8305,13 +8163,13 @@ function Ye({ dialog: e, label: t, onClose: n, children: r }) {
 		children: r
 	});
 }
-function Xe(e) {
-	return /* @__PURE__ */ (0, f.jsx)(Ze, {
+function Ke(e) {
+	return /* @__PURE__ */ (0, f.jsx)(qe, {
 		...e,
 		dialog: !0
 	});
 }
-function Ze({ getHass: e, room: t, onDone: n, dialog: r }) {
+function qe({ getHass: e, room: t, onDone: n, dialog: r }) {
 	(0, u.useEffect)(() => {
 		if (!r) return;
 		let e = (e) => e.key === "Escape" && n();
@@ -8321,7 +8179,7 @@ function Ze({ getHass: e, room: t, onDone: n, dialog: r }) {
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/candidates" }).then(a).catch((e) => T(b(e))), e().callWS({ type: "hive_local/rooms/valves" }).then((e) => D(new Map(e.valves.map((e) => [e.entity_id, e])))).catch(() => {});
 	}, [e]);
-	let O = (i?.receivers.length ?? 0) > 1, k = t && t.sensor === h && _ && (t.sensor_on_valves ?? !0) ? Ke(t) : null, A = async (t) => {
+	let O = (i?.receivers.length ?? 0) > 1, k = t && t.sensor === h && _ && (t.sensor_on_valves ?? !0) ? He(t) : null, ee = async (t) => {
 		x(!0), T("");
 		try {
 			await e().callWS(t), n();
@@ -8329,14 +8187,14 @@ function Ze({ getHass: e, room: t, onDone: n, dialog: r }) {
 			T(b(e)), x(!1);
 		}
 	};
-	return /* @__PURE__ */ (0, f.jsxs)(Ye, {
+	return /* @__PURE__ */ (0, f.jsxs)(Ge, {
 		dialog: !!r,
 		label: t ? `Edit ${t.name}` : "New room",
 		onClose: n,
 		children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: t ? `Edit ${t.name}` : "New room" }), /* @__PURE__ */ (0, f.jsxs)("form", {
 			className: "stack",
 			onSubmit: (e) => {
-				e.preventDefault(), A({
+				e.preventDefault(), ee({
 					type: "hive_local/rooms/save",
 					...t ? { room_id: t.id } : {},
 					name: c,
@@ -8373,7 +8231,7 @@ function Ze({ getHass: e, room: t, onDone: n, dialog: r }) {
 							className: "muted small",
 							children: "No Hive radiator valves found. Pair them with ZHA or Zigbee2MQTT first."
 						}),
-						/* @__PURE__ */ (0, f.jsx)(Je, {
+						/* @__PURE__ */ (0, f.jsx)(We, {
 							getHass: e,
 							valves: i?.valves ?? [],
 							info: E,
@@ -8476,7 +8334,7 @@ function Ze({ getHass: e, room: t, onDone: n, dialog: r }) {
 								type: "button",
 								className: "danger",
 								disabled: y,
-								onClick: () => A({
+								onClick: () => ee({
 									type: "hive_local/rooms/delete",
 									room_id: t.id
 								}),
@@ -8501,180 +8359,163 @@ function Ze({ getHass: e, room: t, onDone: n, dialog: r }) {
 		})]
 	});
 }
-function Qe({ getHass: e, roomId: t, several: n, onClose: r }) {
-	let [i, a] = (0, u.useState)(null), [o, s] = (0, u.useState)(!1), [c, l] = (0, u.useState)(!1), [d, m] = (0, u.useState)(null), [h, g] = (0, u.useState)(""), _ = (0, u.useRef)();
-	if ((0, u.useEffect)(() => {
-		let n = e().connection.subscribeMessage((e) => a(e.rooms.find((e) => e.id === t) ?? null), { type: "hive_local/rooms/subscribe" });
-		return () => {
-			n.then((e) => e()).catch(() => {});
-		};
-	}, [e, t]), (0, u.useEffect)(() => {
-		if (o || c) return;
-		let e = (e) => e.key === "Escape" && r();
-		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
-	}, [
-		r,
-		o,
-		c
-	]), !i) return null;
-	if (o) return /* @__PURE__ */ (0, f.jsx)(Ze, {
-		getHass: e,
-		room: i,
-		onDone: () => s(!1),
-		dialog: !0
-	});
-	if (c) return /* @__PURE__ */ (0, f.jsx)(He, {
-		getHass: e,
-		room: i,
-		onClose: () => l(!1)
-	});
-	let v = d ?? i.boost?.temperature ?? i.target ?? i.target_range?.[1] ?? 20, y = (t) => {
-		let n = Math.min(35, Math.max(5, t));
-		m(n), g(""), window.clearTimeout(_.current), _.current = window.setTimeout(async () => {
+var Je = [
+	{
+		id: "schedule",
+		label: "Schedule"
+	},
+	{
+		id: "manual",
+		label: "Manual"
+	},
+	{
+		id: "off",
+		label: "Off"
+	}
+];
+function Ye(e) {
+	return e.boost ? `Boost · ${D(e.boost.remaining)} left` : e.mode === "schedule" ? "On the valves' schedule" : e.mode === "off" ? "Off" : "Manual";
+}
+function Xe({ getHass: e, room: t }) {
+	let [n, r] = (0, u.useState)(!1), [i, a] = (0, u.useState)(null), [o, s] = (0, u.useState)(!1), [c, l] = (0, u.useState)(""), d = (0, u.useRef)();
+	(0, u.useEffect)(() => () => window.clearTimeout(d.current), []);
+	let m = t.mode ?? "manual", h = (e) => `Didn't take on ${t.valve_states.filter((t) => e.includes(t.entity_id)).map((e) => e.name).join(", ")}. It may be asleep: press its dial to wake it and try again.`, g = i ?? t.boost?.temperature ?? t.target ?? t.target_range?.[1] ?? 20, _ = m !== "off" || !!t.boost, v = (n) => {
+		let r = Math.min(32, Math.max(5, n));
+		a(r), l(""), window.clearTimeout(d.current), d.current = window.setTimeout(async () => {
 			try {
-				let t = await e().callWS({
+				let n = await e().callWS({
 					type: "hive_local/rooms/set_target",
-					room_id: i.id,
-					temperature: n
+					room_id: t.id,
+					temperature: r
 				});
-				if (t.failed.length) {
-					let e = i.valve_states.filter((e) => t.failed.includes(e.entity_id)).map((e) => e.name);
-					g(`Didn't take on ${e.join(", ")}. It may be asleep; try again shortly.`);
-				}
+				n.failed.length && l(h(n.failed));
 			} catch (e) {
-				g(b(e));
+				l(b(e));
 			} finally {
-				m(null);
+				a(null);
 			}
-		}, 700);
-	}, x = `${i.valves.length} valve${i.valves.length === 1 ? "" : "s"}`, S = i.temperature_source === "sensor" ? i.sensor_name : i.temperature_source === "valves" ? "Average of the valves" : "No reading", C = Ke(i);
-	return /* @__PURE__ */ (0, f.jsx)("div", {
-		className: "sheet-backdrop",
-		onClick: (e) => {
-			e.stopPropagation(), r();
-		},
-		children: /* @__PURE__ */ (0, f.jsxs)("div", {
-			className: "sheet heat room-sheet",
-			role: "dialog",
-			"aria-modal": "true",
-			"aria-label": i.name,
-			onClick: (e) => e.stopPropagation(),
-			children: [
-				/* @__PURE__ */ (0, f.jsx)("span", { className: "sheet-handle" }),
-				/* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "sheet-title",
-					children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: i.name }), /* @__PURE__ */ (0, f.jsx)("span", {
-						className: "muted",
-						children: [
-							i.boost ? `Boost · ${D(i.boost.remaining)} left` : i.heating ? "Heating" : "Idle",
-							n ? i.receiver_name : null,
-							x
-						].filter(Boolean).join(" · ")
-					})]
-				}),
-				/* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "sheet-live",
-					children: [/* @__PURE__ */ (0, f.jsx)(p, {
-						name: i.heating ? "fire" : "thermometer",
-						className: i.heating ? "heating" : ""
-					}), /* @__PURE__ */ (0, f.jsxs)("span", { children: [
-						/* @__PURE__ */ (0, f.jsx)("b", { children: i.current_temperature == null ? "–" : `${i.current_temperature.toFixed(1)}°` }),
-						" ",
-						/* @__PURE__ */ (0, f.jsx)("span", {
-							className: "muted",
-							children: S
-						})
-					] })]
-				}),
-				C && /* @__PURE__ */ (0, f.jsxs)("div", {
-					className: `room-sensor-note small ${C.warn ? "warn" : "muted"}`,
-					children: [
-						/* @__PURE__ */ (0, f.jsx)(p, { name: C.warn ? "thermometer-alert" : "thermometer-check" }),
-						" ",
-						C.text
-					]
-				}),
-				/* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "sheet-field",
+		}, 1200);
+	}, y = async (n) => {
+		s(!0), l("");
+		try {
+			let r = await e().callWS({
+				type: "hive_local/rooms/mode",
+				room_id: t.id,
+				mode: n
+			});
+			r.failed.length && l(h(r.failed));
+		} catch (e) {
+			l(b(e));
+		} finally {
+			s(!1);
+		}
+	}, x = He(t), S = t.boost ? "Keeps the boost's time left" : m === "off" ? "Turn the room on to set a target" : m === "schedule" ? "Until the valves' next scheduled change" : t.target_range && i == null ? `The valves are set to ${Be(t.target_range[0])}–${Be(t.target_range[1])}` : "Held until you change it";
+	return /* @__PURE__ */ (0, f.jsxs)("section", {
+		className: "card room-control",
+		children: [
+			x && /* @__PURE__ */ (0, f.jsxs)("div", {
+				className: `room-sensor-note small ${x.warn ? "warn" : "muted"}`,
+				children: [
+					/* @__PURE__ */ (0, f.jsx)(p, { name: x.warn ? "thermometer-alert" : "thermometer-check" }),
+					" ",
+					x.text
+				]
+			}),
+			/* @__PURE__ */ (0, f.jsxs)("div", {
+				className: "target-row",
+				children: [/* @__PURE__ */ (0, f.jsxs)("div", {
+					className: "target-text",
 					children: [/* @__PURE__ */ (0, f.jsx)("span", {
-						className: "sheet-label",
-						children: i.boost ? "Boost to (keeps the time left)" : i.target_range && d == null ? `Target (valves set to ${We(i.target_range[0])}–${We(i.target_range[1])})` : "Target"
-					}), /* @__PURE__ */ (0, f.jsxs)("div", {
-						className: "sheet-temp",
-						children: [
-							/* @__PURE__ */ (0, f.jsx)("button", {
-								className: "round sheet-step",
-								onClick: () => y(v - .5),
-								"aria-label": "Lower",
-								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "minus" })
-							}),
-							/* @__PURE__ */ (0, f.jsxs)("span", {
-								className: "sheet-temp-value",
-								children: [v.toFixed(1), "°"]
-							}),
-							/* @__PURE__ */ (0, f.jsx)("button", {
-								className: "round sheet-step",
-								onClick: () => y(v + .5),
-								"aria-label": "Raise",
-								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
-							})
-						]
+						className: "target-label",
+						children: t.boost ? "Boost to" : m === "off" ? "Off" : "Target"
+					}), /* @__PURE__ */ (0, f.jsx)("span", {
+						className: "muted small",
+						children: S
 					})]
-				}),
-				/* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "sheet-field",
-					children: [/* @__PURE__ */ (0, f.jsx)("span", {
-						className: "sheet-label",
-						children: "Valves"
-					}), /* @__PURE__ */ (0, f.jsx)("ul", {
-						className: "valves",
-						children: i.valve_states.map((e) => /* @__PURE__ */ (0, f.jsx)(Ge, {
-							valve: e,
-							heating: i.heating_valves.includes(e.entity_id)
-						}, e.entity_id))
-					})]
-				}),
-				h && /* @__PURE__ */ (0, f.jsx)("div", {
-					className: "status error",
-					children: h
-				}),
-				/* @__PURE__ */ (0, f.jsxs)("button", {
-					className: "room-sheet-row",
-					onClick: () => l(!0),
+				}), /* @__PURE__ */ (0, f.jsxs)("div", {
+					className: "target-control",
 					children: [
-						/* @__PURE__ */ (0, f.jsx)(p, { name: "calendar-clock-outline" }),
-						/* @__PURE__ */ (0, f.jsx)("span", { children: "Schedule on the valves" }),
-						/* @__PURE__ */ (0, f.jsx)("span", {
-							className: "chip unsaved",
-							children: "Experimental"
+						/* @__PURE__ */ (0, f.jsx)("button", {
+							className: "round target-btn",
+							disabled: !_,
+							onClick: () => v(g - .5),
+							"aria-label": "Lower the target",
+							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "minus" })
 						}),
-						/* @__PURE__ */ (0, f.jsx)(p, {
-							name: "chevron-right",
-							className: "slot-chev"
+						/* @__PURE__ */ (0, f.jsx)("span", {
+							className: `target-value ${i == null ? "" : "pending"}`,
+							children: _ ? `${g.toFixed(1)}°` : "–"
+						}),
+						/* @__PURE__ */ (0, f.jsx)("button", {
+							className: "round target-btn",
+							disabled: !_,
+							onClick: () => v(g + .5),
+							"aria-label": "Raise the target",
+							children: /* @__PURE__ */ (0, f.jsx)(p, { name: "plus" })
 						})
 					]
-				}),
-				/* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "room-sheet-actions",
-					children: [/* @__PURE__ */ (0, f.jsxs)("button", {
-						className: "ghost",
-						onClick: () => s(!0),
-						children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "pencil-outline" }), " Edit room"]
-					}), /* @__PURE__ */ (0, f.jsx)("button", {
-						className: "ghost sheet-cancel",
-						onClick: r,
-						children: "Close"
-					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, f.jsx)("div", {
+				className: "segmented full",
+				role: "radiogroup",
+				"aria-label": "Mode",
+				children: Je.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+					role: "radio",
+					"aria-checked": m === e.id,
+					className: m === e.id ? "on" : "",
+					disabled: o,
+					onClick: () => m !== e.id && y(e.id),
+					children: e.label
+				}, e.id))
+			}),
+			m === "schedule" && /* @__PURE__ */ (0, f.jsx)("p", {
+				className: "muted small room-mode-note",
+				children: "The valves follow the schedule kept on them (the Schedule tab). Experimental."
+			}),
+			m === "off" && /* @__PURE__ */ (0, f.jsx)("p", {
+				className: "muted small room-mode-note",
+				children: "A Hive valve can't switch off, so they're at their lowest, 5°. Their targets come back when you turn the room on."
+			}),
+			c && /* @__PURE__ */ (0, f.jsx)("div", {
+				className: "status error",
+				children: c
+			}),
+			/* @__PURE__ */ (0, f.jsxs)("div", {
+				className: "sheet-field",
+				children: [/* @__PURE__ */ (0, f.jsx)("span", {
+					className: "sheet-label",
+					children: "Valves"
+				}), /* @__PURE__ */ (0, f.jsx)("ul", {
+					className: "valves",
+					children: t.valve_states.map((e) => /* @__PURE__ */ (0, f.jsx)(Ve, {
+						valve: e,
+						heating: t.heating_valves.includes(e.entity_id)
+					}, e.entity_id))
+				})]
+			}),
+			/* @__PURE__ */ (0, f.jsx)("div", {
+				className: "room-sheet-actions",
+				children: /* @__PURE__ */ (0, f.jsxs)("button", {
+					className: "ghost",
+					onClick: () => r(!0),
+					children: [/* @__PURE__ */ (0, f.jsx)(p, { name: "pencil-outline" }), " Edit room"]
 				})
-			]
-		})
+			}),
+			n && /* @__PURE__ */ (0, f.jsx)(qe, {
+				getHass: e,
+				room: t,
+				onDone: () => r(!1),
+				dialog: !0
+			})
+		]
 	});
 }
-function $e(e) {
+function Ze(e) {
 	let t = e.toLowerCase();
 	return /lounge|living|sitting|family|snug/.test(t) ? "sofa-outline" : /bed|nursery|guest/.test(t) ? "bed-outline" : /kitchen|dining/.test(t) ? "silverware-fork-knife" : /landing|hall|stair/.test(t) ? "stairs" : /study|office/.test(t) ? "desk" : /bath|shower|en-?suite|wc|toilet/.test(t) ? "shower" : "home-thermometer-outline";
 }
-function et({ getHass: e, onDone: t }) {
+function Qe({ getHass: e, onDone: t }) {
 	let [n, r] = (0, u.useState)(null), [i, a] = (0, u.useState)(/* @__PURE__ */ new Map()), [o, s] = (0, u.useState)(/* @__PURE__ */ new Set()), [c, l] = (0, u.useState)({}), [d, m] = (0, u.useState)(!1), [h, g] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/suggest" }).then((e) => {
@@ -8699,7 +8540,7 @@ function et({ getHass: e, onDone: t }) {
 		let n = new Set(t);
 		return n.has(e) ? n.delete(e) : n.add(e), n;
 	});
-	return /* @__PURE__ */ (0, f.jsxs)(Ye, {
+	return /* @__PURE__ */ (0, f.jsxs)(Ge, {
 		dialog: !0,
 		label: "Set up your rooms",
 		onClose: t,
@@ -8760,7 +8601,7 @@ function et({ getHass: e, onDone: t }) {
 								}),
 								/* @__PURE__ */ (0, f.jsx)("span", {
 									className: "device-icon",
-									children: /* @__PURE__ */ (0, f.jsx)(p, { name: $e(e.name) })
+									children: /* @__PURE__ */ (0, f.jsx)(p, { name: Ze(e.name) })
 								})
 							]
 						}), _ && r && /* @__PURE__ */ (0, f.jsxs)("select", {
@@ -8802,8 +8643,260 @@ function et({ getHass: e, onDone: t }) {
 		]
 	});
 }
+// src/RoomSchedule.tsx
+var $e = {
+	max_transitions: 6,
+	heat_min: 5,
+	heat_max: 32,
+	boost_min_temp: 5,
+	boost_max_minutes: 360,
+	water_on: 22,
+	water_off: 1
+}, et = (e) => e[0].toUpperCase() + e.slice(1, 3);
+function tt(e) {
+	return e == null ? "its clock isn't set" : `its clock is ${Math.round(Math.abs(e) / 60)} min ${e < 0 ? "behind" : "ahead"}`;
+}
+function nt({ getHass: e, room: t, onClose: n, page: r }) {
+	let [i, a] = (0, u.useState)([]), [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)($e), [d, m] = (0, u.useState)(!1), [h, _] = (0, u.useState)(!1), [v, y] = (0, u.useState)(null);
+	(0, u.useEffect)(() => {
+		let e = (e) => !r && e.key === "Escape" && n?.();
+		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
+	}, [n, r]);
+	let x = (0, u.useMemo)(() => ({
+		noun: "valves",
+		embedded: !r,
+		onReading: _,
+		statusLine: "Kept on each valve, so it runs without Home Assistant. Saving writes the changed days to every valve in the room.",
+		read: async () => {
+			let n = await e().callWS({
+				type: "hive_local/rooms/schedule/get",
+				room_id: t.id
+			});
+			return a(n.valves), s(n.differs), l({
+				...$e,
+				...n.limits
+			}), n;
+		},
+		write: async (n) => {
+			let r = await e().callWS({
+				type: "hive_local/rooms/schedule/set",
+				room_id: t.id,
+				schedule: n
+			}), i = g.filter((e) => e in r.schedule).map(et).join(", "), a = r.valves.filter((e) => e.clock?.set).map((e) => e.name), o = r.valves.filter((e) => e.error), s = [o.length ? `Wrote ${i} to ${r.valves.length - o.length} of ${r.valves.length} valves. ${o.map((e) => `${e.name}: ${e.error}`).join(" ")}` : `Wrote ${i} to ${r.valves.length === 1 ? "the valve" : `all ${r.valves.length} valves`}. Read back to confirm they kept it.`, a.length ? `Set the clock on ${a.join(", ")}.` : ""];
+			return {
+				schedule: r.schedule,
+				note: s.filter(Boolean).join(" "),
+				error: o.length > 0
+			};
+		}
+	}), [e, t.id]), S = i.filter((e) => e.schedule_mode === !1), C = i.length > 0 && i.every((e) => e.schedule_mode === !0), w = async (n) => {
+		m(!0), y(null);
+		try {
+			let r = await e().callWS({
+				type: "hive_local/rooms/schedule/mode",
+				room_id: t.id,
+				enabled: n
+			}), o = i.filter((e) => r.failed.includes(e.entity_id)).map((e) => e.name);
+			o.length ? y({
+				kind: "error",
+				text: `Didn't take on ${o.join(", ")}. It may be asleep: press its dial to wake it and try again.`
+			}) : (y({
+				kind: "ok",
+				text: n ? "The valves now follow their schedule." : "The valves stay at their target now."
+			}), a((e) => e.map((e) => ({
+				...e,
+				schedule_mode: n
+			}))));
+		} catch (e) {
+			y({
+				kind: "error",
+				text: b(e)
+			});
+		} finally {
+			m(!1);
+		}
+	}, T = [];
+	for (let e of i) e.error ? T.push(`${e.name} didn't answer: ${e.error}`) : e.complete || T.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && T.push(`${e.name}: ${tt(e.clock.offset)}. It's set when you save.`);
+	o.length && i.length > 1 && T.push(`The valves have different times on ${o.map(et).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
+	let E = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
+		r ? /* @__PURE__ */ (0, f.jsx)("div", {
+			className: "room-schedule-head",
+			children: /* @__PURE__ */ (0, f.jsx)("span", {
+				className: "chip unsaved",
+				children: "Experimental"
+			})
+		}) : /* @__PURE__ */ (0, f.jsxs)("div", {
+			className: "room-schedule-head",
+			children: [
+				/* @__PURE__ */ (0, f.jsx)("button", {
+					className: "round ghost",
+					onClick: () => n?.(),
+					"aria-label": "Back to the room",
+					children: /* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-left" })
+				}),
+				/* @__PURE__ */ (0, f.jsxs)("div", {
+					className: "page-title",
+					children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: "Schedule" }), /* @__PURE__ */ (0, f.jsxs)("span", {
+						className: "muted small",
+						children: [
+							t.name,
+							" · ",
+							t.valves.length,
+							" valve",
+							t.valves.length === 1 ? "" : "s"
+						]
+					})]
+				}),
+				/* @__PURE__ */ (0, f.jsx)("span", {
+					className: "chip unsaved",
+					children: "Experimental"
+				})
+			]
+		}),
+		/* @__PURE__ */ (0, f.jsx)("p", {
+			className: "muted small room-schedule-note",
+			children: "Not yet tried on real Hive valves. The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times."
+		}),
+		i.length > 0 && /* @__PURE__ */ (0, f.jsxs)("div", {
+			className: "room-schedule-mode",
+			children: [
+				/* @__PURE__ */ (0, f.jsx)(p, { name: C ? "calendar-check-outline" : "calendar-remove-outline" }),
+				/* @__PURE__ */ (0, f.jsx)("span", {
+					className: "small room-schedule-mode-text",
+					children: C ? "The valves follow this schedule." : S.length ? `${S.length === i.length ? "The valves don't" : `${S.map((e) => e.name).join(", ")} doesn't`} follow a schedule: ${S.length === 1 ? "it stays" : "they stay"} at the target.` : "Couldn't tell whether the valves follow a schedule."
+				}),
+				/* @__PURE__ */ (0, f.jsx)("button", {
+					className: "ghost",
+					onClick: () => w(!C),
+					disabled: d || h,
+					children: C ? "Stop" : "Use it"
+				})
+			]
+		}),
+		v && /* @__PURE__ */ (0, f.jsx)("div", {
+			className: `status ${v.kind} small`,
+			children: v.text
+		}),
+		T.length > 0 && /* @__PURE__ */ (0, f.jsx)("ul", {
+			className: "room-schedule-notes small",
+			children: T.map((e) => /* @__PURE__ */ (0, f.jsx)("li", { children: e }, e))
+		}),
+		/* @__PURE__ */ (0, f.jsx)(le, {
+			getHass: e,
+			limits: c,
+			source: x
+		})
+	] });
+	return r ? /* @__PURE__ */ (0, f.jsx)("div", {
+		className: "room-schedule room-schedule-page",
+		children: E
+	}) : /* @__PURE__ */ (0, f.jsx)("div", {
+		className: "sheet-backdrop",
+		onClick: (e) => {
+			e.stopPropagation(), n?.();
+		},
+		children: /* @__PURE__ */ (0, f.jsxs)("div", {
+			className: "sheet heat room-sheet room-schedule",
+			role: "dialog",
+			"aria-modal": "true",
+			"aria-label": `${t.name} schedule`,
+			onClick: (e) => e.stopPropagation(),
+			children: [/* @__PURE__ */ (0, f.jsx)("span", { className: "sheet-handle" }), E]
+		})
+	});
+}
+// src/RoomPage.tsx
+var rt = [
+	{
+		id: "control",
+		label: "Control"
+	},
+	{
+		id: "schedule",
+		label: "Schedule"
+	},
+	{
+		id: "history",
+		label: "History"
+	}
+];
+function it({ getHass: e, roomId: t, devices: n, status: r, limits: i, tab: a, onTab: o, onBack: s }) {
+	let [c, l] = (0, u.useState)(null), [d, m] = (0, u.useState)(!1);
+	(0, u.useEffect)(() => {
+		let n = e().connection.subscribeMessage((e) => {
+			let n = e.rooms.find((e) => e.id === t) ?? null;
+			l(n), m(!n);
+		}, { type: "hive_local/rooms/subscribe" });
+		return () => {
+			n.then((e) => e()).catch(() => {});
+		};
+	}, [e, t]), (0, u.useEffect)(() => {
+		d && s();
+	}, [d, s]);
+	let [h, g] = (0, u.useState)(a === "schedule");
+	if ((0, u.useEffect)(() => {
+		a === "schedule" && g(!0);
+	}, [a]), !c) return null;
+	let _ = n.length > 1, v = r[c.receiver ?? n[0]?.entry_id ?? ""]?.heat, y = [_ ? c.receiver_name : null, Ye(c)].filter(Boolean).join(" · ");
+	return /* @__PURE__ */ (0, f.jsxs)("div", {
+		className: "device-page room-page",
+		children: [
+			/* @__PURE__ */ (0, f.jsxs)("div", {
+				className: "page-head",
+				children: [/* @__PURE__ */ (0, f.jsx)("button", {
+					className: "round ghost",
+					onClick: s,
+					"aria-label": "Back to the overview",
+					children: /* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-left" })
+				}), /* @__PURE__ */ (0, f.jsxs)("div", {
+					className: "page-title",
+					children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: c.name }), /* @__PURE__ */ (0, f.jsx)("span", {
+						className: "muted small",
+						children: y
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, f.jsx)("div", {
+				className: "page-tabs",
+				role: "tablist",
+				children: rt.map((e) => /* @__PURE__ */ (0, f.jsx)("button", {
+					role: "tab",
+					"aria-selected": e.id === a,
+					className: e.id === a ? "on" : "",
+					onClick: () => o(e.id),
+					children: e.label
+				}, e.id))
+			}),
+			a === "control" && /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsx)(N, {
+				getHass: e,
+				room: c,
+				showReceiver: !1,
+				limits: i,
+				defaultMinutes: v?.boost_minutes ?? 60,
+				defaultTemp: v?.boost_temperature ?? 21,
+				page: !0
+			}), /* @__PURE__ */ (0, f.jsx)(Xe, {
+				getHass: e,
+				room: c
+			})] }),
+			h && /* @__PURE__ */ (0, f.jsx)("div", {
+				hidden: a !== "schedule",
+				children: /* @__PURE__ */ (0, f.jsx)(nt, {
+					getHass: e,
+					room: c,
+					page: !0
+				})
+			}),
+			a === "history" && /* @__PURE__ */ (0, f.jsx)(Se, {
+				getHass: e,
+				devices: n,
+				roomId: c.id
+			})
+		]
+	});
+}
 // src/Settings.tsx
-function tt({ getHass: e, devices: t, status: n }) {
+function at({ getHass: e, devices: t, status: n }) {
 	let [r, i] = (0, u.useState)(null), [a, o] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/settings" }).then(i).catch((e) => o(b(e)));
@@ -8865,40 +8958,40 @@ function tt({ getHass: e, devices: t, status: n }) {
 					})
 				})]
 			}),
-			r && /* @__PURE__ */ (0, f.jsx)(at, {
+			r && /* @__PURE__ */ (0, f.jsx)(lt, {
 				data: r,
 				save: s
 			}),
-			/* @__PURE__ */ (0, f.jsx)(st, { getHass: e }),
+			/* @__PURE__ */ (0, f.jsx)(dt, { getHass: e }),
 			t.map((r) => /* @__PURE__ */ (0, f.jsxs)("section", {
 				className: "settings-section",
 				children: [/* @__PURE__ */ (0, f.jsx)("h3", { children: t.length > 1 ? r.name : "Receiver" }), /* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "settings-group",
-					children: [r.channels.map((t) => /* @__PURE__ */ (0, f.jsx)(ut, {
+					children: [r.channels.map((t) => /* @__PURE__ */ (0, f.jsx)(mt, {
 						getHass: e,
 						device: r,
 						channel: t,
 						info: n[r.entry_id]?.[t]
-					}, t)), n[r.entry_id]?.heat?.demand && /* @__PURE__ */ (0, f.jsx)(ft, {
+					}, t)), n[r.entry_id]?.heat?.demand && /* @__PURE__ */ (0, f.jsx)(gt, {
 						getHass: e,
 						device: r,
 						info: n[r.entry_id].heat.demand
 					})]
 				})]
 			}, r.entry_id)),
-			/* @__PURE__ */ (0, f.jsx)(rt, { getHass: e })
+			/* @__PURE__ */ (0, f.jsx)(st, { getHass: e })
 		]
 	});
 }
-var nt = (e, t, n = `${t}s`) => `${e} ${e === 1 ? t : n}`;
-function rt({ getHass: e }) {
+var ot = (e, t, n = `${t}s`) => `${e} ${e === 1 ? t : n}`;
+function st({ getHass: e }) {
 	let [t, n] = (0, u.useState)(null), [r, i] = (0, u.useState)(!1), [a, o] = (0, u.useState)(""), s = (t) => {
 		i(!0), e().callWS({ type: t }).then((e) => {
 			n(e), o("");
 		}).catch((e) => o(b(e))).finally(() => i(!1));
 	};
 	if ((0, u.useEffect)(() => s("hive_local/tidy"), [e]), !t || !t.receiver.length && !t.valves.length) return null;
-	let c = [t.receiver.length ? `${nt(t.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${t.receiver.length === 1 ? "is" : "are"} disabled` : null, t.valves.length ? `${nt(t.valves.length, "room valve")} ${t.valves.length === 1 ? "is" : "are"} hidden` : null].filter(Boolean), l = t.pending ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them." : `Done: ${c.join(", and ")}. Switch any back in their entity settings, or Undo.`;
+	let c = [t.receiver.length ? `${ot(t.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${t.receiver.length === 1 ? "is" : "are"} disabled` : null, t.valves.length ? `${ot(t.valves.length, "room valve")} ${t.valves.length === 1 ? "is" : "are"} hidden` : null].filter(Boolean), l = t.pending ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them." : `Done: ${c.join(", and ")}. Switch any back in their entity settings, or Undo.`;
 	return /* @__PURE__ */ (0, f.jsxs)("section", {
 		className: "settings-section",
 		children: [
@@ -8943,7 +9036,7 @@ function rt({ getHass: e }) {
 		]
 	});
 }
-var it = [
+var ct = [
 	6,
 	9,
 	12,
@@ -8960,11 +9053,11 @@ var it = [
 	45,
 	50
 ];
-function at({ data: e, save: t }) {
+function lt({ data: e, save: t }) {
 	let [n, r] = (0, u.useState)(null), i = (0, u.useRef)(null), a = (0, u.useRef)(), o = e.boiler_kw, s = (e) => {
 		if (o == null) return t({ boiler_kw: 24 });
-		t({ boiler_kw: (e > 0 ? it.find((e) => e > o) : [...it].reverse().find((e) => e < o)) ?? o });
-	}, c = ot[e.currency], l = n ?? e.fixed_price, d = (n, o = 0) => {
+		t({ boiler_kw: (e > 0 ? ct.find((e) => e > o) : [...ct].reverse().find((e) => e < o)) ?? o });
+	}, c = ut[e.currency], l = n ?? e.fixed_price, d = (n, o = 0) => {
 		let s = i.current ?? e.fixed_price ?? .06, c = o > 15 ? .001 : 1e-4, l = Math.max(0, Math.round((n > 0 ? Math.floor(s / c + 1e-6) + 1 : Math.ceil(s / c - 1e-6) - 1) * c * 1e4) / 1e4);
 		i.current = l, r(l), window.clearTimeout(a.current), a.current = window.setTimeout(() => {
 			t({
@@ -9031,7 +9124,7 @@ function at({ data: e, save: t }) {
 							}),
 							/* @__PURE__ */ (0, f.jsxs)("div", {
 								className: "settings-controls",
-								children: [/* @__PURE__ */ (0, f.jsx)(pt, {
+								children: [/* @__PURE__ */ (0, f.jsx)(_t, {
 									value: o == null ? "Not set" : `${o.toLocaleString()} kW`,
 									onLower: () => s(-1),
 									onRaise: () => s(1)
@@ -9106,7 +9199,7 @@ function at({ data: e, save: t }) {
 							}),
 							/* @__PURE__ */ (0, f.jsx)("div", {
 								className: "settings-controls",
-								children: /* @__PURE__ */ (0, f.jsx)(pt, {
+								children: /* @__PURE__ */ (0, f.jsx)(_t, {
 									value: l == null ? "–" : c ? `${(l * 100).toFixed(2)}${c}` : ge(l, e.currency),
 									onLower: (e) => d(-1, e),
 									onRaise: (e) => d(1, e),
@@ -9120,7 +9213,7 @@ function at({ data: e, save: t }) {
 		]
 	});
 }
-var ot = {
+var ut = {
 	GBP: "p",
 	EUR: "c",
 	USD: "¢",
@@ -9129,7 +9222,7 @@ var ot = {
 	NZD: "c",
 	IEP: "p"
 };
-function st({ getHass: e }) {
+function dt({ getHass: e }) {
 	let [t, n] = (0, u.useState)(null), [r, i] = (0, u.useState)([]), [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)(!1), [l, d] = (0, u.useState)(0);
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/rooms/suggest" }).then((e) => d(e.rooms.length)).catch(() => {});
@@ -9210,11 +9303,11 @@ function st({ getHass: e }) {
 					})
 				]
 			}),
-			s && /* @__PURE__ */ (0, f.jsx)(et, {
+			s && /* @__PURE__ */ (0, f.jsx)(Qe, {
 				getHass: e,
 				onDone: () => c(!1)
 			}),
-			a && /* @__PURE__ */ (0, f.jsx)(Xe, {
+			a && /* @__PURE__ */ (0, f.jsx)(Ke, {
 				getHass: e,
 				room: a === "new" ? void 0 : t?.find((e) => e.id === a),
 				onDone: () => o(null)
@@ -9222,7 +9315,7 @@ function st({ getHass: e }) {
 		]
 	});
 }
-var ct = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, lt = [
+var ft = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60} min` : `${e / 60} h`, pt = [
 	15,
 	30,
 	45,
@@ -9233,7 +9326,7 @@ var ct = (e) => e < 60 ? `${e} min` : e % 60 ? `${Math.floor(e / 60)} h ${e % 60
 	240,
 	360
 ];
-function ut({ getHass: e, device: t, channel: n, info: r }) {
+function mt({ getHass: e, device: t, channel: n, info: r }) {
 	let [i, a] = (0, u.useState)(null), o = (0, u.useRef)(), s = i ?? r;
 	if (!s) return null;
 	let c = (r, i) => {
@@ -9250,8 +9343,8 @@ function ut({ getHass: e, device: t, channel: n, info: r }) {
 			}).finally(() => a(null));
 		}, 800);
 	}, l = (e) => {
-		let t = lt.findIndex((e) => e >= s.boost_minutes), n = t < 0 ? lt.length - 1 : t;
-		return lt[Math.min(lt.length - 1, Math.max(0, n + e))];
+		let t = pt.findIndex((e) => e >= s.boost_minutes), n = t < 0 ? pt.length - 1 : t;
+		return pt[Math.min(pt.length - 1, Math.max(0, n + e))];
 	}, d = n === "water";
 	return /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [/* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "settings-row",
@@ -9269,12 +9362,12 @@ function ut({ getHass: e, device: t, channel: n, info: r }) {
 			}),
 			/* @__PURE__ */ (0, f.jsxs)("div", {
 				className: "settings-controls",
-				children: [/* @__PURE__ */ (0, f.jsx)(pt, {
+				children: [/* @__PURE__ */ (0, f.jsx)(_t, {
 					label: "How long",
-					value: ct(s.boost_minutes),
+					value: ft(s.boost_minutes),
 					onLower: () => c("boost_minutes", l(-1)),
 					onRaise: () => c("boost_minutes", l(1))
-				}), !d && /* @__PURE__ */ (0, f.jsx)(pt, {
+				}), !d && /* @__PURE__ */ (0, f.jsx)(_t, {
 					label: "Temperature",
 					value: `${s.boost_temperature.toFixed(1)}°`,
 					onLower: () => c("boost_temperature", Math.max(5, s.boost_temperature - .5)),
@@ -9298,7 +9391,7 @@ function ut({ getHass: e, device: t, channel: n, info: r }) {
 			}),
 			/* @__PURE__ */ (0, f.jsx)("div", {
 				className: "settings-controls",
-				children: /* @__PURE__ */ (0, f.jsx)(pt, {
+				children: /* @__PURE__ */ (0, f.jsx)(_t, {
 					value: `${s.frost_temperature.toFixed(1)}°`,
 					onLower: () => c("frost_temperature", Math.max(5, s.frost_temperature - .5)),
 					onRaise: () => c("frost_temperature", Math.min(16, s.frost_temperature + .5))
@@ -9307,7 +9400,7 @@ function ut({ getHass: e, device: t, channel: n, info: r }) {
 		]
 	})] });
 }
-var dt = {
+var ht = {
 	warm: "On. The rooms are warm.",
 	no_rooms: "On, but no room has recent valve readings.",
 	stopped: "Stopped for now: it starts again once the rooms are warm.",
@@ -9318,8 +9411,8 @@ var dt = {
 	preheat: "On. Pre-heating comes first.",
 	waiting: "On. The boiler rests a few minutes between requests."
 };
-function ft({ getHass: e, device: t, info: n }) {
-	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = n.enabled ? n.active ? `On. Heating for ${E(n.rooms)} now.` : dt[n.reason ?? ""] ?? "On." : "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does.", s = (e, t, n) => /* @__PURE__ */ (0, f.jsx)("div", {
+function gt({ getHass: e, device: t, info: n }) {
+	let { busy: r, result: i, send: a } = x(e, t.entry_id, "heat"), o = n.enabled ? n.active ? `On. Heating for ${E(n.rooms)} now.` : ht[n.reason ?? ""] ?? "On." : "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does.", s = (e, t, n) => /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "segmented",
 		role: "radiogroup",
 		"aria-label": n,
@@ -9382,8 +9475,8 @@ function ft({ getHass: e, device: t, info: n }) {
 		})
 	] });
 }
-function pt({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
-	let a = mt(n, i), o = mt(r, i);
+function _t({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
+	let a = vt(n, i), o = vt(r, i);
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "adjust",
 		children: [e && /* @__PURE__ */ (0, f.jsx)("span", {
@@ -9412,7 +9505,7 @@ function pt({ label: e, value: t, onLower: n, onRaise: r, hold: i }) {
 		})]
 	});
 }
-function mt(e, t) {
+function vt(e, t) {
 	let n = (0, u.useRef)(e);
 	n.current = e;
 	let r = (0, u.useRef)(), i = () => window.clearTimeout(r.current);
@@ -9435,7 +9528,7 @@ function mt(e, t) {
 	} : { onClick: () => e(0) };
 }
 // src/App.tsx
-var ht = [
+var yt = [
 	{
 		id: "overview",
 		label: "Overview",
@@ -9457,7 +9550,7 @@ var ht = [
 		icon: "tune-variant"
 	}
 ];
-function gt({ getHass: e, narrow: t, onToggleMenu: n }) {
+function I({ getHass: e, narrow: t, onToggleMenu: n }) {
 	let [r, i] = (0, u.useState)([]), [a, o] = (0, u.useState)(null), [s, c] = (0, u.useState)({}), [l, d] = (0, u.useState)("overview"), [m, g] = (0, u.useState)(null), [_, v] = (0, u.useState)("control"), [y, x] = (0, u.useState)(null), [S, C] = (0, u.useState)("");
 	(0, u.useEffect)(() => {
 		e().callWS({ type: "hive_local/devices" }).then((e) => {
@@ -9468,14 +9561,16 @@ function gt({ getHass: e, narrow: t, onToggleMenu: n }) {
 			t.then((e) => e()).catch(() => {});
 		};
 	}, [e]);
-	let w = (e, t) => {
+	let w = (e) => {
+		x(e), v("control");
+	}, T = (0, u.useCallback)(() => x(null), []), E = (e, t) => {
 		g({
 			entry: e,
 			channel: t
 		}), v("control");
-	}, T = (e) => {
+	}, D = (e) => {
 		d(e), g(null), x(null);
-	}, E = m && r.find((e) => e.entry_id === m.entry);
+	}, O = m && r.find((e) => e.entry_id === m.entry);
 	return /* @__PURE__ */ (0, f.jsxs)("div", {
 		className: "panel",
 		children: [/* @__PURE__ */ (0, f.jsx)("header", { children: /* @__PURE__ */ (0, f.jsxs)("div", {
@@ -9494,11 +9589,11 @@ function gt({ getHass: e, narrow: t, onToggleMenu: n }) {
 				/* @__PURE__ */ (0, f.jsx)("nav", {
 					className: "tabs",
 					role: "tablist",
-					children: ht.map((e) => /* @__PURE__ */ (0, f.jsxs)("button", {
+					children: yt.map((e) => /* @__PURE__ */ (0, f.jsxs)("button", {
 						role: "tab",
 						"aria-selected": e.id === l,
 						className: e.id === l ? "on" : "",
-						onClick: () => T(e.id),
+						onClick: () => D(e.id),
 						children: [/* @__PURE__ */ (0, f.jsx)(p, { name: e.icon }), /* @__PURE__ */ (0, f.jsx)("span", { children: e.label })]
 					}, e.id))
 				})
@@ -9512,53 +9607,56 @@ function gt({ getHass: e, narrow: t, onToggleMenu: n }) {
 				className: "empty-state",
 				children: [/* @__PURE__ */ (0, f.jsx)(h, { size: 56 }), /* @__PURE__ */ (0, f.jsx)("p", { children: "No receivers yet. Add one under Settings → Devices & services → Add integration → Hive Local." })]
 			}),
-			E && a ? /* @__PURE__ */ (0, f.jsx)(ke, {
+			O && a ? /* @__PURE__ */ (0, f.jsx)(ke, {
 				getHass: e,
-				device: E,
+				device: O,
 				channel: m.channel,
-				info: s[E.entry_id]?.[m.channel],
+				info: s[O.entry_id]?.[m.channel],
 				limits: a,
 				showDevice: r.length > 1,
 				tab: _,
 				onTab: v,
 				onBack: () => g(null)
-			}, `${m.entry}-${m.channel}`) : /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
-				l === "overview" && /* @__PURE__ */ (0, f.jsx)(ee, {
+			}, `${m.entry}-${m.channel}`) : y ? /* @__PURE__ */ (0, f.jsx)(it, {
+				getHass: e,
+				roomId: y,
+				devices: r,
+				status: s,
+				limits: a,
+				tab: _,
+				onTab: v,
+				onBack: T
+			}, y) : /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
+				l === "overview" && /* @__PURE__ */ (0, f.jsx)(A, {
 					getHass: e,
 					devices: r,
 					status: s,
 					limits: a,
-					onOpenDevice: w,
-					onOpenRoom: x
+					onOpenDevice: E,
+					onOpenRoom: w
 				}),
 				l === "devices" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Me, {
 					getHass: e,
 					devices: r,
 					status: s,
 					limits: a,
-					onOpenDevice: w
+					onOpenDevice: E
 				}),
 				l === "stats" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(Se, {
 					getHass: e,
 					devices: r
 				}),
-				l === "settings" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(tt, {
+				l === "settings" && r.length > 0 && /* @__PURE__ */ (0, f.jsx)(at, {
 					getHass: e,
 					devices: r,
 					status: s
 				})
-			] }),
-			y && /* @__PURE__ */ (0, f.jsx)(Qe, {
-				getHass: e,
-				roomId: y,
-				several: r.length > 1,
-				onClose: () => x(null)
-			})
+			] })
 		] })]
 	});
 }
 // src/styles.ts
-var _t = "\n:host {\n  /* One accent for everything that's on or active (heating, hot water, boosting, the selected tab):\n     HA's heating orange. Heating and hot water share it. */\n  --hl-brand: var(--state-climate-heat-color, #ff8100);\n  --hl-heat: var(--hl-brand);\n  /* Main buttons and selected chips use the accent too, not HA's blue. */\n  --hl-accent: var(--hl-brand);\n  --hl-water: var(--hl-brand);\n  --hl-idle: var(--secondary-text-color, #727272);\n  --hl-off: var(--disabled-text-color, #9e9e9e);\n  --hl-off-fill: color-mix(in srgb, var(--secondary-text-color, #888) 18%, transparent);\n  --hl-radius: 18px;\n  --hl-soft: color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent);\n  display: block; height: 100%;\n  background: var(--primary-background-color);\n  color: var(--primary-text-color);\n  font-family: var(--ha-font-family-body, var(--paper-font-body1_-_font-family, Roboto, sans-serif));\n  -webkit-font-smoothing: antialiased;\n}\n* { box-sizing: border-box; }\n.panel { min-height: 100%; background: var(--primary-background-color); }\n.icon-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; --mdc-icon-size: 20px; }\n.spacer { flex: 1; }\n.muted { color: var(--secondary-text-color); font-size: 14px; }\n.small { font-size: 12px; }\n\n/* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */\nheader { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }\n/* In the companion app HA already places the panel below the status bar / Dynamic Island,\n   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own\n   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */\nheader::before { content: \"\"; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }\n.toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }\n.brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }\n.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }\n.logo-mark { display: block; flex: none; }\n.empty-state .logo-mark { opacity: .9; }\n.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; margin-right: -10px; border-radius: 50%; }\n.toolbar-row .menu:hover { background: rgba(255,255,255,.12); }\n/* Pills. flex-shrink 0: when they don't fit beside the logo, the tabs wrap onto their own row instead of squashing. */\n.tabs { display: flex; align-items: center; gap: 4px; flex: 1 0 auto; padding: 10px 0; margin: 0 -8px 0 -4px; overflow-x: auto; scrollbar-width: none; }\n.tabs::-webkit-scrollbar { display: none; }\n.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; opacity: .75; padding: 0 14px; font-weight: 500; letter-spacing: .01em; }\n.tabs button:hover:not(:disabled) { opacity: .95; background: color-mix(in srgb, currentColor 7%, transparent); }\n.tabs button:active:not(:disabled) { transform: none; }\n.tabs button.on, .tabs button.on:hover:not(:disabled) { opacity: 1; background: color-mix(in srgb, currentColor 13%, transparent); }\n.tabs .icon-wrap { --mdc-icon-size: 18px; }\n\nmain { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }\n.stack { display: flex; flex-direction: column; gap: 16px; }\n\n/* Cards */\n.card { background: var(--card-background-color); border-radius: var(--hl-radius); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }\n.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n.title { display: flex; align-items: center; gap: 12px; }\n.title-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; --mdc-icon-size: 22px; color: var(--secondary-text-color); background: var(--hl-soft); }\n.card.heat { --hl-accent: var(--hl-heat); }\n.card.water { --hl-accent: var(--hl-water); }\nh2 { font-size: 18px; font-weight: 500; margin: 0; }\nh3 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--secondary-text-color); margin: 6px 0 -4px; }\n\n/* Controls */\nbutton { font: inherit; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); cursor: pointer; transition: background .15s, border-color .15s, opacity .15s, transform .1s; }\nbutton:hover:not(:disabled) { background: var(--hl-soft); }\nbutton:active:not(:disabled) { transform: scale(.98); }\nbutton:disabled { opacity: .45; cursor: default; }\nbutton:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }\nbutton.primary { background: var(--hl-accent, var(--primary-color)); color: var(--text-primary-color, #fff); border-color: transparent; }\nbutton.primary:hover:not(:disabled) { background: var(--hl-accent, var(--primary-color)); filter: brightness(1.08); }\nbutton.ghost { border-color: transparent; background: transparent; color: var(--secondary-text-color); padding-right: 6px; }\nbutton.round { width: 36px; height: 36px; padding: 0; border-radius: 50%; }\nbutton.danger { color: var(--error-color); border-color: transparent; background: transparent; }\nselect, input[type=time], input[type=text] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }\n.toolbar, .actions, .inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }\n.inline-row { gap: 12px; }\n\n.segmented { display: inline-flex; padding: 3px; gap: 3px; border-radius: 12px; background: var(--hl-soft); }\n.segmented.full { display: flex; }\n.segmented.full button { flex: 1; }\n.segmented button { border: 0; border-radius: 9px; background: transparent; padding: 7px 12px; color: var(--secondary-text-color); }\n.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); font-weight: 500; }\n.segmented .raw { padding: 7px 10px; }\n\n.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--secondary-text-color); white-space: nowrap; }\n.chip .icon-wrap { --mdc-icon-size: 14px; }\n.chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }\n.chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }\n.channel-switch { align-self: flex-start; }\n.channel-switch .icon-wrap { --mdc-icon-size: 18px; }\n.chips { display: flex; flex-wrap: wrap; gap: 8px; }\n.chip-btn { border-radius: 999px; padding: 6px 14px; }\n.chip-btn.on { background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 16%, transparent); border-color: var(--hl-accent, var(--primary-color)); color: var(--hl-accent, var(--primary-color)); font-weight: 500; }\n\n.status { padding: 10px 14px; border-radius: 10px; font-size: 14px; background: var(--hl-soft); }\n.status.ok { background: color-mix(in srgb, var(--success-color, #43a047) 14%, transparent); }\n.status.error { background: color-mix(in srgb, var(--error-color, #db4437) 14%, transparent); color: var(--error-color); }\n.status.busy { opacity: .8; }\n\n.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 48px 16px; color: var(--secondary-text-color); }\n.empty-state .icon-wrap { --mdc-icon-size: 48px; opacity: .5; }\n\n/* Overview: quick actions, filter pills and device cards */\n.home { display: flex; flex-direction: column; gap: 12px; }\n.home-section { font-size: 19px; font-weight: 700; letter-spacing: -.01em; text-transform: none; letter-spacing: 0; color: var(--primary-text-color); margin: 6px 0 0; }\n.quick { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; }\n.quick::-webkit-scrollbar { display: none; }\n.quick-action { flex: none; padding: 0; gap: 0; border-radius: 14px; overflow: hidden; align-items: stretch; background: var(--card-background-color); }\n.quick-icon { padding-left: 14px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); }\n.quick-icon .icon-wrap { --mdc-icon-size: 22px; }\n.quick-label { padding: 14px 16px 14px 10px; white-space: nowrap; }\n.pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }\n.pills::-webkit-scrollbar { display: none; }\n.pill { flex: none; border-radius: 999px; padding: 8px 16px; background: var(--card-background-color); }\n.pill .icon-wrap { --mdc-icon-size: 18px; }\n.pill.on, .pill.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; border-color: transparent; font-weight: 500; }\n/* Cards in a row share its height. */\n.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: stretch; }\n.card.device { padding: 0; gap: 0; overflow: hidden; height: 100%; }\n.device-head { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 20px; cursor: pointer; outline: none; transition: background .15s; }\n.device-head:hover { background: color-mix(in srgb, var(--primary-text-color) 3%, transparent); }\n.device-head:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color); }\n.device-row { display: flex; align-items: center; gap: 12px; }\n/* Our own icon tile: a rounded square with the logo's warm gradient (not a diamond). */\n/* Icons: grey, in a shaded rounded box. */\n.device-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); background: var(--hl-soft); }\n.device-icon .icon-wrap { --mdc-icon-size: 22px; }\n.device-name { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; font-weight: 500; }\n.device-name .small { font-weight: 400; }\n.device-status { font-size: 14px; color: var(--secondary-text-color); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }\n.device-status b { color: var(--primary-text-color); font-weight: 600; }\n.status-icon { --mdc-icon-size: 18px; color: var(--hl-heat); }\n.water .status-icon { color: var(--hl-water); }\n.device-big { flex: 1; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; }\n.device-big span { font-size: 30px; line-height: 1.1; }\n.device-big small { grid-column: 1 / -1; font-size: 13px; letter-spacing: 0; color: var(--secondary-text-color); margin-top: 4px; font-weight: 400; }\n.device-action { min-width: 120px; height: 50px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 500; color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 12%, transparent); }\n.device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }\n.device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }\n.status-icon.done { color: var(--success-color, #43a047); }\n.status-icon.away { color: var(--secondary-text-color); }\n.stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }\n.device.heat { --hl-accent: var(--hl-heat); }\n.device.water { --hl-accent: var(--hl-water); }\n.device-name .warn { color: var(--warning-color, #ffa600); font-weight: 500; }\n\n\n.device-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; border-top: 1px solid var(--divider-color); }\n.schedule-link { align-self: center; }\n\n/* Boost sheet: slides up from the bottom on phones, a centred dialog on wider screens */\n.sheet-backdrop { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); animation: hl-fade .15s ease-out; }\n.sheet { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; padding: 14px 20px 18px; border-radius: 24px; background: var(--card-background-color); color: var(--primary-text-color); }\n.sheet.heat { --hl-accent: var(--hl-heat); }\n.sheet.water { --hl-accent: var(--hl-water); }\n.sheet-handle { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--divider-color); }\n.sheet-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }\n.sheet-title h2 { font-size: 24px; }\n.sheet-field { display: flex; flex-direction: column; gap: 10px; }\n.sheet-label { font-size: 14px; color: var(--secondary-text-color); }\n.sheet-temp { display: flex; align-items: center; gap: 12px; }\n.sheet-step { width: 52px; height: 52px; flex: none; border-color: var(--divider-color); }\n.sheet-step .icon-wrap { --mdc-icon-size: 24px; }\n.sheet-temp-value { flex: 1; text-align: center; padding: 14px 0; border-radius: 18px; color: #fff; font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; background: linear-gradient(135deg, #FF9F43, #F0532B); }\n.sheet-lengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }\n.sheet-lengths button { height: 46px; padding: 0 6px; border-radius: 12px; }\n.sheet-lengths button.on, .sheet-lengths button.on:hover:not(:disabled) { background: var(--hl-accent); border-color: transparent; color: #fff; font-weight: 500; }\n.sheet-live { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; padding: 8px 0; }\n.sheet-live .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); }\n.sheet-go { height: 52px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 600; color: #fff; background: var(--hl-accent); }\n.sheet-go:hover:not(:disabled) { background: var(--hl-accent); filter: brightness(1.06); }\n.sheet-go.stop { color: var(--error-color, #db4437); background: color-mix(in srgb, var(--error-color, #db4437) 12%, transparent); }\n.sheet-cancel { align-self: center; padding: 8px 16px; font-size: 15px; }\n@keyframes hl-fade { from { opacity: 0; } }\n@keyframes hl-rise { from { transform: translateY(40px); opacity: 0; } }\n\n/* Device controls (opened from a card) */\n.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }\n.channel { gap: 16px; }\n.holiday-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--hl-soft); }\n.holiday-row > .icon-wrap { --mdc-icon-size: 20px; color: var(--secondary-text-color); }\n.holiday-text { flex: 1; }\n.holiday-row > button { padding: 6px 12px; }\n.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }\n.target-text { display: flex; flex-direction: column; gap: 2px; }\n.target-label { font-size: 16px; font-weight: 500; }\n.target-control { display: inline-flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.target-btn { width: 44px; height: 44px; background: var(--card-background-color); }\n.target-btn .icon-wrap { --mdc-icon-size: 22px; }\n.target-value { min-width: 76px; text-align: center; font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }\n.target-value.pending { color: var(--hl-heat); }\n.card-actions { display: flex; align-items: center; gap: 8px; }\n\n.stepper { background: var(--card-background-color); }\n.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }\n.stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }\n.stepper button.round:hover { background: var(--card-background-color); }\n.stepper-value { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }\n\n/* Schedule: a status line, a strip of day circles, and the day's time slots */\n.sched { display: flex; flex-direction: column; gap: 14px; position: relative; padding-bottom: 72px; }\n\n.sched-status { margin: 0; font-size: 14px; }\n.sched-days { display: flex; justify-content: space-between; gap: 4px; padding: 12px 10px; border-radius: 16px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.sched-day { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: transparent; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }\n.sched-day:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.sched-day.today { border-color: var(--hl-brand); color: var(--hl-brand); }\n.sched-day.on, .sched-day.on:hover:not(:disabled) { background: var(--hl-brand); border-color: var(--hl-brand); color: #fff; }\n.sched-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning-color, #ffa600); border: 2px solid var(--card-background-color); }\n.sched-list { display: flex; flex-direction: column; gap: 4px; }\n.sched-empty { margin: 8px 4px; }\n.slot { justify-content: flex-start; gap: 18px; padding: 10px 8px; border: 0; border-radius: 16px; background: transparent; text-align: left; }\n.slot:hover:not(:disabled) { background: var(--hl-soft); }\n.slot-badge { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid var(--hl-brand); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; color: var(--primary-text-color); font-variant-numeric: tabular-nums; }\n.slot-badge.off { border-color: var(--divider-color); color: var(--secondary-text-color); }\n.slot-badge.off .icon-wrap, .slot-badge.add .icon-wrap { --mdc-icon-size: 24px; }\n.slot-badge.add { border: 2px dashed var(--divider-color); color: var(--secondary-text-color); }\n.slot-time { flex: 1; font-size: 20px; font-variant-numeric: tabular-nums; }\n.slot-add .slot-time { font-size: 16px; color: var(--secondary-text-color); }\n.slot-chev { color: var(--secondary-text-color); }\n/* Unwritten changes: a dark bar across the bottom, above the tab bar on phones. */\n.sched-save { position: sticky; bottom: 16px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--primary-text-color); color: var(--card-background-color); }\n.sched-save-icon { --mdc-icon-size: 20px; opacity: .8; }\n.sched-undo { border: 0; background: transparent; color: inherit; opacity: .8; padding: 10px 12px; }\n.sched-undo:hover:not(:disabled) { background: color-mix(in srgb, var(--card-background-color) 12%, transparent); opacity: 1; }\n.sched-write { border: 0; border-radius: 12px; padding: 10px 20px; background: var(--hl-brand); color: #fff; font-weight: 600; }\n.sched-write:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab-wrap.raised { bottom: 96px; }\n.sched-changed { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }\n.fab-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 4; }\n.fab { width: 56px; height: 56px; padding: 0; border-radius: 50%; border: 0; background: var(--hl-brand); color: #fff; }\n.fab:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab .icon-wrap { --mdc-icon-size: 26px; }\n.fab-backdrop { position: fixed; inset: 0; }\n.fab-menu { position: absolute; right: 0; bottom: 66px; min-width: 260px; display: flex; flex-direction: column; padding: 6px; border-radius: 16px; background: var(--card-background-color); border: 1px solid var(--divider-color); }\n.fab-menu button { justify-content: flex-start; gap: 10px; border: 0; border-radius: 10px; padding: 12px; background: transparent; }\n.fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }\n.sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }\n.sheet-note { margin: -6px 0 0; text-align: center; }\n.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }\n.room-sheet .sheet-live .heating { color: var(--hl-heat); }\n.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }\n.room-sheet-actions .sheet-cancel { align-self: auto; }\n.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }\n.room-sensor-note.warn { color: var(--warning-color, #ffa600); }\n.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }\n.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }\n.sensor-toggle-main:hover:not(:disabled) { background: transparent; }\n.sensor-toggle .warn { color: var(--warning-color, #ffa600); }\n.room-sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: transparent; text-align: left; justify-content: flex-start; }\n.room-sheet-row > span:nth-child(2) { flex: 1; }\n.room-sheet-row .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule { max-width: 520px; gap: 14px; }\n.room-schedule-head { display: flex; align-items: center; gap: 10px; }\n.room-schedule-head .page-title { flex: 1; min-width: 0; }\n.room-schedule-head h2 { font-size: 20px; }\n.room-schedule-note { margin: 0; }\n.room-schedule-mode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--divider-color); }\n.room-schedule-mode-text { flex: 1; }\n.room-schedule-mode .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule-notes { margin: 0; padding: 10px 14px 10px 28px; border-radius: 10px; background: color-mix(in srgb, var(--warning-color, #ffa600) 12%, transparent); display: flex; flex-direction: column; gap: 4px; }\n/* In a dialog the save bar and the ... button stick to its bottom instead of the page's. */\n.sched.embedded { padding-bottom: 0; }\n.sched.embedded .sched-save { bottom: 0; }\n.sched.embedded .fab-wrap { position: sticky; right: auto; bottom: 0; align-self: flex-end; }\n.sched.embedded .fab-wrap.raised { bottom: 64px; }\n.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }\n.valve-picker { display: flex; flex-direction: column; gap: 8px; }\n.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }\n.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }\n.valve-search input::-webkit-search-cancel-button { display: none; }\n.valve-search .round { width: 30px; height: 30px; }\n.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }\n.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow-y: auto; max-height: 300px; overscroll-behavior: contain; }\n.valve-pick { flex: none; display: flex; align-items: center; gap: 8px; padding-right: 10px; }\n.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }\n.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }\n.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }\n.valve-pick-main:hover:not(:disabled) { background: transparent; }\n.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }\n.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }\n.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }\n.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }\n.valve-pick .warn { color: var(--warning-color, #ffa600); }\n.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }\n.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }\n.setup-list { display: flex; flex-direction: column; gap: 8px; }\n.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }\n.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }\n.setup-room.on select { margin: 0 14px 12px 48px; }\n.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }\n.setup-room-main:hover:not(:disabled) { background: transparent; }\n.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }\n.setup-room-text .muted { font-weight: 400; }\n.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }\n.danger-text { color: var(--error-color, #db4437); }\n\n/* Rooms */\n.dot-heating { width: 10px; height: 10px; border-radius: 50%; background: var(--hl-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl-accent) 20%, transparent); flex: none; }\n.zone { display: flex; flex-direction: column; gap: 10px; }\n.zone h3 { margin: 4px 0 0; }\n/* Room for the + button under the last room / device. */\n.devices-page { padding-bottom: 72px; }\n.add-options { display: flex; flex-direction: column; gap: 8px; }\n.add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }\n.add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }\n.add-text b { font-size: 16px; font-weight: 500; }\n.room.heating { --hl-accent: var(--hl-heat); }\n.chip.heating { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.room-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }\n.room-temp { font-size: 44px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }\n.room-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }\n.room-target { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }\n.valves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }\n.valve { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--divider-color); font-size: 14px; }\n.valve.off { opacity: .6; }\n.valve-icon { color: var(--secondary-text-color); --mdc-icon-size: 18px; }\n.valve-icon.heating { color: var(--hl-heat); }\n.valve-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.valve-temps { font-variant-numeric: tabular-nums; white-space: nowrap; }\n.battery { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.battery .icon-wrap { --mdc-icon-size: 16px; }\n.battery.low { color: var(--warning-color, #ffa600); font-weight: 500; }\n.room-editor h2 { margin: 0; }\n.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }\n.field > span, .field legend { font-size: 13px; font-weight: 500; color: var(--secondary-text-color); padding: 0; margin-bottom: 6px; }\n.field input[type=text], .field select { width: 100%; max-width: 420px; }\n.checklist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 0; }\n.checklist > .muted { width: 100%; }\n.pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }\n\n/* A device's own page (heating or hot water), opened from its Overview card */\n.device-page { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n.device-page .history { max-width: none; }\n.page-head { display: flex; align-items: center; gap: 6px; margin-left: -8px; }\n.page-head .round { width: 44px; height: 44px; }\n.page-head .round .icon-wrap { --mdc-icon-size: 26px; }\n.page-title { display: flex; flex-direction: column; }\n.page-title h2 { font-size: 24px; font-weight: 700; }\n.page-tabs { margin-top: -6px; }\n.card.device.page .device-head, .device-head.static { cursor: default; }\n.device-head.static:hover { background: transparent; }\n.room-device.off { opacity: .6; }\n/* Devices tab: about the hardware, not controlling it */\n.card.hw { gap: 12px; padding: 18px; }\n.card.hw.off .device-name, .card.hw.off .facts { opacity: .6; }\n.hw-head { display: flex; align-items: center; gap: 12px; }\n.online { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--secondary-text-color); white-space: nowrap; }\n.online i { width: 8px; height: 8px; border-radius: 50%; background: var(--success-color, #43a047); }\n.online.no { color: var(--warning-color, #ffa600); }\n.online.no i { background: var(--warning-color, #ffa600); }\n.facts { display: flex; flex-wrap: wrap; gap: 6px; }\n.fact { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); }\n.fact .icon-wrap { --mdc-icon-size: 15px; }\n.fact.warn { color: var(--warning-color, #ffa600); background: color-mix(in srgb, var(--warning-color, #ffa600) 14%, transparent); font-weight: 500; }\n.hw-links { display: flex; gap: 8px; border-top: 1px solid var(--divider-color); margin: 0 -18px -18px; padding: 6px 8px; }\n.hw-link { flex: 1; justify-content: space-between; border: 0; background: transparent; padding: 10px; font-weight: 500; }\n.hw-link .icon-wrap { color: var(--secondary-text-color); }\n/* The page title already names it. */\n.card.device.page .device-icon, .card.device.page .device-name { display: none; }\n.history-title { font-size: 24px; font-weight: 700; margin: 4px 0 -4px; }\n.card.device.page .device-head:hover { background: transparent; }\n\n/* Stats: heating history, after the Hive app's */\n.history { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n/* Underlined tabs: receivers on Stats, Control · Schedule · History on a device page. */\n.history-tabs, .page-tabs { display: flex; border-bottom: 1px solid var(--divider-color); overflow-x: auto; scrollbar-width: none; }\n.history-tabs button, .page-tabs button { flex: 1 0 auto; border: 0; border-radius: 0; background: transparent; padding: 12px 16px; color: var(--secondary-text-color); border-bottom: 2px solid transparent; margin-bottom: -1px; }\n.history-tabs button.on, .page-tabs button.on { color: var(--hl-brand); border-bottom-color: var(--hl-brand); font-weight: 500; }\n.history-controls { display: flex; justify-content: space-between; gap: 12px; }\n.history-toggle { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.history-toggle button { min-width: 44px; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--primary-text-color); }\n.history-toggle button.wide { min-width: 60px; }\n.history-toggle button.on, .history-toggle button.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; }\n.history-toggle .icon-wrap { --mdc-icon-size: 22px; }\n.history-date { display: flex; align-items: center; justify-content: space-between; }\n.history-date .round { width: 40px; height: 40px; }\n.history-range { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--hl-brand) 10%, transparent); color: var(--hl-brand); font-weight: 500; }\n.history-range .icon-wrap { --mdc-icon-size: 18px; }\n.history-summary { display: flex; align-items: center; padding: 22px 12px; border-radius: 18px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.history-summary > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }\n.history-summary b { font-size: 30px; font-weight: 500; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }\n.history-summary i { width: 1px; align-self: stretch; background: var(--divider-color); }\n.history-note { margin: -6px 0 0; text-align: center; }\n.history-empty { text-align: center; margin: 24px 0; }\n.history-rows { display: flex; flex-direction: column; gap: 6px; }\n.history-key { align-self: flex-end; display: inline-flex; align-items: center; gap: 4px; }\n.history-key .icon-wrap { --mdc-icon-size: 16px; }\n.history-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 12px; min-height: 40px; }\n.history-day { font-size: 15px; color: var(--secondary-text-color); white-space: nowrap; }\n.history-day span { display: inline-block; min-width: 20px; margin-left: 4px; }\n.history-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.history-bar i { display: block; height: 14px; max-width: calc(100% - 64px); border-radius: 999px; background: var(--hl-brand); flex: none; }\n.history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.history-temps span { color: var(--primary-text-color); }\n.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }\n.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }\n.history-key span { display: inline-flex; align-items: center; gap: 4px; }\n.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-hint { text-align: center; margin: 0; }\n\n/* Settings: grouped rows, like a phone's settings */\n.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }\n.settings-section { display: flex; flex-direction: column; gap: 8px; }\n.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }\n.settings-help { margin: -2px 4px 2px; }\n.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }\n.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }\n.settings-group > * + * { border-top: 1px solid var(--divider-color); }\n.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }\n.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }\n.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }\n.settings-row select { max-width: 220px; }\n.tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }\n.stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }\n.settings-chevron { color: var(--secondary-text-color); }\n.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }\n.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }\n.adjust .stepper-value { min-width: 72px; text-align: center; }\n@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }\ncode { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }\n\n@media (max-width: 600px) {\n  /* Room at the bottom for the tab bar (and the phone's home indicator). */\n  main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }\n  .card { padding: 14px; }\n  .grid { grid-template-columns: 1fr; }\n  .device-grid { grid-template-columns: 1fr; }\n    .device-big { font-size: 46px; }\n  .sheet-backdrop { align-items: flex-end; padding: 0; }\n  .fab-wrap { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); }\n  /* Above the bottom tab bar. */\n  .sched-save { bottom: calc(84px + env(safe-area-inset-bottom)); }\n  .fab-wrap.raised { bottom: calc(156px + env(safe-area-inset-bottom)); }\n  .sched.embedded .sched-save, .sched.embedded .fab-wrap { bottom: 0; right: auto; }\n  .sched.embedded .fab-wrap.raised { bottom: 64px; }\n  .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }\n  /* Phones: the tabs become a bar along the bottom, in thumb reach. */\n  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;\n    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;\n    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); }\n  .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }\n  .tabs button:hover:not(:disabled) { background: transparent; }\n  .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }\n  .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }\n  .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }\n}\n", vt = class extends HTMLElement {
+var bt = "\n:host {\n  /* One accent for everything that's on or active (heating, hot water, boosting, the selected tab):\n     HA's heating orange. Heating and hot water share it. */\n  --hl-brand: var(--state-climate-heat-color, #ff8100);\n  --hl-heat: var(--hl-brand);\n  /* Main buttons and selected chips use the accent too, not HA's blue. */\n  --hl-accent: var(--hl-brand);\n  --hl-water: var(--hl-brand);\n  --hl-idle: var(--secondary-text-color, #727272);\n  --hl-off: var(--disabled-text-color, #9e9e9e);\n  --hl-off-fill: color-mix(in srgb, var(--secondary-text-color, #888) 18%, transparent);\n  --hl-radius: 18px;\n  --hl-soft: color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent);\n  display: block; height: 100%;\n  background: var(--primary-background-color);\n  color: var(--primary-text-color);\n  font-family: var(--ha-font-family-body, var(--paper-font-body1_-_font-family, Roboto, sans-serif));\n  -webkit-font-smoothing: antialiased;\n}\n* { box-sizing: border-box; }\n.panel { min-height: 100%; background: var(--primary-background-color); }\n.icon-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; --mdc-icon-size: 20px; }\n.spacer { flex: 1; }\n.muted { color: var(--secondary-text-color); font-size: 14px; }\n.small { font-size: 12px; }\n\n/* Header: logo and title, with the tabs inline beside them (they wrap to a row of their own when there's no room) */\nheader { position: sticky; top: 0; z-index: 2; background: var(--app-header-background-color, var(--primary-color)); color: var(--app-header-text-color, #fff); border-bottom: var(--app-header-border-bottom, none); }\n/* In the companion app HA already places the panel below the status bar / Dynamic Island,\n   leaving that strip in its own colour. Paint the header's colour up into it, as HA's own\n   top bars reach it. Nothing shows where there's no safe area (desktop, browsers). */\nheader::before { content: \"\"; position: absolute; left: 0; right: 0; bottom: 100%; height: env(safe-area-inset-top, 0px); background: inherit; pointer-events: none; }\n.toolbar-row { display: flex; align-items: center; flex-wrap: wrap; column-gap: 20px; min-height: 56px; padding: 0 16px; }\n.brand { display: flex; align-items: center; gap: 10px; height: 56px; flex: none; }\n.toolbar-row h1 { font-size: 20px; font-weight: 400; margin: 0; white-space: nowrap; }\n.logo-mark { display: block; flex: none; }\n.empty-state .logo-mark { opacity: .9; }\n.toolbar-row .menu { background: transparent; border: 0; color: inherit; padding: 8px; margin-left: -8px; margin-right: -10px; border-radius: 50%; }\n.toolbar-row .menu:hover { background: rgba(255,255,255,.12); }\n/* Pills. flex-shrink 0: when they don't fit beside the logo, the tabs wrap onto their own row instead of squashing. */\n.tabs { display: flex; align-items: center; gap: 4px; flex: 1 0 auto; padding: 10px 0; margin: 0 -8px 0 -4px; overflow-x: auto; scrollbar-width: none; }\n.tabs::-webkit-scrollbar { display: none; }\n.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; opacity: .75; padding: 0 14px; font-weight: 500; letter-spacing: .01em; }\n.tabs button:hover:not(:disabled) { opacity: .95; background: color-mix(in srgb, currentColor 7%, transparent); }\n.tabs button:active:not(:disabled) { transform: none; }\n.tabs button.on, .tabs button.on:hover:not(:disabled) { opacity: 1; background: color-mix(in srgb, currentColor 13%, transparent); }\n.tabs .icon-wrap { --mdc-icon-size: 18px; }\n\nmain { max-width: 1040px; margin: 0 auto; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }\n.stack { display: flex; flex-direction: column; gap: 16px; }\n\n/* Cards */\n.card { background: var(--card-background-color); border-radius: var(--hl-radius); border: 1px solid var(--divider-color); padding: 18px; display: flex; flex-direction: column; gap: 14px; }\n.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n.title { display: flex; align-items: center; gap: 12px; }\n.title-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; --mdc-icon-size: 22px; color: var(--secondary-text-color); background: var(--hl-soft); }\n.card.heat { --hl-accent: var(--hl-heat); }\n.card.water { --hl-accent: var(--hl-water); }\nh2 { font-size: 18px; font-weight: 500; margin: 0; }\nh3 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--secondary-text-color); margin: 6px 0 -4px; }\n\n/* Controls */\nbutton { font: inherit; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); cursor: pointer; transition: background .15s, border-color .15s, opacity .15s, transform .1s; }\nbutton:hover:not(:disabled) { background: var(--hl-soft); }\nbutton:active:not(:disabled) { transform: scale(.98); }\nbutton:disabled { opacity: .45; cursor: default; }\nbutton:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }\nbutton.primary { background: var(--hl-accent, var(--primary-color)); color: var(--text-primary-color, #fff); border-color: transparent; }\nbutton.primary:hover:not(:disabled) { background: var(--hl-accent, var(--primary-color)); filter: brightness(1.08); }\nbutton.ghost { border-color: transparent; background: transparent; color: var(--secondary-text-color); padding-right: 6px; }\nbutton.round { width: 36px; height: 36px; padding: 0; border-radius: 50%; }\nbutton.danger { color: var(--error-color); border-color: transparent; background: transparent; }\nselect, input[type=time], input[type=text] { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; }\n.toolbar, .actions, .inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }\n.inline-row { gap: 12px; }\n\n.segmented { display: inline-flex; padding: 3px; gap: 3px; border-radius: 12px; background: var(--hl-soft); }\n.segmented.full { display: flex; }\n.segmented.full button { flex: 1; }\n.segmented button { border: 0; border-radius: 9px; background: transparent; padding: 7px 12px; color: var(--secondary-text-color); }\n.segmented button.on { background: var(--card-background-color); color: var(--primary-text-color); font-weight: 500; }\n.segmented .raw { padding: 7px 10px; }\n\n.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--hl-soft); color: var(--secondary-text-color); white-space: nowrap; }\n.chip .icon-wrap { --mdc-icon-size: 14px; }\n.chip.mode-boost { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.water .chip.mode-boost { background: color-mix(in srgb, var(--hl-water) 16%, transparent); color: var(--hl-water); }\n.chip.unsaved { background: color-mix(in srgb, var(--warning-color, #ffa600) 18%, transparent); color: var(--warning-color, #ffa600); }\n.channel-switch { align-self: flex-start; }\n.channel-switch .icon-wrap { --mdc-icon-size: 18px; }\n.chips { display: flex; flex-wrap: wrap; gap: 8px; }\n.chip-btn { border-radius: 999px; padding: 6px 14px; }\n.chip-btn.on { background: color-mix(in srgb, var(--hl-accent, var(--primary-color)) 16%, transparent); border-color: var(--hl-accent, var(--primary-color)); color: var(--hl-accent, var(--primary-color)); font-weight: 500; }\n\n.status { padding: 10px 14px; border-radius: 10px; font-size: 14px; background: var(--hl-soft); }\n.status.ok { background: color-mix(in srgb, var(--success-color, #43a047) 14%, transparent); }\n.status.error { background: color-mix(in srgb, var(--error-color, #db4437) 14%, transparent); color: var(--error-color); }\n.status.busy { opacity: .8; }\n\n.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 48px 16px; color: var(--secondary-text-color); }\n.empty-state .icon-wrap { --mdc-icon-size: 48px; opacity: .5; }\n\n/* Overview: quick actions, filter pills and device cards */\n.home { display: flex; flex-direction: column; gap: 12px; }\n.home-section { font-size: 19px; font-weight: 700; letter-spacing: -.01em; text-transform: none; letter-spacing: 0; color: var(--primary-text-color); margin: 6px 0 0; }\n.quick { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin: 0 -2px; }\n.quick::-webkit-scrollbar { display: none; }\n.quick-action { flex: none; padding: 0; gap: 0; border-radius: 14px; overflow: hidden; align-items: stretch; background: var(--card-background-color); }\n.quick-icon { padding-left: 14px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); }\n.quick-icon .icon-wrap { --mdc-icon-size: 22px; }\n.quick-label { padding: 14px 16px 14px 10px; white-space: nowrap; }\n.pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }\n.pills::-webkit-scrollbar { display: none; }\n.pill { flex: none; border-radius: 999px; padding: 8px 16px; background: var(--card-background-color); }\n.pill .icon-wrap { --mdc-icon-size: 18px; }\n.pill.on, .pill.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; border-color: transparent; font-weight: 500; }\n/* Cards in a row share its height. */\n.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; align-items: stretch; }\n.card.device { padding: 0; gap: 0; overflow: hidden; height: 100%; }\n.device-head { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 20px; cursor: pointer; outline: none; transition: background .15s; }\n.device-head:hover { background: color-mix(in srgb, var(--primary-text-color) 3%, transparent); }\n.device-head:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color); }\n.device-row { display: flex; align-items: center; gap: 12px; }\n/* Our own icon tile: a rounded square with the logo's warm gradient (not a diamond). */\n/* Icons: grey, in a shaded rounded box. */\n.device-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-text-color); background: var(--hl-soft); }\n.device-icon .icon-wrap { --mdc-icon-size: 22px; }\n.device-name { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; font-weight: 500; }\n.device-name .small { font-weight: 400; }\n.device-status { font-size: 14px; color: var(--secondary-text-color); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }\n.device-status b { color: var(--primary-text-color); font-weight: 600; }\n.status-icon { --mdc-icon-size: 18px; color: var(--hl-heat); }\n.water .status-icon { color: var(--hl-water); }\n.device-big { flex: 1; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; }\n.device-big span { font-size: 30px; line-height: 1.1; }\n.device-big small { grid-column: 1 / -1; font-size: 13px; letter-spacing: 0; color: var(--secondary-text-color); margin-top: 4px; font-weight: 400; }\n.device-action { min-width: 120px; height: 50px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 500; color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 12%, transparent); }\n.device-action:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 20%, transparent); }\n.device-action.boosting, .device-action.boosting:hover:not(:disabled) { color: #fff; background: var(--hl-accent); }\n.status-icon.done { color: var(--success-color, #43a047); }\n.status-icon.away { color: var(--secondary-text-color); }\n.stop-square { width: 16px; height: 16px; border-radius: 3px; background: currentColor; }\n.device.heat { --hl-accent: var(--hl-heat); }\n.device.water { --hl-accent: var(--hl-water); }\n.device-name .warn { color: var(--warning-color, #ffa600); font-weight: 500; }\n\n\n.device-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; border-top: 1px solid var(--divider-color); }\n.schedule-link { align-self: center; }\n\n/* Boost sheet: slides up from the bottom on phones, a centred dialog on wider screens */\n.sheet-backdrop { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); animation: hl-fade .15s ease-out; }\n.sheet { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; padding: 14px 20px 18px; border-radius: 24px; background: var(--card-background-color); color: var(--primary-text-color); }\n.sheet.heat { --hl-accent: var(--hl-heat); }\n.sheet.water { --hl-accent: var(--hl-water); }\n.sheet-handle { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--divider-color); }\n.sheet-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }\n.sheet-title h2 { font-size: 24px; }\n.sheet-field { display: flex; flex-direction: column; gap: 10px; }\n.sheet-label { font-size: 14px; color: var(--secondary-text-color); }\n.sheet-temp { display: flex; align-items: center; gap: 12px; }\n.sheet-step { width: 52px; height: 52px; flex: none; border-color: var(--divider-color); }\n.sheet-step .icon-wrap { --mdc-icon-size: 24px; }\n.sheet-temp-value { flex: 1; text-align: center; padding: 14px 0; border-radius: 18px; color: #fff; font-size: 44px; font-weight: 300; font-variant-numeric: tabular-nums; background: linear-gradient(135deg, #FF9F43, #F0532B); }\n.sheet-lengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }\n.sheet-lengths button { height: 46px; padding: 0 6px; border-radius: 12px; }\n.sheet-lengths button.on, .sheet-lengths button.on:hover:not(:disabled) { background: var(--hl-accent); border-color: transparent; color: #fff; font-weight: 500; }\n.sheet-live { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; padding: 8px 0; }\n.sheet-live .icon-wrap { --mdc-icon-size: 22px; color: var(--secondary-text-color); }\n.sheet-go { height: 52px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 600; color: #fff; background: var(--hl-accent); }\n.sheet-go:hover:not(:disabled) { background: var(--hl-accent); filter: brightness(1.06); }\n.sheet-go.stop { color: var(--error-color, #db4437); background: color-mix(in srgb, var(--error-color, #db4437) 12%, transparent); }\n.sheet-cancel { align-self: center; padding: 8px 16px; font-size: 15px; }\n@keyframes hl-fade { from { opacity: 0; } }\n@keyframes hl-rise { from { transform: translateY(40px); opacity: 0; } }\n\n/* Device controls (opened from a card) */\n.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }\n.channel { gap: 16px; }\n.holiday-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--hl-soft); }\n.holiday-row > .icon-wrap { --mdc-icon-size: 20px; color: var(--secondary-text-color); }\n.holiday-text { flex: 1; }\n.holiday-row > button { padding: 6px 12px; }\n.target-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 8px; }\n.target-text { display: flex; flex-direction: column; gap: 2px; }\n.target-label { font-size: 16px; font-weight: 500; }\n.target-control { display: inline-flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.target-btn { width: 44px; height: 44px; background: var(--card-background-color); }\n.target-btn .icon-wrap { --mdc-icon-size: 22px; }\n.target-value { min-width: 76px; text-align: center; font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }\n.target-value.pending { color: var(--hl-heat); }\n.card-actions { display: flex; align-items: center; gap: 8px; }\n\n.stepper { background: var(--card-background-color); }\n.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: var(--hl-soft); }\n.stepper button.round { border-color: transparent; background: transparent; width: 32px; height: 32px; }\n.stepper button.round:hover { background: var(--card-background-color); }\n.stepper-value { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }\n\n/* Schedule: a status line, a strip of day circles, and the day's time slots */\n.sched { display: flex; flex-direction: column; gap: 14px; position: relative; padding-bottom: 72px; }\n\n.sched-status { margin: 0; font-size: 14px; }\n.sched-days { display: flex; justify-content: space-between; gap: 4px; padding: 12px 10px; border-radius: 16px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.sched-day { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: transparent; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }\n.sched-day:hover:not(:disabled) { background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.sched-day.today { border-color: var(--hl-brand); color: var(--hl-brand); }\n.sched-day.on, .sched-day.on:hover:not(:disabled) { background: var(--hl-brand); border-color: var(--hl-brand); color: #fff; }\n.sched-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warning-color, #ffa600); border: 2px solid var(--card-background-color); }\n.sched-list { display: flex; flex-direction: column; gap: 4px; }\n.sched-empty { margin: 8px 4px; }\n.slot { justify-content: flex-start; gap: 18px; padding: 10px 8px; border: 0; border-radius: 16px; background: transparent; text-align: left; }\n.slot:hover:not(:disabled) { background: var(--hl-soft); }\n.slot-badge { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid var(--hl-brand); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; color: var(--primary-text-color); font-variant-numeric: tabular-nums; }\n.slot-badge.off { border-color: var(--divider-color); color: var(--secondary-text-color); }\n.slot-badge.off .icon-wrap, .slot-badge.add .icon-wrap { --mdc-icon-size: 24px; }\n.slot-badge.add { border: 2px dashed var(--divider-color); color: var(--secondary-text-color); }\n.slot-time { flex: 1; font-size: 20px; font-variant-numeric: tabular-nums; }\n.slot-add .slot-time { font-size: 16px; color: var(--secondary-text-color); }\n.slot-chev { color: var(--secondary-text-color); }\n/* Unwritten changes: a dark bar across the bottom, above the tab bar on phones. */\n.sched-save { position: sticky; bottom: 16px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--primary-text-color); color: var(--card-background-color); }\n.sched-save-icon { --mdc-icon-size: 20px; opacity: .8; }\n.sched-undo { border: 0; background: transparent; color: inherit; opacity: .8; padding: 10px 12px; }\n.sched-undo:hover:not(:disabled) { background: color-mix(in srgb, var(--card-background-color) 12%, transparent); opacity: 1; }\n.sched-write { border: 0; border-radius: 12px; padding: 10px 20px; background: var(--hl-brand); color: #fff; font-weight: 600; }\n.sched-write:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab-wrap.raised { bottom: 96px; }\n.sched-changed { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }\n.fab-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 4; }\n.fab { width: 56px; height: 56px; padding: 0; border-radius: 50%; border: 0; background: var(--hl-brand); color: #fff; }\n.fab:hover:not(:disabled) { background: var(--hl-brand); filter: brightness(1.06); }\n.fab .icon-wrap { --mdc-icon-size: 26px; }\n.fab-backdrop { position: fixed; inset: 0; }\n.fab-menu { position: absolute; right: 0; bottom: 66px; min-width: 260px; display: flex; flex-direction: column; padding: 6px; border-radius: 16px; background: var(--card-background-color); border: 1px solid var(--divider-color); }\n.fab-menu button { justify-content: flex-start; gap: 10px; border: 0; border-radius: 10px; padding: 12px; background: transparent; }\n.fab-menu button:hover:not(:disabled) { background: var(--hl-soft); }\n.sheet-time { font: inherit; font-size: 28px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); color-scheme: light dark; text-align: center; }\n.sheet-note { margin: -6px 0 0; text-align: center; }\n.room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }\n.room-sheet .sheet-live .heating { color: var(--hl-heat); }\n.room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }\n.room-sheet-actions .sheet-cancel { align-self: auto; }\n.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }\n.room-sensor-note.warn { color: var(--warning-color, #ffa600); }\n.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }\n.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }\n.sensor-toggle-main:hover:not(:disabled) { background: transparent; }\n.sensor-toggle .warn { color: var(--warning-color, #ffa600); }\n.room-sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: transparent; text-align: left; justify-content: flex-start; }\n.room-sheet-row > span:nth-child(2) { flex: 1; }\n.room-sheet-row .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule { max-width: 520px; gap: 14px; }\n.room-schedule-head { display: flex; align-items: center; gap: 10px; }\n.room-schedule-head .page-title { flex: 1; min-width: 0; }\n.room-schedule-head h2 { font-size: 20px; }\n.room-schedule-note { margin: 0; }\n.room-schedule-mode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--divider-color); }\n.room-schedule-mode-text { flex: 1; }\n.room-schedule-mode .icon-wrap { color: var(--secondary-text-color); }\n.room-schedule-notes { margin: 0; padding: 10px 14px 10px 28px; border-radius: 10px; background: color-mix(in srgb, var(--warning-color, #ffa600) 12%, transparent); display: flex; flex-direction: column; gap: 4px; }\n/* In a dialog the save bar and the ... button stick to its bottom instead of the page's. */\n.sched.embedded { padding-bottom: 0; }\n.sched.embedded .sched-save { bottom: 0; }\n.sched.embedded .fab-wrap { position: sticky; right: auto; bottom: 0; align-self: flex-end; }\n.sched.embedded .fab-wrap.raised { bottom: 64px; }\n.valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }\n.valve-picker { display: flex; flex-direction: column; gap: 8px; }\n.valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }\n.valve-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 0; border: 0; background: transparent; color: var(--primary-text-color); outline: none; }\n.valve-search input::-webkit-search-cancel-button { display: none; }\n.valve-search .round { width: 30px; height: 30px; }\n.valve-search:focus-within { outline: 2px solid var(--primary-color); outline-offset: 0; }\n.valve-list { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: 14px; overflow-y: auto; max-height: 300px; overscroll-behavior: contain; }\n.valve-pick { flex: none; display: flex; align-items: center; gap: 8px; padding-right: 10px; }\n.valve-pick + .valve-pick { border-top: 1px solid var(--divider-color); }\n.valve-pick.on { background: color-mix(in srgb, var(--hl-brand) 7%, transparent); }\n.valve-pick-main { flex: 1; min-width: 0; justify-content: flex-start; gap: 12px; padding: 11px 6px 11px 14px; border: 0; border-radius: 0; background: transparent; text-align: left; }\n.valve-pick-main:hover:not(:disabled) { background: transparent; }\n.valve-check { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1.5px solid var(--divider-color); display: flex; align-items: center; justify-content: center; --mdc-icon-size: 16px; color: #fff; }\n.valve-check.on { background: var(--hl-brand); border-color: var(--hl-brand); }\n.valve-pick-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 14.5px; }\n.valve-pick-read { color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }\n.valve-pick .warn { color: var(--warning-color, #ffa600); }\n.valve-find { flex: none; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; color: var(--secondary-text-color); --mdc-icon-size: 16px; }\n.valve-find.on, .valve-find.on:disabled { opacity: 1; border-color: var(--hl-brand); color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 10%, transparent); }\n.setup-intro { text-align: center; margin: -6px 8px 0; line-height: 1.45; }\n.setup-list { display: flex; flex-direction: column; gap: 8px; }\n.setup-room { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--divider-color); border-radius: 14px; padding-bottom: 0; }\n.setup-room.on { border-color: var(--hl-brand); background: color-mix(in srgb, var(--hl-brand) 6%, transparent); }\n.setup-room.on select { margin: 0 14px 12px 48px; }\n.setup-room-main { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; background: transparent; text-align: left; }\n.setup-room-main:hover:not(:disabled) { background: transparent; }\n.setup-room-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 500; }\n.setup-room-text .muted { font-weight: 400; }\n.room-sheet.room-editor h2 { text-align: center; font-size: 22px; }\n.danger-text { color: var(--error-color, #db4437); }\n\n/* Rooms */\n.dot-heating { width: 10px; height: 10px; border-radius: 50%; background: var(--hl-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl-accent) 20%, transparent); flex: none; }\n.zone { display: flex; flex-direction: column; gap: 10px; }\n.zone h3 { margin: 4px 0 0; }\n/* Room for the + button under the last room / device. */\n.devices-page { padding-bottom: 72px; }\n.add-options { display: flex; flex-direction: column; gap: 8px; }\n.add-option { justify-content: flex-start; gap: 14px; padding: 14px; border-radius: 16px; text-align: left; }\n.add-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }\n.add-text b { font-size: 16px; font-weight: 500; }\n.room.heating { --hl-accent: var(--hl-heat); }\n.chip.heating { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); color: var(--hl-heat); }\n.room-now { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }\n.room-temp { font-size: 44px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }\n.room-temp .unit { font-size: 18px; margin-left: 2px; color: var(--secondary-text-color); vertical-align: top; }\n.room-target { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }\n.valves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }\n.valve { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--divider-color); font-size: 14px; }\n.valve.off { opacity: .6; }\n.valve-icon { color: var(--secondary-text-color); --mdc-icon-size: 18px; }\n.valve-icon.heating { color: var(--hl-heat); }\n.valve-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.valve-temps { font-variant-numeric: tabular-nums; white-space: nowrap; }\n.battery { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.battery .icon-wrap { --mdc-icon-size: 16px; }\n.battery.low { color: var(--warning-color, #ffa600); font-weight: 500; }\n.room-editor h2 { margin: 0; }\n.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }\n.field > span, .field legend { font-size: 13px; font-weight: 500; color: var(--secondary-text-color); padding: 0; margin-bottom: 6px; }\n.field input[type=text], .field select { width: 100%; max-width: 420px; }\n.checklist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 6px 0; }\n.checklist > .muted { width: 100%; }\n.pick { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }\n\n/* A device's own page (heating or hot water), opened from its Overview card */\n.device-page { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n.device-page .history { max-width: none; }\n.page-head { display: flex; align-items: center; gap: 6px; margin-left: -8px; }\n.page-head .round { width: 44px; height: 44px; }\n.page-head .round .icon-wrap { --mdc-icon-size: 26px; }\n.page-title { display: flex; flex-direction: column; }\n.page-title h2 { font-size: 24px; font-weight: 700; }\n.page-tabs { margin-top: -6px; }\n.card.device.page .device-head, .device-head.static { cursor: default; }\n.device-head.static:hover { background: transparent; }\n.room-device.off { opacity: .6; }\n/* Devices tab: about the hardware, not controlling it */\n.card.hw { gap: 12px; padding: 18px; }\n.card.hw.off .device-name, .card.hw.off .facts { opacity: .6; }\n.hw-head { display: flex; align-items: center; gap: 12px; }\n.online { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--secondary-text-color); white-space: nowrap; }\n.online i { width: 8px; height: 8px; border-radius: 50%; background: var(--success-color, #43a047); }\n.online.no { color: var(--warning-color, #ffa600); }\n.online.no i { background: var(--warning-color, #ffa600); }\n.facts { display: flex; flex-wrap: wrap; gap: 6px; }\n.fact { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); }\n.fact .icon-wrap { --mdc-icon-size: 15px; }\n.fact.warn { color: var(--warning-color, #ffa600); background: color-mix(in srgb, var(--warning-color, #ffa600) 14%, transparent); font-weight: 500; }\n.hw-links { display: flex; gap: 8px; border-top: 1px solid var(--divider-color); margin: 0 -18px -18px; padding: 6px 8px; }\n.hw-link { flex: 1; justify-content: space-between; border: 0; background: transparent; padding: 10px; font-weight: 500; }\n.hw-link .icon-wrap { color: var(--secondary-text-color); }\n/* The page title already names it. */\n.card.device.page .device-icon, .card.device.page .device-name { display: none; }\n.history-title { font-size: 24px; font-weight: 700; margin: 4px 0 -4px; }\n.card.device.page .device-head:hover { background: transparent; }\n\n/* Stats: heating history, after the Hive app's */\n.history { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 640px; margin: 0 auto; }\n/* Underlined tabs: receivers on Stats, Control · Schedule · History on a device page. */\n.history-tabs, .page-tabs { display: flex; border-bottom: 1px solid var(--divider-color); overflow-x: auto; scrollbar-width: none; }\n.history-tabs button, .page-tabs button { flex: 1 0 auto; border: 0; border-radius: 0; background: transparent; padding: 12px 16px; color: var(--secondary-text-color); border-bottom: 2px solid transparent; margin-bottom: -1px; }\n.history-tabs button.on, .page-tabs button.on { color: var(--hl-brand); border-bottom-color: var(--hl-brand); font-weight: 500; }\n.history-controls { display: flex; justify-content: space-between; gap: 12px; }\n.history-toggle { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--hl-soft); }\n.history-toggle button { min-width: 44px; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--primary-text-color); }\n.history-toggle button.wide { min-width: 60px; }\n.history-toggle button.on, .history-toggle button.on:hover:not(:disabled) { background: var(--hl-brand); color: #fff; }\n.history-toggle .icon-wrap { --mdc-icon-size: 22px; }\n.history-date { display: flex; align-items: center; justify-content: space-between; }\n.history-date .round { width: 40px; height: 40px; }\n.history-range { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--hl-brand) 10%, transparent); color: var(--hl-brand); font-weight: 500; }\n.history-range .icon-wrap { --mdc-icon-size: 18px; }\n.history-summary { display: flex; align-items: center; padding: 22px 12px; border-radius: 18px; background: color-mix(in srgb, var(--hl-brand) 7%, var(--card-background-color)); border: 1px solid var(--divider-color); }\n.history-summary > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }\n.history-summary b { font-size: 30px; font-weight: 500; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }\n.history-summary i { width: 1px; align-self: stretch; background: var(--divider-color); }\n.history-note { margin: -6px 0 0; text-align: center; }\n.history-empty { text-align: center; margin: 24px 0; }\n.history-rows { display: flex; flex-direction: column; gap: 6px; }\n.history-key { align-self: flex-end; display: inline-flex; align-items: center; gap: 4px; }\n.history-key .icon-wrap { --mdc-icon-size: 16px; }\n.history-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 12px; min-height: 40px; }\n.history-day { font-size: 15px; color: var(--secondary-text-color); white-space: nowrap; }\n.history-day span { display: inline-block; min-width: 20px; margin-left: 4px; }\n.history-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.history-bar i { display: block; height: 14px; max-width: calc(100% - 64px); border-radius: 999px; background: var(--hl-brand); flex: none; }\n.history-value { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-temps { display: inline-flex; gap: 10px; padding: 4px 10px; border-radius: 10px; background: var(--hl-soft); font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }\n.history-temps span { color: var(--primary-text-color); }\n.history-row.with-outdoor { grid-template-columns: 64px 1fr auto auto; }\n.history-key.with-outdoor { display: flex; justify-content: flex-end; gap: 16px; align-self: stretch; }\n.history-key span { display: inline-flex; align-items: center; gap: 4px; }\n.history-outdoor { min-width: 52px; text-align: right; font-size: 13px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }\n.history-hint { text-align: center; margin: 0; }\n\n/* Settings: grouped rows, like a phone's settings */\n.settings { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; }\n.settings-section { display: flex; flex-direction: column; gap: 8px; }\n.settings-section h3 { margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary-text-color); }\n.settings-help { margin: -2px 4px 2px; }\n.settings-group { display: flex; flex-direction: column; border: 1px solid var(--divider-color); border-radius: var(--hl-radius); background: var(--card-background-color); overflow: hidden; }\n.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; flex-wrap: wrap; text-align: left; width: 100%; border: 0; border-radius: 0; background: transparent; justify-content: flex-start; transition: background .15s; }\n.settings-group > * + * { border-top: 1px solid var(--divider-color); }\n.settings-row.link:hover:not(:disabled) { background: var(--hl-soft); }\n.settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }\n.settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }\n.settings-row select { max-width: 220px; }\n.room-control { display: flex; flex-direction: column; gap: 14px; }\n.room-control .room-sensor-note { margin-top: 0; justify-content: flex-start; text-align: left; }\n.room-mode-note { margin: -4px 0 0; }\n.room-schedule-page { max-width: none; display: flex; flex-direction: column; gap: 12px; }\n.room-schedule-page .room-schedule-head { justify-content: flex-end; }\n.tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }\n.stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }\n.settings-chevron { color: var(--secondary-text-color); }\n.settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }\n.adjust { display: flex; flex-direction: column; align-items: center; gap: 4px; }\n.adjust .stepper-value { min-width: 72px; text-align: center; }\n@media (max-width: 600px) { .settings-controls { width: 100%; justify-content: flex-end; } .valve-find-label { display: none; } .valve-find { width: 36px; height: 36px; padding: 0; } }\ncode { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--hl-soft); }\n\n@media (max-width: 600px) {\n  /* Room at the bottom for the tab bar (and the phone's home indicator). */\n  main { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); gap: 12px; }\n  .card { padding: 14px; }\n  .grid { grid-template-columns: 1fr; }\n  .device-grid { grid-template-columns: 1fr; }\n    .device-big { font-size: 46px; }\n  .sheet-backdrop { align-items: flex-end; padding: 0; }\n  .fab-wrap { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); }\n  /* Above the bottom tab bar. */\n  .sched-save { bottom: calc(84px + env(safe-area-inset-bottom)); }\n  .fab-wrap.raised { bottom: calc(156px + env(safe-area-inset-bottom)); }\n  .sched.embedded .sched-save, .sched.embedded .fab-wrap { bottom: 0; right: auto; }\n  .sched.embedded .fab-wrap.raised { bottom: 64px; }\n  .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }\n  /* Phones: the tabs become a bar along the bottom, in thumb reach. */\n  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;\n    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow: visible;\n    background: var(--card-background-color); color: var(--primary-text-color); border-top: 1px solid var(--divider-color); }\n  .tabs button { flex: 1 1 0; flex-direction: column; gap: 2px; height: 54px; padding: 0; border-radius: 14px; font-size: 11.5px; letter-spacing: 0; opacity: .7; }\n  .tabs button:hover:not(:disabled) { background: transparent; }\n  .tabs button.on, .tabs button.on:hover:not(:disabled) { background: transparent; color: var(--hl-heat); opacity: 1; }\n  .tabs .icon-wrap { --mdc-icon-size: 22px; padding: 3px 16px; border-radius: 999px; transition: background .15s; }\n  .tabs button.on .icon-wrap { background: color-mix(in srgb, var(--hl-heat) 16%, transparent); }\n}\n", xt = class extends HTMLElement {
 	_hass;
 	_narrow = !1;
 	_root;
@@ -9572,7 +9670,7 @@ var _t = "\n:host {\n  /* One accent for everything that's on or active (heating
 	connectedCallback() {
 		if (!this._root) {
 			let e = this.shadowRoot ?? this.attachShadow({ mode: "open" }), t = document.createElement("style");
-			t.textContent = _t;
+			t.textContent = bt;
 			let n = document.createElement("div");
 			e.append(t, n), this._root = (0, d.createRoot)(n);
 		}
@@ -9582,7 +9680,7 @@ var _t = "\n:host {\n  /* One accent for everything that's on or active (heating
 		this._root?.unmount(), this._root = void 0, this.shadowRoot?.replaceChildren();
 	}
 	_render() {
-		this._root && this._hass && this._root.render(/* @__PURE__ */ (0, f.jsx)(gt, {
+		this._root && this._hass && this._root.render(/* @__PURE__ */ (0, f.jsx)(I, {
 			getHass: () => this._hass,
 			narrow: this._narrow,
 			onToggleMenu: () => this.dispatchEvent(new Event("hass-toggle-menu", {
@@ -9592,4 +9690,4 @@ var _t = "\n:host {\n  /* One accent for everything that's on or active (heating
 		}));
 	}
 };
-customElements.get("hive-local-panel") || customElements.define("hive-local-panel", vt);
+customElements.get("hive-local-panel") || customElements.define("hive-local-panel", xt);

@@ -55,6 +55,11 @@ shot heating 900,660 "tab=Overview&open=1"
 shot phone-schedule 390,770 "tab=Overview&narrow=1&open=1&click=Schedule"
 shot phone-room 390,770 "tab=Overview&narrow=1&room=Lounge"
 shot phone-boost 390,770 "tab=Overview&narrow=1&click=Boost"
+# A room's page, like heating's: Control, Schedule (on the valves) and History; and on a phone.
+shot room-page 900,1100 "tab=Overview&room=Lounge"
+shot room-page-schedule 900,1100 "tab=Overview&room=Lounge&click=Schedule"
+shot room-page-history 900,1100 "tab=Overview&room=Lounge&click=History"
+shot phone-room-page 390,770 "tab=Overview&narrow=1&room=Lounge"
 # Tidy up duplicate entities (Settings → Entities), before and after.
 shot tidy 900,1400 "tab=Settings"
 shot tidy-done 900,1400 "tab=Settings&tidy=done"
@@ -107,7 +112,7 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
 for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
            "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
            "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule",
-           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done"):
+           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done", "room-page", "room-page-schedule", "room-page-history", "phone-room-page"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)

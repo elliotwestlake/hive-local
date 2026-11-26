@@ -26,6 +26,8 @@ hive_local/rooms/identify {entity_id}              -> presses the valve's Identi
 hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?, sensor_on_valves?}
 hive_local/rooms/delete {room_id}
 hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]} (while boosting: the boost's temperature)
+hive_local/rooms/mode {room_id, mode: schedule|manual|off} -> {"failed": [...]} (as the room's climate entity)
+hive_local/rooms/stats {room_id, days?, offset?}      -> like hive_local/stats, from the room's climate entity
 hive_local/rooms/boost {room_id, minutes, temperature} -> {"failed": [...]} (the valves for a while, and the boiler)
 hive_local/rooms/cancel_boost {room_id}            -> {"ok": true} (the valves' own targets back)
 Schedules on the room's valves (#5, experimental; valve_schedule.py):
@@ -118,6 +120,8 @@ def async_register(hass: HomeAssistant) -> None:
         ws_rooms_delete,
         ws_rooms_set_target,
         ws_rooms_boost,
+        ws_rooms_stats,
+        ws_rooms_mode,
         ws_rooms_cancel_boost,
         ws_rooms_schedule_get,
         ws_rooms_schedule_set,
@@ -653,6 +657,20 @@ async def ws_rooms_set_target(hass, connection, msg: dict[str, Any], rooms: Room
 
 
 @websocket_api.websocket_command(
+    {vol.Required("type"): "hive_local/rooms/mode", vol.Required("mode"): vol.In(["schedule", "manual", "off"])} | ROOM
+)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_mode(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    """Schedule (the valves follow their own schedule), manual (they hold the target) or off (5 °C)."""
+    if msg["mode"] == "schedule" and _being_read(hass, ("room", msg["room_id"])):
+        connection.send_error(msg["id"], "busy", STILL_READING)
+        return
+    failed = await rooms.async_set_mode(msg["room_id"], msg["mode"])
+    connection.send_result(msg["id"], {"failed": failed})
+
+
+@websocket_api.websocket_command(
     {
         vol.Required("type"): "hive_local/rooms/boost",
         vol.Required("minutes"): vol.Coerce(int),
@@ -727,7 +745,7 @@ STATS_BUCKETS = {1: timedelta(minutes=15), 7: timedelta(hours=1), 30: timedelta(
 @websocket_api.async_response
 @_with_entry
 async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: HiveConfigEntry) -> None:
-    channel, days = msg["channel"], msg["days"]
+    channel = msg["channel"]
     if "recorder" not in hass.config.components:
         connection.send_error(msg["id"], "no_recorder", "Stats need Home Assistant's recorder")
         return
@@ -735,10 +753,35 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     if entity_id is None:
         connection.send_error(msg["id"], "not_found", "This receiver has no entity for that channel")
         return
+    connection.send_result(msg["id"], await _async_stats(hass, entity_id, channel, msg["days"], msg["offset"], cost=channel == CHANNEL_HEAT))
 
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/rooms/stats",
+        vol.Optional("days", default=7): vol.In(list(STATS_BUCKETS)),
+        vol.Optional("offset", default=0): vol.All(vol.Coerce(int), vol.Range(0, 400)),
+    }
+    | ROOM
+)
+@websocket_api.async_response
+async def ws_rooms_stats(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """A room's history, from its climate entity (the valves heating, the room's temperature)."""
+    if "recorder" not in hass.config.components:
+        connection.send_error(msg["id"], "no_recorder", "Stats need Home Assistant's recorder")
+        return
+    entity_id = er.async_get(hass).async_get_entity_id("climate", DOMAIN, f"room_{msg['room_id']}")
+    if entity_id is None:
+        connection.send_error(msg["id"], "not_found", "This room has no climate entity yet")
+        return
+    connection.send_result(msg["id"], await _async_stats(hass, entity_id, CHANNEL_HEAT, msg["days"], msg["offset"], cost=False))
+
+
+async def _async_stats(
+    hass: HomeAssistant, entity_id: str, channel: str, days: int, offset: int, *, cost: bool
+) -> dict[str, Any]:
     now = dt_util.now()
     # offset 0 is the period up to now; 1 the one before it, and so on.
-    offset = msg["offset"]
     last_day = dt_util.start_of_local_day(now) - timedelta(days=days * offset)
     # Local calendar days, so "Today" starts at midnight. Wall-clock arithmetic keeps DST right.
     day_starts = [last_day - timedelta(days=i) for i in range(days - 1, -1, -1)]
@@ -773,5 +816,5 @@ async def ws_stats(hass: HomeAssistant, connection, msg: dict[str, Any], entry: 
     )
     # The estimated cost (heating only: hot water shares the boiler, and would count it twice).
     # The panel multiplies the boiler's time on by `per_hour`.
-    estimate = await settings.async_cost() if channel == CHANNEL_HEAT else None
-    connection.send_result(msg["id"], {**result, "entity_id": entity_id, "outdoor_entity": outdoor_id, "cost": estimate, "period": days, "offset": offset, "period_end": ts(period_end)})
+    estimate = await settings.async_cost() if cost else None
+    return {**result, "entity_id": entity_id, "outdoor_entity": outdoor_id, "cost": estimate, "period": days, "offset": offset, "period_end": ts(period_end)}

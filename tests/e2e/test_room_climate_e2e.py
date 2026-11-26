@@ -64,7 +64,7 @@ def targets(calls):
 
 
 @pytest.mark.freeze_time("2026-11-30 10:00:00")  # before hass starts, so timers agree
-async def test_room_climate_entity(hass, mqtt_mock, freezer):
+async def test_room_climate_entity(hass, mqtt_mock, freezer, hass_ws_client):
     entry, calls = await setup(hass)
     rooms = hass.data["hive_local_rooms"]
     room = await rooms.async_save_room({"name": "Bedroom", "valves": [BED, BED2]})
@@ -130,6 +130,26 @@ async def test_room_climate_entity(hass, mqtt_mock, freezer):
     await hass.async_block_till_done()
     assert hass.states.get("climate.bedroom").attributes["preset_mode"] == "none"
     assert targets(calls) == [(BED, 20.0), (BED2, 20.0)]
+
+    # The panel's Schedule / Manual / Off (the room's page) is the same mode as the entity's.
+    client = await hass_ws_client(hass)
+    calls.clear()
+    await client.send_json({"id": 1, "type": "hive_local/rooms/mode", "room_id": room["id"], "mode": "off"})
+    msg = await client.receive_json()
+    assert msg["success"] and msg["result"]["failed"] == [], msg
+    await hass.async_block_till_done()
+    assert hass.states.get("climate.bedroom").state == "off"
+    assert targets(calls) == [(BED, 5.0), (BED2, 5.0)]
+    await client.send_json({"id": 2, "type": "hive_local/rooms/mode", "room_id": room["id"], "mode": "manual"})
+    assert (await client.receive_json())["success"]
+    await hass.async_block_till_done()
+    assert hass.states.get("climate.bedroom").state == "heat"
+    assert rooms.status()["rooms"][0]["mode"] == "manual"
+    # A room's history needs the recorder (not loaded here), and says so.
+    await client.send_json({"id": 3, "type": "hive_local/rooms/stats", "room_id": room["id"]})
+    msg = await client.receive_json()
+    assert not msg["success"] and msg["error"]["code"] == "no_recorder"
+    await client.close()
 
     # Renaming the room renames its device; another room gets its own entity; deleting removes it.
     await rooms.async_save_room({"name": "Main bedroom", "valves": [BED, BED2]}, room["id"])

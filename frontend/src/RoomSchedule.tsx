@@ -37,7 +37,7 @@ function clockText(offset: number | null) {
  * receiver's schedule editor, reading from the valves and writing the changed days to
  * every one of them.
  */
-export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => Hass; room: Room; onClose: () => void }) {
+export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: () => Hass; room: Room; onClose?: () => void; page?: boolean }) {
   const [valves, setValves] = useState<ValveRead[]>([]);
   const [differs, setDiffers] = useState<string[]>([]);
   const [limits, setLimits] = useState<Limits>(LIMITS);
@@ -46,15 +46,15 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
   const [modeNote, setModeNote] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => !page && e.key === "Escape" && onClose?.();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, page]);
 
   const source = useMemo<ScheduleSource>(
     () => ({
       noun: "valves",
-      embedded: true,
+      embedded: !page,
       onReading: setReading,
       statusLine: "Kept on each valve, so it runs without Home Assistant. Saving writes the changed days to every valve in the room.",
       read: async () => {
@@ -119,12 +119,15 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
     notes.push(`The valves have different times on ${differs.map(short).join(", ")}. This shows ${valves.find((v) => v.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
   }
 
-  return (
-    <div className="sheet-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }}>
-      <div className="sheet heat room-sheet room-schedule" role="dialog" aria-modal="true" aria-label={`${room.name} schedule`} onClick={(e) => e.stopPropagation()}>
-        <span className="sheet-handle" />
+  const body = (
+    <>
+        {page ? (
+          <div className="room-schedule-head">
+            <span className="chip unsaved">Experimental</span>
+          </div>
+        ) : (
         <div className="room-schedule-head">
-          <button className="round ghost" onClick={onClose} aria-label="Back to the room">
+          <button className="round ghost" onClick={() => onClose?.()} aria-label="Back to the room">
             <Icon name="chevron-left" />
           </button>
           <div className="page-title">
@@ -133,6 +136,7 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
           </div>
           <span className="chip unsaved">Experimental</span>
         </div>
+        )}
         <p className="muted small room-schedule-note">
           Not yet tried on real Hive valves. The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times.
         </p>
@@ -160,6 +164,15 @@ export function RoomScheduleDialog({ getHass, room, onClose }: { getHass: () => 
         )}
 
         <ScheduleEditor getHass={getHass} limits={limits} source={source} />
+    </>
+  );
+  // On the room's page (its Schedule tab), or as a dialog over something else.
+  if (page) return <div className="room-schedule room-schedule-page">{body}</div>;
+  return (
+    <div className="sheet-backdrop" onClick={(e) => { e.stopPropagation(); onClose?.(); }}>
+      <div className="sheet heat room-sheet room-schedule" role="dialog" aria-modal="true" aria-label={`${room.name} schedule`} onClick={(e) => e.stopPropagation()}>
+        <span className="sheet-handle" />
+        {body}
       </div>
     </div>
   );

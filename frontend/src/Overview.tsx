@@ -208,7 +208,7 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
 /** Room boosts: 15 min to 6 h, at what the valves take. */
 const ROOM_BOOST_MINUTES = [30, 60, 120, 180];
 
-function RoomCard({
+export function RoomCard({
   getHass,
   room,
   showReceiver,
@@ -216,6 +216,7 @@ function RoomCard({
   defaultMinutes,
   defaultTemp,
   onOpen,
+  page,
 }: {
   getHass: () => Hass;
   room: Room;
@@ -223,7 +224,9 @@ function RoomCard({
   limits: Limits | null;
   defaultMinutes: number;
   defaultTemp: number;
-  onOpen: () => void;
+  onOpen?: () => void;
+  /** On the room's own page: not a link. */
+  page?: boolean;
 }) {
   const [sheet, setSheet] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -248,7 +251,7 @@ function RoomCard({
   const durations = [...new Set([...ROOM_BOOST_MINUTES, minutes])].sort((a, b) => a - b);
   return (
     <section className={`card device room-device ${room.heating ? "heating" : "idle"}`}>
-      <div className="device-head" role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
+      <div className="device-head" {...(page ? {} : { role: "button", tabIndex: 0, onClick: onOpen, onKeyDown: (e: React.KeyboardEvent) => e.key === "Enter" && onOpen?.() })}>
         <div className="device-row">
           <span className="device-icon room"><Icon name="home-thermometer-outline" /></span>
           <div className="device-name">
