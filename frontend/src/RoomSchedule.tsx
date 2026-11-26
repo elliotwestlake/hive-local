@@ -65,7 +65,20 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
         setValves(r.valves);
         setDiffers(r.differs);
         setLimits({ ...LIMITS, ...r.limits });
-        return r;
+        // Off used to be written as 5° (the valve's lowest); now it's frost protection. Show those
+        // slots at the frost temperature, as unsaved changes, so one Save moves the valves to it.
+        const frost = r.limits.frost;
+        if (frost == null) return r;
+        let changed = 0;
+        const edited = Object.fromEntries(
+          Object.entries(r.schedule).map(([day, slots]) => [
+            day,
+            (slots ?? []).map((t) => (t.setpoint <= LIMITS.heat_min && t.setpoint !== frost ? (changed++, { ...t, setpoint: frost }) : t)),
+          ]),
+        ) as Schedule;
+        return changed
+          ? { ...r, edited, note: `Off used to keep the valves at ${LIMITS.heat_min}°; it's now frost protection, ${frost}°. Save to write the change to the valves.` }
+          : r;
       },
       write: async (changed) => {
         const r = await getHass().callWS<{ schedule: Schedule; failed: string[]; valves: ValveWrite[] }>({

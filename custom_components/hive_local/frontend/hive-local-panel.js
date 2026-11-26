@@ -6859,9 +6859,12 @@ function ce({ getHass: e, device: t, channel: n, limits: r, mode: i, preheatFor:
 				entry_id: C,
 				channel: n
 			});
-			l(t.schedule), m(t.schedule);
+			l(t.edited ?? t.schedule), m(t.schedule);
 			let r = Object.keys(t.schedule).length;
-			y(t.complete ? {
+			y(t.complete && t.note ? {
+				kind: "ok",
+				text: t.note
+			} : t.complete ? {
 				kind: "ok",
 				text: `Schedule read from the ${E}`
 			} : r ? {
@@ -9534,10 +9537,21 @@ function yt({ getHass: e, room: t, onClose: n, page: r }) {
 				type: "hive_local/rooms/schedule/get",
 				room_id: t.id
 			});
-			return a(n.valves), s(n.differs), l({
+			a(n.valves), s(n.differs), l({
 				..._t,
 				...n.limits
-			}), n;
+			});
+			let r = n.limits.frost;
+			if (r == null) return n;
+			let i = 0, o = Object.fromEntries(Object.entries(n.schedule).map(([e, t]) => [e, (t ?? []).map((e) => e.setpoint <= _t.heat_min && e.setpoint !== r ? (i++, {
+				...e,
+				setpoint: r
+			}) : e)]));
+			return i ? {
+				...n,
+				edited: o,
+				note: `Off used to keep the valves at ${_t.heat_min}°; it's now frost protection, ${r}°. Save to write the change to the valves.`
+			} : n;
 		},
 		write: async (n) => {
 			let r = await e().callWS({
