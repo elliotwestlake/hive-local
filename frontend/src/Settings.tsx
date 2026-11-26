@@ -99,7 +99,77 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
           </div>
         </section>
       ))}
+
+      <TidySettings getHass={getHass} />
     </div>
+  );
+}
+
+interface TidyRow {
+  entity_id: string;
+  name: string;
+  done: boolean;
+  ours: boolean;
+}
+interface TidyData {
+  receiver: TidyRow[];
+  valves: TidyRow[];
+  pending: number;
+  undoable: number;
+}
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/** Disable the receiver's own ZHA / Z2M thermostat and hide the room valves' entities (Hive Local's replace them). */
+function TidySettings({ getHass }: { getHass: () => Hass }) {
+  const [data, setData] = useState<TidyData | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const run = (type: string) => {
+    setBusy(true);
+    getHass()
+      .callWS<TidyData>({ type })
+      .then((r) => {
+        setData(r);
+        setError("");
+      })
+      .catch((e) => setError(errorText(e)))
+      .finally(() => setBusy(false));
+  };
+  useEffect(() => run("hive_local/tidy"), [getHass]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!data || (!data.receiver.length && !data.valves.length)) return null;
+
+  const what = [
+    data.receiver.length ? `${plural(data.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${data.receiver.length === 1 ? "is" : "are"} disabled` : null,
+    data.valves.length ? `${plural(data.valves.length, "room valve")} ${data.valves.length === 1 ? "is" : "are"} hidden` : null,
+  ].filter(Boolean);
+  const note = data.pending
+    ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them."
+    : `Done: ${what.join(", and ")}. Switch any back in their entity settings, or Undo.`;
+  return (
+    <section className="settings-section">
+      <h3>Entities</h3>
+      {error && <div className="status error">{error}</div>}
+      <div className="settings-group">
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="broom" /></span>
+          <div className="settings-text">
+            <span>{data.pending ? "Tidy up duplicate entities" : "Duplicate entities tidied up"}</span>
+            <span className="muted small">{note}</span>
+          </div>
+          <div className="settings-controls">
+            {data.undoable > 0 && (
+              <button className="ghost" disabled={busy} onClick={() => run("hive_local/tidy/undo")}>Undo</button>
+            )}
+            {data.pending > 0 && (
+              <button className="device-action tidy-action" disabled={busy} onClick={() => run("hive_local/tidy/apply")}>
+                Tidy up {data.pending}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

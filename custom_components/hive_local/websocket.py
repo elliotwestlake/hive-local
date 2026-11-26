@@ -12,6 +12,7 @@ hive_local/preheat {entry_id, channel?, enabled?, max_lead?}  pre-heat settings 
 hive_local/demand {entry_id, channel?, enabled?, outside_schedule?}  rooms call for heat (heating only, through its switches)
 hive_local/defaults {entry_id, channel, boost_minutes?, boost_temperature?, frost_temperature?} (through the number entities)
 hive_local/settings                                -> {"outdoor_entity", "outdoor_candidates", "gas_meter", "gas_meter_candidates", "fit", "output_kw", "output_basis", "boiler_kw", "price_source", "fixed_price", "price_candidates", "energy_price", "price", "currency"} (house-wide)
+hive_local/tidy | tidy/apply | tidy/undo      -> {receiver: [...], valves: [...], pending, undoable} (ZHA/Z2M duplicates)
 hive_local/settings/set {outdoor_entity?, gas_meter?, boiler_kw?, price_source?: "energy"|"fixed"|entity_id|null, fixed_price?}
 hive_local/stats {entry_id, channel, days: 1|7|30, offset?: periods back} -> heating time, cycles, modes, temperatures, outdoor temperature and the cost per hour of heating if set (from the recorder)
 hive_local/holiday/set {until, temperature?, entry_id?}  away until `until` (every receiver without entry_id)
@@ -79,6 +80,7 @@ from .schedule import ScheduleError, validate
 from .history import async_outdoor, async_samples, channel_entity_id
 from .room_boost_controller import DATA_ROOM_BOOSTS, RoomBoosts
 from .stats import summarise
+from .tidy import DATA_TIDY
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
 CHANNEL = {vol.Optional("channel", default=CHANNEL_HEAT): vol.In([CHANNEL_HEAT, CHANNEL_WATER])}
@@ -101,6 +103,9 @@ def async_register(hass: HomeAssistant) -> None:
         ws_defaults,
         ws_settings,
         ws_settings_set,
+        ws_tidy,
+        ws_tidy_apply,
+        ws_tidy_undo,
         ws_holiday_set,
         ws_holiday_cancel,
         ws_stats,
@@ -414,6 +419,25 @@ async def ws_defaults(hass: HomeAssistant, connection, msg: dict[str, Any], entr
 @websocket_api.async_response
 async def ws_settings(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
     connection.send_result(msg["id"], await hass.data[DATA_SETTINGS].async_as_dict())
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/tidy"})
+@callback
+def ws_tidy(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """The ZHA / Z2M entities Hive Local's replace, and whether they're tidied away."""
+    connection.send_result(msg["id"], hass.data[DATA_TIDY].status())
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/tidy/apply"})
+@websocket_api.async_response
+async def ws_tidy_apply(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    connection.send_result(msg["id"], await hass.data[DATA_TIDY].async_apply())
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/tidy/undo"})
+@websocket_api.async_response
+async def ws_tidy_undo(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    connection.send_result(msg["id"], await hass.data[DATA_TIDY].async_undo())
 
 
 @websocket_api.websocket_command(

@@ -273,6 +273,13 @@ const hass = {
         if (SETTINGS_CHANGES.price_source === "fixed") SETTINGS_CHANGES.price = SETTINGS_CHANGES.fixed_price;
         return hass.callWS({ type: "hive_local/settings" });
       }
+      // ?tidy=done: the duplicate entities have been tidied up.
+      case "hive_local/tidy": {
+        const done = params.get("tidy") === "done";
+        const row = (entity_id, name) => ({ entity_id, name, done, ours: done });
+        return { receiver: [row("climate.receiver", "Receiver")], valves: [row("climate.lounge_bay", "Bay window valve"), row("climate.lounge_door", "Door valve"), row("climate.bedroom", "Bedroom valve")],
+          pending: done ? 0 : 4, undoable: done ? 4 : 0 };
+      }
       case "hive_local/settings":
         return { ...(await hass.callWS({ type: "hive_local/settings/base" })), ...SETTINGS_CHANGES };
       case "hive_local/settings/base":
