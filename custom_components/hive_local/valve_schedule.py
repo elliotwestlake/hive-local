@@ -203,7 +203,8 @@ async def async_read_room(hass: HomeAssistant, rooms: RoomManager, room_id: str)
         "complete": len(schedule) == len(DAYS),
         "differs": differs,
         "valves": valves,
-        "limits": LIMITS,
+        # "Off" on the valves is frost protection (they can't switch off), as on the heating.
+        "limits": LIMITS | {"frost": rooms.frost(room_id)},
     }
 
 

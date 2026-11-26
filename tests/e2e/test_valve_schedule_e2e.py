@@ -240,7 +240,8 @@ async def test_zha_valve_read_and_write(hass: HomeAssistant, hass_storage, hass_
     assert valve.schedule_requests == [{"days": 0x7F, "expect_reply": False}]
     assert result["complete"] is True and result["differs"] == []
     assert result["schedule"] == {day: DAY_READ for day in WEEK}
-    assert result["limits"] == {"max_transitions": 6, "heat_min": 5.0, "heat_max": 32.0}
+    # "Off" on the valves is the heating's frost protection (12° by default): they can't switch off.
+    assert result["limits"] == {"max_transitions": 6, "heat_min": 5.0, "heat_max": 32.0, "frost": 12.0}
     [info] = result["valves"]
     assert info["entity_id"] == VALVE and info["transport"] == "zha" and info["days"] == 7
     # Its clock is an hour behind (no DST), and reading doesn't change it.
