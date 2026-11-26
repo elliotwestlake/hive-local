@@ -22,6 +22,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
 from . import valve_sensor
+from . import valve_settings as vset
 from .const import DOMAIN
 from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, suggest_rooms, summarise
 
@@ -203,10 +204,77 @@ class RoomManager:
                     "boost": boosts.as_dict(room["id"]) if boosts else None,
                     "frost": self.frost(room["id"]),
                     "away": "away_restore" in room,
+                    "overshoot": self._overshoot(room),
                 }
                 | summarise(valves, sensor.state if sensor else None)
             )
         return {"receivers": self.receivers(), "rooms": out}
+
+    def _overshoot(self, room: dict[str, Any]) -> dict[str, Any] | None:
+        """How far past its target the room goes after the boiler stops (Rooms call for heat records it)."""
+        entries = self.hass.config_entries.async_loaded_entries(DOMAIN)
+        entry = next((e for e in entries if e.entry_id == room.get("receiver")), entries[0] if entries else None)
+        demand = getattr(getattr(entry, "runtime_data", None), "demand", None)
+        return demand.overshoot_summary().get(room["name"]) if demand else None
+
+    # --- the valves' own settings (valve_settings.py) --------------------------------
+
+    def _setting_entities(self, entity_id: str) -> dict[str, er.RegistryEntry]:
+        """The valve device's setting entities, by setting (enabled ones only)."""
+        registry = er.async_get(self.hass)
+        entry = registry.async_get(entity_id)
+        found: dict[str, er.RegistryEntry] = {}
+        if entry and entry.device_id:
+            for other in er.async_entries_for_device(registry, entry.device_id):
+                key = vset.entity_role(other.domain, other.unique_id, other.translation_key, other.entity_id)
+                if key and key not in found:
+                    found[key] = other
+        return found
+
+    @callback
+    def valve_settings(self, room_id: str) -> dict[str, Any]:
+        """Each setting across the room's valves: the value, whether they differ, how many have it."""
+        room = self._room(room_id)
+        per_valve = []
+        for entity_id in room["valves"]:
+            values = {}
+            for key, other in self._setting_entities(entity_id).items():
+                state = self.hass.states.get(other.entity_id)
+                values[key] = vset.read(key, other.domain, state.state if state else None, dict(state.attributes) if state else {})
+            state = self.hass.states.get(entity_id)
+            per_valve.append({"entity_id": entity_id, "name": state.name if state else entity_id, "settings": values})
+        settings = {}
+        for key in (vset.RESPONSE, vset.COVERED, vset.ADAPTATION, vset.ADAPTATION_RUN, vset.ADAPTATION_STATUS):
+            having = [v["settings"][key] for v in per_valve if key in v["settings"]]
+            value, mixed = vset.combine(having)
+            settings[key] = {"value": value, "mixed": mixed, "supported": len(having)}
+        return {"settings": settings, "valves": per_valve, "count": len(per_valve), "response_minutes": list(vset.RESPONSE_MINUTES.values())}
+
+    async def async_set_valve_setting(self, room_id: str, key: str, value: Any) -> list[str]:
+        """Set one setting on every valve in the room that has it. Returns the valves that refused."""
+        room = self._room(room_id)
+        failed = []
+        tried = 0
+        for entity_id in room["valves"]:
+            other = self._setting_entities(entity_id).get(key)
+            if other is None:
+                continue
+            state = self.hass.states.get(other.entity_id)
+            options = state.attributes.get("options") if state else None
+            service = vset.call(key, other.domain, value, options if isinstance(options, list) else None)
+            if service is None:
+                raise RoomError("That setting can't take this value")
+            tried += 1
+            domain, name, data = service
+            try:
+                await self.hass.services.async_call(domain, name, {"entity_id": other.entity_id} | data, blocking=True)
+            except HomeAssistantError:
+                _LOGGER.warning("%s didn't take %s", entity_id, key, exc_info=True)
+                failed.append(entity_id)
+        if not tried:
+            raise RoomError("None of this room's valves have that setting in Home Assistant")
+        async_dispatcher_send(self.hass, SIGNAL_ROOMS)
+        return failed
 
     @callback
     def valves(self) -> list[dict[str, Any]]:

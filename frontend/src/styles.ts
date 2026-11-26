@@ -242,6 +242,9 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .room-sheet { max-height: calc(100vh - 32px); overflow-y: auto; }
 .room-sheet .sheet-live .heating { color: var(--hl-heat); }
 .room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
+.room-overshoot { display: flex; align-items: center; gap: 8px; margin: 0; }
+.valve-settings .settings-row select { max-width: 160px; }
+.valve-settings .settings-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .room-sheet-actions .sheet-cancel { align-self: auto; }
 .room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }
 .room-sensor-note.warn { color: var(--warning-color, #ffa600); }

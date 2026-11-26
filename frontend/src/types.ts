@@ -180,6 +180,8 @@ export interface Room {
   away?: boolean;
   /** What Off holds the valves at: the room's receiver's frost protection. */
   frost?: number;
+  /** How far past its target it goes after Rooms call for heat stops (median from 3 runs). */
+  overshoot?: { median: number | null; runs: number } | null;
 }
 
 export interface Candidate {

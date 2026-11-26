@@ -35,6 +35,10 @@ shot schedule 900,860 "tab=Overview&open=1&click=Schedule"
 shot controls 900,760 "tab=Overview&click=Boost"
 shot rooms 900,760 "tab=Overview&room=Lounge"
 shot room-schedule 900,900 "tab=Overview&room=Lounge&click=Schedule%20on%20the%20valves"
+# The room page's overshoot line, and the valves' own settings (on a phone too).
+shot room-overshoot 900,1100 "tab=Overview&room=Lounge"
+shot valve-settings 900,900 "tab=Overview&room=Lounge&click=Valve%20settings"
+shot phone-valve-settings 390,770 "tab=Overview&narrow=1&room=Lounge&click=Valve%20settings"
 # Rooms call for heat (#4): the card, its sheet, the device page and the Settings rows.
 shot demand 900,760 "tab=Overview&demand=1"
 shot demand-sheet 900,760 "tab=Overview&demand=1&click=For%20rooms"
@@ -122,7 +126,8 @@ for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
            "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
            "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule",
            "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done", "room-page", "room-page-schedule", "room-page-schedule-old-off", "room-page-history", "phone-room-page", "away-open",
-           "onboarding-rooms", "onboarding-demand", "onboarding-tidy", "onboarding-outside", "onboarding-done", "phone-onboarding"):
+           "onboarding-rooms", "onboarding-demand", "onboarding-tidy", "onboarding-outside", "onboarding-done", "phone-onboarding",
+           "room-overshoot", "valve-settings", "phone-valve-settings"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)
