@@ -27,6 +27,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, HEAT_MAX, HEAT_MIN
 from .data import HiveConfigEntry
 from .entity import HiveStatusEntity
+from .room_climate import async_setup_rooms
 from .schedule import ScheduleError
 from .z2m import MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -41,6 +42,8 @@ async def async_setup_entry(
 ) -> None:
     if CHANNEL_HEAT in entry.runtime_data.transport.channels:
         async_add_entities([HiveClimate(entry)])
+        # A climate entity per room this receiver heats.
+        async_setup_rooms(hass, entry, async_add_entities)
 
 
 class HiveClimate(HiveStatusEntity, ClimateEntity):

@@ -683,9 +683,10 @@ async def ws_rooms_schedule_mode(hass, connection, msg: dict[str, Any], rooms: R
     if _being_read(hass, ("room", msg["room_id"])):
         connection.send_error(msg["id"], "busy", STILL_READING)
         return
-    connection.send_result(
-        msg["id"], await valve_schedule.async_set_room_schedule_mode(hass, rooms, msg["room_id"], msg["enabled"])
-    )
+    result = await valve_schedule.async_set_room_schedule_mode(hass, rooms, msg["room_id"], msg["enabled"])
+    if len(result["failed"]) < len(rooms._room(msg["room_id"])["valves"]):  # noqa: SLF001
+        await rooms.async_schedule_mode_changed(msg["room_id"], msg["enabled"])
+    connection.send_result(msg["id"], result)
 
 
 # Chart bucket length for each period: 15 min over a day, 1 h over a week, 6 h over a month.
