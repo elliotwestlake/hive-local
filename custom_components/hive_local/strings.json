@@ -235,10 +235,6 @@
         "device_id": {
           "name": "Receiver",
           "description": "Which receiver. Leave out for every receiver."
-        },
-        "temperature": {
-          "name": "Temperature",
-          "description": "Heating temperature while away (5-32 °C). Defaults to the heating frost protection setting."
         }
       }
     },
