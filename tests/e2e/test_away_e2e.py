@@ -96,6 +96,20 @@ async def test_away_switch(hass, mqtt_mock, freezer, hass_ws_client):
     assert not status["away"] and status["mode"] == "manual"
     assert room["id"] == status["id"]
 
+    # The actions do the same as the switch.
+    calls.clear()
+    await hass.services.async_call("hive_local", "set_away", {"temperature": 10}, blocking=True)
+    await hass.async_block_till_done()
+    assert hass.states.get(switch).state == "on"
+    assert sets(mqtt_mock)[-1]["occupied_heating_setpoint"] == 10.0
+    assert rooms.status()["rooms"][0]["away"]
+    await report(hass, {**SCHEDULE, "system_mode": "emergency_heating", "temperature_setpoint_hold": True,
+                        "temperature_setpoint_hold_duration": 360, "occupied_heating_setpoint": 10})
+    await hass.services.async_call("hive_local", "cancel_away", {}, blocking=True)
+    await hass.async_block_till_done()
+    assert hass.states.get(switch).state == "off"
+    assert rooms.status()["rooms"][0]["mode"] == "manual"
+
     freezer.tick(timedelta(minutes=1))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
