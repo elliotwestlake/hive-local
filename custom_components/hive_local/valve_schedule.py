@@ -1,4 +1,4 @@
-"""Weekly schedules on the Hive radiator valves of a room (#5). Experimental.
+"""Weekly schedules on the Hive radiator valves of a room (#5).
 
 Each Hive valve (a Danfoss Ally) keeps its own weekly schedule. A room's schedule is
 read from its valves and written to every one of them, like the receiver's: one

@@ -443,7 +443,7 @@ export function RoomControl({ getHass, room }: { getHass: () => Hass; room: Room
           </button>
         ))}
       </div>
-      {mode === "schedule" && <p className="muted small room-mode-note">The valves follow the schedule kept on them (the Schedule tab). Experimental.</p>}
+      {mode === "schedule" && <p className="muted small room-mode-note">The valves follow the schedule kept on them (the Schedule tab).</p>}
       {mode === "off" && <p className="muted small room-mode-note">A Hive valve can't switch off, so they hold the room at frost protection, {room.frost ?? 12}° (Settings → Frost protection). Their targets come back when you turn the room on.</p>}
       {message && <div className="status error">{message}</div>}
       <div className="sheet-field">
