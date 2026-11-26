@@ -450,12 +450,15 @@ async def ws_tidy_undo(hass: HomeAssistant, connection, msg: dict[str, Any]) -> 
         vol.Optional("price_source"): vol.Any(str, None),
         vol.Optional("fixed_price"): vol.Any(vol.Coerce(float), None),
         vol.Optional("gas_meter"): vol.Any(str, None),
+        vol.Optional("onboarded"): bool,
     }
 )
 @websocket_api.async_response
 async def ws_settings_set(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
     settings: HouseSettings = hass.data[DATA_SETTINGS]
     try:
+        if "onboarded" in msg:
+            await settings.async_set_onboarded(msg["onboarded"])
         if "outdoor_entity" in msg:
             await settings.async_set_outdoor(msg["outdoor_entity"])
         if "gas_meter" in msg:

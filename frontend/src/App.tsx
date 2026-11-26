@@ -4,6 +4,7 @@ import { Logo } from "./Logo";
 import { Overview } from "./Overview";
 import { DevicePage, type DeviceTab } from "./DevicePage";
 import { Devices } from "./Devices";
+import { Onboarding } from "./Onboarding";
 import { RoomPage } from "./RoomPage";
 import { Settings } from "./Settings";
 import { Stats } from "./Stats";
@@ -35,6 +36,8 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
   // A room opened (as a sheet) from its Overview card.
   const [openedRoom, setOpenedRoom] = useState<string | null>(null);
   const [error, setError] = useState("");
+  // The first-run walkthrough: shown until it's finished or skipped (stored house-wide).
+  const [onboarding, setOnboarding] = useState(false);
 
   useEffect(() => {
     getHass()
@@ -44,6 +47,11 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
         setLimits(r.limits);
       })
       .catch((e) => setError(errorText(e)));
+
+    getHass()
+      .callWS<{ onboarded?: boolean }>({ type: "hive_local/settings" })
+      .then((r) => setOnboarding(r.onboarded === false))
+      .catch(() => {});
 
     const unsub = getHass().connection.subscribeMessage<{ status: StatusMap }>(
       (msg) => setStatus(msg.status),
@@ -138,10 +146,23 @@ export function App({ getHass, narrow, onToggleMenu }: Props) {
             )}
             {tab === "devices" && devices.length > 0 && <Devices getHass={getHass} devices={devices} status={status} limits={limits} onOpenDevice={openDevice} />}
             {tab === "stats" && devices.length > 0 && <Stats getHass={getHass} devices={devices} />}
-            {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} />}
+            {tab === "settings" && devices.length > 0 && <Settings getHass={getHass} devices={devices} status={status} onSetup={() => setOnboarding(true)} />}
           </>
         )}
       </main>
+
+      {onboarding && devices.length > 0 && (
+        <Onboarding
+          getHass={getHass}
+          devices={devices}
+          status={status}
+          onDone={() => {
+            setOnboarding(false);
+            setTab("overview");
+            getHass().callWS({ type: "hive_local/settings/set", onboarded: true }).catch(() => {});
+          }}
+        />
+      )}
     </div>
   );
 }

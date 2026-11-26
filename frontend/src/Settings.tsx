@@ -34,7 +34,7 @@ interface SettingsData {
   currency: string;
 }
 
-export function Settings({ getHass, devices, status }: { getHass: () => Hass; devices: Device[]; status: StatusMap }) {
+export function Settings({ getHass, devices, status, onSetup }: { getHass: () => Hass; devices: Device[]; status: StatusMap; onSetup?: () => void }) {
   const [data, setData] = useState<SettingsData | null>(null);
   const [error, setError] = useState("");
 
@@ -101,6 +101,22 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
       ))}
 
       <TidySettings getHass={getHass} />
+
+      {onSetup && (
+        <section className="settings-section">
+          <h3>Setup</h3>
+          <div className="settings-group">
+            <button className="settings-row link" onClick={onSetup}>
+              <span className="device-icon"><Icon name="map-marker-path" /></span>
+              <div className="settings-text">
+                <span>Run setup again</span>
+                <span className="muted small">Rooms, rooms calling for heat, duplicate entities and the outside temperature, one step at a time.</span>
+              </div>
+              <Icon name="chevron-right" className="slot-chev" />
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -121,7 +137,7 @@ interface TidyData {
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 /** Disable the receiver's own ZHA / Z2M thermostat and hide the room valves' entities (Hive Local's replace them). */
-function TidySettings({ getHass }: { getHass: () => Hass }) {
+export function TidySettings({ getHass, bare, empty }: { getHass: () => Hass; bare?: boolean; empty?: string }) {
   const [data, setData] = useState<TidyData | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -137,7 +153,7 @@ function TidySettings({ getHass }: { getHass: () => Hass }) {
       .finally(() => setBusy(false));
   };
   useEffect(() => run("hive_local/tidy"), [getHass]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!data || (!data.receiver.length && !data.valves.length)) return null;
+  if (!data || (!data.receiver.length && !data.valves.length)) return empty && data ? <p className="muted">{empty}</p> : null;
 
   const what = [
     data.receiver.length ? `${plural(data.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${data.receiver.length === 1 ? "is" : "are"} disabled` : null,
@@ -146,12 +162,9 @@ function TidySettings({ getHass }: { getHass: () => Hass }) {
   const note = data.pending
     ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them."
     : `Done: ${what.join(", and ")}. Switch any back in their entity settings, or Undo.`;
-  return (
-    <section className="settings-section">
-      <h3>Entities</h3>
-      {error && <div className="status error">{error}</div>}
-      <div className="settings-group">
-        <div className="settings-row">
+  const row = (
+    <div className="settings-group">
+      <div className="settings-row">
           <span className="device-icon"><Icon name="broom" /></span>
           <div className="settings-text">
             <span>{data.pending ? "Tidy up duplicate entities" : "Duplicate entities tidied up"}</span>
@@ -167,8 +180,15 @@ function TidySettings({ getHass }: { getHass: () => Hass }) {
               </button>
             )}
           </div>
-        </div>
       </div>
+    </div>
+  );
+  if (bare) return <>{error && <div className="status error">{error}</div>}{row}</>;
+  return (
+    <section className="settings-section">
+      <h3>Entities</h3>
+      {error && <div className="status error">{error}</div>}
+      {row}
     </section>
   );
 }
@@ -462,7 +482,7 @@ const DEMAND_REASON: Record<string, string> = {
 };
 
 /** Rooms call for heat (per receiver): when a room is cold or a valve is heating, the heating comes on for it. */
-function DemandRows({ getHass, device, info }: { getHass: () => Hass; device: Device; info: DemandInfo }) {
+export function DemandRows({ getHass, device, info }: { getHass: () => Hass; device: Device; info: DemandInfo }) {
   const { busy, result, send } = useSender(getHass, device.entry_id, "heat");
   const note = !info.enabled
     ? "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does."

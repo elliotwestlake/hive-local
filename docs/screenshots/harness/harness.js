@@ -290,6 +290,8 @@ const hass = {
         return { ...(await hass.callWS({ type: "hive_local/settings/base" })), ...SETTINGS_CHANGES };
       case "hive_local/settings/base":
         return {
+          // ?onboarding=1: the first-run walkthrough opens.
+          onboarded: params.get("onboarding") !== "1",
           outdoor_entity: params.has("noout") ? null : "weather.home",
           outdoor_candidates: [
             { entity_id: "weather.home", name: "Forecast Home", area: null },
