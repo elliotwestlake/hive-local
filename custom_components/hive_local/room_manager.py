@@ -244,7 +244,7 @@ class RoomManager:
             state = self.hass.states.get(entity_id)
             per_valve.append({"entity_id": entity_id, "name": state.name if state else entity_id, "settings": values})
         settings = {}
-        for key in (vset.RESPONSE, vset.COVERED, vset.ADAPTATION, vset.ADAPTATION_RUN, vset.ADAPTATION_STATUS):
+        for key in (vset.RESPONSE, vset.ADAPTATION, vset.ADAPTATION_RUN, vset.ADAPTATION_STATUS):
             having = [v["settings"][key] for v in per_valve if key in v["settings"]]
             value, mixed = vset.combine(having)
             settings[key] = {"value": value, "mixed": mixed, "supported": len(having)}

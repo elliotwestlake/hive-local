@@ -7,14 +7,15 @@ valve in a room at once. The ones that matter for how gently a room warms up:
   opens after its target or the temperature changes. Slower opens more gently, which can
   mean less overshoot, but a slower warm-up. ZHA: a select (`setpoint_response_time`) with
   options "quick 5min" … "slow 80min"; Z2M: a number, 1–10.
-- **Radiator covered** (`radiator_covered`): the valve goes by the room sensor's reading
-  instead of its own (the room sensor is sent more often then, see `valve_sensor.py`).
 - **Adaptation run** (`adaptation_run_settings` on, `adaptation_run_control` to start one,
   `adaptation_run_status`): the valve learns how its radiator's valve opens. Each night when
   it's on; once by hand after fitting or moving it.
 
-Load balancing is left out: it needs something writing the house's average load to every
-valve, which neither ZHA nor Z2M does.
+Left out: load balancing (it needs something writing the house's average load to every
+valve, which neither ZHA nor Z2M does) and radiator covered (only for a radiator behind a
+cover or furniture; the valve then goes by the room sensor alone, which reacts slowly and
+can make overshoot worse. Elliot, 2026-11-26: not wanted. `valve_sensor.py` still reads it
+for how often to send the room sensor, if it's switched on in HA).
 """
 
 from __future__ import annotations
@@ -22,7 +23,6 @@ from __future__ import annotations
 from typing import Any
 
 RESPONSE = "response"
-COVERED = "covered"
 ADAPTATION = "adaptation"
 ADAPTATION_RUN = "adaptation_run"
 ADAPTATION_STATUS = "adaptation_status"
@@ -30,7 +30,6 @@ ADAPTATION_STATUS = "adaptation_status"
 # key: (domains, attribute names in unique ids / object ids, ZHA translation keys)
 _ROLES: dict[str, tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]] = {
     RESPONSE: (("select", "number"), ("control_algorithm_scale_factor",), ("setpoint_response_time",)),
-    COVERED: (("switch",), ("radiator_covered",), ("prioritize_external_temperature_sensor",)),
     ADAPTATION: (("switch",), ("adaptation_run_settings",), ("adaptation_run_enabled",)),
     ADAPTATION_RUN: (("select",), ("adaptation_run_control",), ("adaptation_run_command",)),
     ADAPTATION_STATUS: (("sensor",), ("adaptation_run_status",), ("adaptation_run_status",)),
@@ -88,7 +87,7 @@ def read(key: str, domain: str, state: str | None, attributes: dict[str, Any]) -
     if key == RESPONSE:
         factor = _ZHA_RESPONSE_VALUES.get(state) if domain == "select" else _number(state)
         return RESPONSE_MINUTES.get(int(factor)) if factor is not None and float(factor).is_integer() else None
-    if key in (COVERED, ADAPTATION):
+    if key == ADAPTATION:
         return state == "on" if state in ("on", "off") else None
     if key == ADAPTATION_STATUS:
         if attributes and any(k in attributes for k in ("In_progress", "Valve_characteristic_found", "Valve_characteristic_lost")):
@@ -129,7 +128,7 @@ def call(key: str, domain: str, value: Any, options: list[str] | None = None) ->
                 return None
             return "select", "select_option", {"option": option}
         return "number", "set_value", {"value": factor}
-    if key in (COVERED, ADAPTATION):
+    if key == ADAPTATION:
         if not isinstance(value, bool):
             return None
         return "switch", "turn_on" if value else "turn_off", {}

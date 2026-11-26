@@ -11,7 +11,7 @@ def test_finds_zha_and_z2m_entities():
     role = v.entity_role
     assert role("select", f"{IEEE}-1-513-control_algorithm_scale_factor", "setpoint_response_time", "select.x") == v.RESPONSE
     assert role("number", "0x84fd27fffe000001_control_algorithm_scale_factor_zigbee2mqtt", None, "number.x") == v.RESPONSE
-    assert role("switch", f"{IEEE}-1-513-radiator_covered", "prioritize_external_temperature_sensor", "switch.x") == v.COVERED
+    assert role("switch", f"{IEEE}-1-513-radiator_covered", "prioritize_external_temperature_sensor", "switch.x") is None  # left out
     assert role("switch", "0x84fd_adaptation_run_settings_zigbee2mqtt", None, "switch.x") == v.ADAPTATION
     assert role("select", f"{IEEE}-1-513-adaptation_run_control", "adaptation_run_command", "select.x") == v.ADAPTATION_RUN
     assert role("sensor", "0x84fd_adaptation_run_status_zigbee2mqtt", None, "sensor.x") == v.ADAPTATION_STATUS
@@ -28,7 +28,7 @@ def test_reads_the_response_time_in_minutes():
 
 
 def test_reads_switches_and_the_adaptation_status():
-    assert v.read(v.COVERED, "switch", "on", {}) is True
+    assert v.read(v.ADAPTATION, "switch", "on", {}) is True
     assert v.read(v.ADAPTATION, "switch", "off", {}) is False
     assert v.read(v.ADAPTATION, "switch", "unknown", {}) is None
     zha = {"In_progress": False, "Valve_characteristic_found": True, "Valve_characteristic_lost": False}
@@ -44,7 +44,7 @@ def test_service_calls():
     assert v.call(v.RESPONSE, "select", 40, zha_options) is None  # not an option on this entity
     assert v.call(v.RESPONSE, "number", 40) == ("number", "set_value", {"value": 6})
     assert v.call(v.RESPONSE, "number", 33) is None
-    assert v.call(v.COVERED, "switch", True) == ("switch", "turn_on", {})
+    assert v.call(v.ADAPTATION, "switch", True) == ("switch", "turn_on", {})
     assert v.call(v.ADAPTATION, "switch", False) == ("switch", "turn_off", {})
     assert v.call(v.ADAPTATION, "switch", 1) is None
     assert v.call(v.ADAPTATION_RUN, "select", None, ["Nothing", "Initiate", "Cancel"]) == ("select", "select_option", {"option": "Initiate"})

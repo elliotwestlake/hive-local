@@ -710,7 +710,7 @@ async def ws_rooms_valve_settings(hass, connection, msg: dict[str, Any], rooms: 
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "hive_local/rooms/valve_settings/set",
-        vol.Required("key"): vol.In(["response", "covered", "adaptation", "adaptation_run"]),
+        vol.Required("key"): vol.In(["response", "adaptation", "adaptation_run"]),
         vol.Optional("value"): vol.Any(bool, vol.Coerce(int)),
     }
     | ROOM

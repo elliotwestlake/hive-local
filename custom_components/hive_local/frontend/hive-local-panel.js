@@ -8016,7 +8016,7 @@ function Ue({ getHass: e, room: t, onClose: n }) {
 			onClick: () => t.value !== n && h(e, n),
 			children: n ? "On" : "Off"
 		}, String(n)))
-	}), x = g && !g.response.supported && !g.covered.supported && !g.adaptation.supported && !g.adaptation_run.supported;
+	}), x = g && !g.response.supported && !g.adaptation.supported && !g.adaptation_run.supported;
 	return /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: (e) => {
@@ -8053,99 +8053,72 @@ function Ue({ getHass: e, room: t, onClose: n }) {
 				}),
 				g && !x && /* @__PURE__ */ (0, f.jsxs)("div", {
 					className: "settings-group",
-					children: [
-						g.response.supported > 0 && /* @__PURE__ */ (0, f.jsxs)("div", {
-							className: "settings-row",
-							children: [
-								/* @__PURE__ */ (0, f.jsx)("span", {
-									className: "device-icon",
-									children: /* @__PURE__ */ (0, f.jsx)(p, { name: "timer-sand" })
-								}),
-								/* @__PURE__ */ (0, f.jsxs)("div", {
-									className: "settings-text",
-									children: [/* @__PURE__ */ (0, f.jsx)("span", { children: "Response time" }), /* @__PURE__ */ (0, f.jsxs)("span", {
-										className: "muted small",
-										children: [
-											"How gently the valve opens when the room needs heat. Slower can stop a room overshooting, but it warms up later.",
-											v(g.response),
-											_(g.response)
-										]
-									})]
-								}),
-								/* @__PURE__ */ (0, f.jsxs)("select", {
-									"aria-label": "Response time",
-									value: g.response.value == null ? "" : String(g.response.value),
+					children: [g.response.supported > 0 && /* @__PURE__ */ (0, f.jsxs)("div", {
+						className: "settings-row",
+						children: [
+							/* @__PURE__ */ (0, f.jsx)("span", {
+								className: "device-icon",
+								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "timer-sand" })
+							}),
+							/* @__PURE__ */ (0, f.jsxs)("div", {
+								className: "settings-text",
+								children: [/* @__PURE__ */ (0, f.jsx)("span", { children: "Response time" }), /* @__PURE__ */ (0, f.jsxs)("span", {
+									className: "muted small",
+									children: [
+										"How gently the valve opens when the room needs heat. Slower can stop a room overshooting, but it warms up later.",
+										v(g.response),
+										_(g.response)
+									]
+								})]
+							}),
+							/* @__PURE__ */ (0, f.jsxs)("select", {
+								"aria-label": "Response time",
+								value: g.response.value == null ? "" : String(g.response.value),
+								disabled: a,
+								onChange: (e) => e.target.value && h("response", Number(e.target.value)),
+								children: [g.response.value == null && /* @__PURE__ */ (0, f.jsx)("option", {
+									value: "",
+									children: "Unknown"
+								}), r.response_minutes.map((e) => /* @__PURE__ */ (0, f.jsxs)("option", {
+									value: e,
+									children: [
+										e,
+										" min",
+										e === 30 ? " (usual)" : ""
+									]
+								}, e))]
+							})
+						]
+					}), (g.adaptation.supported > 0 || g.adaptation_run.supported > 0) && /* @__PURE__ */ (0, f.jsxs)("div", {
+						className: "settings-row",
+						children: [
+							/* @__PURE__ */ (0, f.jsx)("span", {
+								className: "device-icon",
+								children: /* @__PURE__ */ (0, f.jsx)(p, { name: "tune-variant" })
+							}),
+							/* @__PURE__ */ (0, f.jsxs)("div", {
+								className: "settings-text",
+								children: [/* @__PURE__ */ (0, f.jsx)("span", { children: "Adaptation run" }), /* @__PURE__ */ (0, f.jsxs)("span", {
+									className: "muted small",
+									children: [
+										"The valve learns how its radiator's valve opens, so it doesn't open further than it needs to. On: it checks each night.",
+										g.adaptation_status.value == null ? "" : ` ${Ve[String(g.adaptation_status.value)] ?? ""}${g.adaptation_status.mixed ? " on some valves" : ""}.`,
+										v(g.adaptation),
+										_(g.adaptation)
+									]
+								})]
+							}),
+							/* @__PURE__ */ (0, f.jsxs)("div", {
+								className: "settings-controls",
+								children: [g.adaptation.supported > 0 && y("adaptation", g.adaptation, "Adaptation run"), g.adaptation_run.supported > 0 && /* @__PURE__ */ (0, f.jsx)("button", {
+									className: "ghost",
 									disabled: a,
-									onChange: (e) => e.target.value && h("response", Number(e.target.value)),
-									children: [g.response.value == null && /* @__PURE__ */ (0, f.jsx)("option", {
-										value: "",
-										children: "Unknown"
-									}), r.response_minutes.map((e) => /* @__PURE__ */ (0, f.jsxs)("option", {
-										value: e,
-										children: [
-											e,
-											" min",
-											e === 30 ? " (usual)" : ""
-										]
-									}, e))]
-								})
-							]
-						}),
-						g.covered.supported > 0 && /* @__PURE__ */ (0, f.jsxs)("div", {
-							className: "settings-row",
-							children: [
-								/* @__PURE__ */ (0, f.jsx)("span", {
-									className: "device-icon",
-									children: /* @__PURE__ */ (0, f.jsx)(p, { name: "thermometer-lines" })
-								}),
-								/* @__PURE__ */ (0, f.jsxs)("div", {
-									className: "settings-text",
-									children: [/* @__PURE__ */ (0, f.jsx)("span", { children: "Go by the room sensor" }), /* @__PURE__ */ (0, f.jsxs)("span", {
-										className: "muted small",
-										children: [
-											"The valve goes by the room sensor alone, not its own reading beside the radiator. Best for a covered radiator or one behind furniture.",
-											v(g.covered),
-											_(g.covered)
-										]
-									})]
-								}),
-								/* @__PURE__ */ (0, f.jsx)("div", {
-									className: "settings-controls",
-									children: y("covered", g.covered, "Go by the room sensor")
-								})
-							]
-						}),
-						(g.adaptation.supported > 0 || g.adaptation_run.supported > 0) && /* @__PURE__ */ (0, f.jsxs)("div", {
-							className: "settings-row",
-							children: [
-								/* @__PURE__ */ (0, f.jsx)("span", {
-									className: "device-icon",
-									children: /* @__PURE__ */ (0, f.jsx)(p, { name: "tune-variant" })
-								}),
-								/* @__PURE__ */ (0, f.jsxs)("div", {
-									className: "settings-text",
-									children: [/* @__PURE__ */ (0, f.jsx)("span", { children: "Adaptation run" }), /* @__PURE__ */ (0, f.jsxs)("span", {
-										className: "muted small",
-										children: [
-											"The valve learns how its radiator's valve opens, so it doesn't open further than it needs to. On: it checks each night.",
-											g.adaptation_status.value == null ? "" : ` ${Ve[String(g.adaptation_status.value)] ?? ""}${g.adaptation_status.mixed ? " on some valves" : ""}.`,
-											v(g.adaptation),
-											_(g.adaptation)
-										]
-									})]
-								}),
-								/* @__PURE__ */ (0, f.jsxs)("div", {
-									className: "settings-controls",
-									children: [g.adaptation.supported > 0 && y("adaptation", g.adaptation, "Adaptation run"), g.adaptation_run.supported > 0 && /* @__PURE__ */ (0, f.jsx)("button", {
-										className: "ghost",
-										disabled: a,
-										onClick: () => h("adaptation_run", void 0, "Asked the valves to run it. It takes a few minutes, once each valve wakes."),
-										children: "Run now"
-									})]
-								})
-							]
-						})
-					]
+									onClick: () => h("adaptation_run", void 0, "Asked the valves to run it. It takes a few minutes, once each valve wakes."),
+									children: "Run now"
+								})]
+							})
+						]
+					})]
 				}),
 				/* @__PURE__ */ (0, f.jsx)("button", {
 					className: "ghost sheet-cancel",

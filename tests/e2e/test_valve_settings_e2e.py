@@ -48,9 +48,10 @@ async def test_valve_settings(hass: HomeAssistant, mqtt_mock, hass_ws_client) ->
     valve_a = entity(hass, zha, a, "climate", f"{IEEE}-1", "bedroom_valve", "heat", {"current_temperature": 19, "temperature": 20})
     response_a = entity(hass, zha, a, "select", f"{IEEE}-1-513-control_algorithm_scale_factor", "bedroom_valve_response",
                         "moderate 30min", {"options": ZHA_OPTIONS}, "setpoint_response_time")
-    covered_a = entity(hass, zha, a, "switch", f"{IEEE}-1-513-radiator_covered", "bedroom_valve_covered", "off",
-                       translation_key="prioritize_external_temperature_sensor")
-    entity(hass, zha, a, "switch", f"{IEEE}-1-513-adaptation_run_settings", "bedroom_valve_adaptation", "on",
+    # Radiator covered is left out of the settings.
+    entity(hass, zha, a, "switch", f"{IEEE}-1-513-radiator_covered", "bedroom_valve_covered", "off",
+           translation_key="prioritize_external_temperature_sensor")
+    adaptation_a = entity(hass, zha, a, "switch", f"{IEEE}-1-513-adaptation_run_settings", "bedroom_valve_adaptation", "on",
            translation_key="adaptation_run_enabled")
     run_a = entity(hass, zha, a, "select", f"{IEEE}-1-513-adaptation_run_control", "bedroom_valve_run", "Nothing",
                    {"options": ["Nothing", "Initiate", "Cancel"]}, "adaptation_run_command")
@@ -62,14 +63,14 @@ async def test_valve_settings(hass: HomeAssistant, mqtt_mock, hass_ws_client) ->
                      {"current_temperature": 19.5, "temperature": 20})
     response_b = entity(hass, z2m, b, "number", "0x84fd27fffe000002_control_algorithm_scale_factor_zigbee2mqtt",
                         "bedroom_window_valve_scale", "10", {"min": 1, "max": 10})
-    covered_b = entity(hass, z2m, b, "switch", "0x84fd27fffe000002_radiator_covered_zigbee2mqtt", "bedroom_window_valve_covered", "off")
+    adaptation_b = entity(hass, z2m, b, "switch", "0x84fd27fffe000002_adaptation_run_settings_zigbee2mqtt", "bedroom_window_valve_adaptation", "off")
 
     assert await hass.config_entries.async_setup(receiver.entry_id)
     await hass.async_block_till_done()
     # After setup: our own select, number and switch platforms register the real services.
     selects = async_mock_service(hass, "select", "select_option")
     numbers = async_mock_service(hass, "number", "set_value")
-    switches = async_mock_service(hass, "switch", "turn_on")
+    switches = async_mock_service(hass, "switch", "turn_off")
     manager = hass.data["hive_local_rooms"]
     room = await manager.async_save_room({"name": "Bedroom", "valves": [valve_a, valve_b]})
     client = await hass_ws_client(hass)
@@ -79,8 +80,8 @@ async def test_valve_settings(hass: HomeAssistant, mqtt_mock, hass_ws_client) ->
     assert msg["success"], msg
     settings = msg["result"]["settings"]
     assert settings["response"] == {"value": 30, "mixed": True, "supported": 2}  # 30 min and 80 min
-    assert settings["covered"] == {"value": False, "mixed": False, "supported": 2}
-    assert settings["adaptation"] == {"value": True, "mixed": False, "supported": 1}
+    assert "covered" not in settings
+    assert settings["adaptation"] == {"value": True, "mixed": True, "supported": 2}
     assert settings["adaptation_status"]["value"] == "found"
     assert msg["result"]["count"] == 2
 
@@ -91,10 +92,10 @@ async def test_valve_settings(hass: HomeAssistant, mqtt_mock, hass_ws_client) ->
     assert [(c.data["entity_id"], c.data["option"]) for c in selects] == [(response_a, "slow 80min")]
     assert [(c.data["entity_id"], c.data["value"]) for c in numbers] == [(response_b, 10)]
 
-    await client.send_json({"id": 3, "type": "hive_local/rooms/valve_settings/set", "room_id": room["id"], "key": "covered", "value": True})
+    await client.send_json({"id": 3, "type": "hive_local/rooms/valve_settings/set", "room_id": room["id"], "key": "adaptation", "value": False})
     msg = await client.receive_json()
     assert msg["success"], msg
-    assert sorted(c.data["entity_id"] for c in switches) == sorted([covered_a, covered_b])
+    assert sorted(c.data["entity_id"] for c in switches) == sorted([adaptation_a, adaptation_b])
 
     # An adaptation run: only the ZHA valve has the control.
     await client.send_json({"id": 4, "type": "hive_local/rooms/valve_settings/set", "room_id": room["id"], "key": "adaptation_run"})

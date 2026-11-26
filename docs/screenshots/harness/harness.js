@@ -270,7 +270,6 @@ const hass = {
           response_minutes: [5, 10, 15, 25, 30, 40, 50, 60, 70, 80],
           settings: {
             response: { value: 30, mixed, supported: 2 },
-            covered: { value: false, mixed: false, supported: 2 },
             adaptation: { value: true, mixed: false, supported: 2 },
             adaptation_run: { value: null, mixed: false, supported: 2 },
             adaptation_status: { value: "found", mixed: false, supported: 2 },

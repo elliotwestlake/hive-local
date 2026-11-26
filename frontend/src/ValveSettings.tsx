@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import { errorText, type Hass, type Room } from "./types";
 
-type Key = "response" | "covered" | "adaptation" | "adaptation_run" | "adaptation_status";
+type Key = "response" | "adaptation" | "adaptation_run" | "adaptation_status";
 
 interface Setting {
   value: number | boolean | string | null;
@@ -83,7 +83,7 @@ export function ValveSettingsDialog({ getHass, room, onClose }: { getHass: () =>
       ))}
     </div>
   );
-  const none = s && !s.response.supported && !s.covered.supported && !s.adaptation.supported && !s.adaptation_run.supported;
+  const none = s && !s.response.supported && !s.adaptation.supported && !s.adaptation_run.supported;
 
   return (
     <div className="sheet-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }}>
@@ -112,19 +112,6 @@ export function ValveSettingsDialog({ getHass, room, onClose }: { getHass: () =>
                     </option>
                   ))}
                 </select>
-              </div>
-            )}
-            {s.covered.supported > 0 && (
-              <div className="settings-row">
-                <span className="device-icon"><Icon name="thermometer-lines" /></span>
-                <div className="settings-text">
-                  <span>Go by the room sensor</span>
-                  <span className="muted small">
-                    The valve goes by the room sensor alone, not its own reading beside the radiator. Best for a covered radiator or one behind furniture.
-                    {mixed(s.covered)}{partly(s.covered)}
-                  </span>
-                </div>
-                <div className="settings-controls">{onOff("covered", s.covered, "Go by the room sensor")}</div>
               </div>
             )}
             {(s.adaptation.supported > 0 || s.adaptation_run.supported > 0) && (
