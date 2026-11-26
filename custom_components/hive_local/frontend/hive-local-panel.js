@@ -8477,7 +8477,7 @@ function Ze({ getHass: e, room: t }) {
 			}),
 			m === "schedule" && /* @__PURE__ */ (0, f.jsx)("p", {
 				className: "muted small room-mode-note",
-				children: "The valves follow the schedule kept on them (the Schedule tab). Experimental."
+				children: "The valves follow the schedule kept on them (the Schedule tab)."
 			}),
 			m === "off" && /* @__PURE__ */ (0, f.jsxs)("p", {
 				className: "muted small room-mode-note",
@@ -8667,16 +8667,15 @@ function nt(e) {
 	return e == null ? "its clock isn't set" : `its clock is ${Math.round(Math.abs(e) / 60)} min ${e < 0 ? "behind" : "ahead"}`;
 }
 function rt({ getHass: e, room: t, onClose: n, page: r }) {
-	let [i, a] = (0, u.useState)([]), [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)(et), [d, m] = (0, u.useState)(!1), [h, _] = (0, u.useState)(!1), [v, y] = (0, u.useState)(null);
+	let [i, a] = (0, u.useState)([]), [o, s] = (0, u.useState)([]), [c, l] = (0, u.useState)(et);
 	(0, u.useEffect)(() => {
 		let e = (e) => !r && e.key === "Escape" && n?.();
 		return window.addEventListener("keydown", e), () => window.removeEventListener("keydown", e);
 	}, [n, r]);
-	let x = (0, u.useMemo)(() => ({
+	let d = (0, u.useMemo)(() => ({
 		noun: "valves",
 		embedded: !r,
-		onReading: _,
-		statusLine: "Kept on each valve, so it runs without Home Assistant. Saving writes the changed days to every valve in the room.",
+		statusLine: t.mode === "schedule" ? "Your schedule is running. It's kept on each valve, so it runs without Home Assistant; saving writes the changed days to every valve." : `Your schedule isn't being used: the room is ${t.mode === "off" ? "off" : "on Manual"}. Choose Schedule on the Control tab to use it.`,
 		read: async () => {
 			let n = await e().callWS({
 				type: "hive_local/rooms/schedule/get",
@@ -8710,107 +8709,53 @@ function rt({ getHass: e, room: t, onClose: n, page: r }) {
 				error: o.length > 0
 			};
 		}
-	}), [e, t.id]), S = i.filter((e) => e.schedule_mode === !1), C = i.length > 0 && i.every((e) => e.schedule_mode === !0), w = async (n) => {
-		m(!0), y(null);
-		try {
-			let r = await e().callWS({
-				type: "hive_local/rooms/schedule/mode",
-				room_id: t.id,
-				enabled: n
-			}), o = i.filter((e) => r.failed.includes(e.entity_id)).map((e) => e.name);
-			o.length ? y({
-				kind: "error",
-				text: `Didn't take on ${o.join(", ")}. It may be asleep: press its dial to wake it and try again.`
-			}) : (y({
-				kind: "ok",
-				text: n ? "The valves now follow their schedule." : "The valves stay at their target now."
-			}), a((e) => e.map((e) => ({
-				...e,
-				schedule_mode: n
-			}))));
-		} catch (e) {
-			y({
-				kind: "error",
-				text: b(e)
-			});
-		} finally {
-			m(!1);
-		}
-	}, T = [];
-	for (let e of i) e.error ? T.push(`${e.name} didn't answer: ${e.error}`) : e.complete || T.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && T.push(`${e.name}: ${nt(e.clock.offset)}. It's set when you save.`);
-	o.length && i.length > 1 && T.push(`The valves have different times on ${o.map(tt).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
-	let E = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
-		r ? /* @__PURE__ */ (0, f.jsx)("div", {
+	}), [
+		e,
+		t.id,
+		t.mode
+	]), m = [];
+	for (let e of i) e.error ? m.push(`${e.name} didn't answer: ${e.error}`) : e.complete || m.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && m.push(`${e.name}: ${nt(e.clock.offset)}. It's set when you save.`);
+	let h = t.mode === "schedule" ? i.filter((e) => e.schedule_mode === !1) : [];
+	h.length && m.push(`${h.map((e) => e.name).join(", ")} ${h.length === 1 ? "isn't" : "aren't"} following the schedule yet: choose Manual and then Schedule again on the Control tab.`), o.length && i.length > 1 && m.push(`The valves have different times on ${o.map(tt).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
+	let _ = /* @__PURE__ */ (0, f.jsxs)(f.Fragment, { children: [
+		r ? null : /* @__PURE__ */ (0, f.jsxs)("div", {
 			className: "room-schedule-head",
-			children: /* @__PURE__ */ (0, f.jsx)("span", {
-				className: "chip unsaved",
-				children: "Experimental"
-			})
-		}) : /* @__PURE__ */ (0, f.jsxs)("div", {
-			className: "room-schedule-head",
-			children: [
-				/* @__PURE__ */ (0, f.jsx)("button", {
-					className: "round ghost",
-					onClick: () => n?.(),
-					"aria-label": "Back to the room",
-					children: /* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-left" })
-				}),
-				/* @__PURE__ */ (0, f.jsxs)("div", {
-					className: "page-title",
-					children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: "Schedule" }), /* @__PURE__ */ (0, f.jsxs)("span", {
-						className: "muted small",
-						children: [
-							t.name,
-							" · ",
-							t.valves.length,
-							" valve",
-							t.valves.length === 1 ? "" : "s"
-						]
-					})]
-				}),
-				/* @__PURE__ */ (0, f.jsx)("span", {
-					className: "chip unsaved",
-					children: "Experimental"
-				})
-			]
+			children: [/* @__PURE__ */ (0, f.jsx)("button", {
+				className: "round ghost",
+				onClick: () => n?.(),
+				"aria-label": "Back to the room",
+				children: /* @__PURE__ */ (0, f.jsx)(p, { name: "chevron-left" })
+			}), /* @__PURE__ */ (0, f.jsxs)("div", {
+				className: "page-title",
+				children: [/* @__PURE__ */ (0, f.jsx)("h2", { children: "Schedule" }), /* @__PURE__ */ (0, f.jsxs)("span", {
+					className: "muted small",
+					children: [
+						t.name,
+						" · ",
+						t.valves.length,
+						" valve",
+						t.valves.length === 1 ? "" : "s"
+					]
+				})]
+			})]
 		}),
-		/* @__PURE__ */ (0, f.jsx)("p", {
-			className: "muted small room-schedule-note",
-			children: "Not yet tried on real Hive valves. The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times."
-		}),
-		i.length > 0 && /* @__PURE__ */ (0, f.jsxs)("div", {
-			className: "room-schedule-mode",
-			children: [
-				/* @__PURE__ */ (0, f.jsx)(p, { name: C ? "calendar-check-outline" : "calendar-remove-outline" }),
-				/* @__PURE__ */ (0, f.jsx)("span", {
-					className: "small room-schedule-mode-text",
-					children: C ? "The valves follow this schedule." : S.length ? `${S.length === i.length ? "The valves don't" : `${S.map((e) => e.name).join(", ")} doesn't`} follow a schedule: ${S.length === 1 ? "it stays" : "they stay"} at the target.` : "Couldn't tell whether the valves follow a schedule."
-				}),
-				/* @__PURE__ */ (0, f.jsx)("button", {
-					className: "ghost",
-					onClick: () => w(!C),
-					disabled: d || h,
-					children: C ? "Stop" : "Use it"
-				})
-			]
-		}),
-		v && /* @__PURE__ */ (0, f.jsx)("div", {
-			className: `status ${v.kind} small`,
-			children: v.text
-		}),
-		T.length > 0 && /* @__PURE__ */ (0, f.jsx)("ul", {
+		m.length > 0 && /* @__PURE__ */ (0, f.jsx)("ul", {
 			className: "room-schedule-notes small",
-			children: T.map((e) => /* @__PURE__ */ (0, f.jsx)("li", { children: e }, e))
+			children: m.map((e) => /* @__PURE__ */ (0, f.jsx)("li", { children: e }, e))
 		}),
 		/* @__PURE__ */ (0, f.jsx)(le, {
 			getHass: e,
 			limits: c,
-			source: x
+			source: d
+		}),
+		/* @__PURE__ */ (0, f.jsx)("p", {
+			className: "muted small room-schedule-note",
+			children: "The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times."
 		})
 	] });
 	return r ? /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "room-schedule room-schedule-page",
-		children: E
+		children: _
 	}) : /* @__PURE__ */ (0, f.jsx)("div", {
 		className: "sheet-backdrop",
 		onClick: (e) => {
@@ -8822,7 +8767,7 @@ function rt({ getHass: e, room: t, onClose: n, page: r }) {
 			"aria-modal": "true",
 			"aria-label": `${t.name} schedule`,
 			onClick: (e) => e.stopPropagation(),
-			children: [/* @__PURE__ */ (0, f.jsx)("span", { className: "sheet-handle" }), E]
+			children: [/* @__PURE__ */ (0, f.jsx)("span", { className: "sheet-handle" }), _]
 		})
 	});
 }

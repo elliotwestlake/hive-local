@@ -30,7 +30,7 @@ hive_local/rooms/mode {room_id, mode: schedule|manual|off} -> {"failed": [...]} 
 hive_local/rooms/stats {room_id, days?, offset?}      -> like hive_local/stats, from the room's climate entity
 hive_local/rooms/boost {room_id, minutes, temperature} -> {"failed": [...]} (the valves for a while, and the boiler)
 hive_local/rooms/cancel_boost {room_id}            -> {"ok": true} (the valves' own targets back)
-Schedules on the room's valves (#5, experimental; valve_schedule.py):
+Schedules on the room's valves (#5; valve_schedule.py):
 hive_local/rooms/schedule/get {room_id}            -> {"schedule", "complete", "differs": [days the valves disagree on], "valves": [per valve: days, error, clock, schedule_mode], "limits"}
 hive_local/rooms/schedule/set {room_id, schedule}  -> {"schedule", "commands", "valves": [per valve: commands, clock, error], "failed"}  (every valve, one command per day)
 hive_local/rooms/schedule/mode {room_id, enabled}  -> {"failed"}  make the valves follow their schedule (or not)

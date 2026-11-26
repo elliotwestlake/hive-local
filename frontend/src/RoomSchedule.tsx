@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "./Icon";
 import { ScheduleEditor, type ScheduleSource } from "./ScheduleEditor";
-import { DAYS, errorText, type Hass, type Limits, type Room, type Schedule } from "./types";
+import { DAYS, type Hass, type Limits, type Room, type Schedule } from "./types";
 
 /** What hive_local/rooms/schedule/get says about each valve. */
 interface ValveRead {
@@ -33,7 +33,7 @@ function clockText(offset: number | null) {
 }
 
 /**
- * A room's schedule, kept on each of its Hive valves (experimental, issue #5): the
+ * A room's schedule, kept on each of its Hive valves (issue #5): the
  * receiver's schedule editor, reading from the valves and writing the changed days to
  * every one of them.
  */
@@ -41,9 +41,6 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
   const [valves, setValves] = useState<ValveRead[]>([]);
   const [differs, setDiffers] = useState<string[]>([]);
   const [limits, setLimits] = useState<Limits>(LIMITS);
-  const [modeBusy, setModeBusy] = useState(false);
-  const [reading, setReading] = useState(false);
-  const [modeNote, setModeNote] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => !page && e.key === "Escape" && onClose?.();
@@ -55,8 +52,11 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
     () => ({
       noun: "valves",
       embedded: !page,
-      onReading: setReading,
-      statusLine: "Kept on each valve, so it runs without Home Assistant. Saving writes the changed days to every valve in the room.",
+      // Like the heating's Schedule tab: whether it's in use, from the room's mode (its Control tab).
+      statusLine:
+        room.mode === "schedule"
+          ? "Your schedule is running. It's kept on each valve, so it runs without Home Assistant; saving writes the changed days to every valve."
+          : `Your schedule isn't being used: the room is ${room.mode === "off" ? "off" : "on Manual"}. Choose Schedule on the Control tab to use it.`,
       read: async () => {
         const r = await getHass().callWS<{ schedule: Schedule; complete: boolean; differs: string[]; valves: ValveRead[]; limits: Partial<Limits> }>({
           type: "hive_local/rooms/schedule/get",
@@ -98,28 +98,8 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
         return { schedule: r.schedule, note: parts.filter(Boolean).join(" "), error: failed.length > 0 };
       },
     }),
-    [getHass, room.id],
+    [getHass, room.id, room.mode],
   );
-
-  const notFollowing = valves.filter((v) => v.schedule_mode === false);
-  const following = valves.length > 0 && valves.every((v) => v.schedule_mode === true);
-  const setMode = async (enabled: boolean) => {
-    setModeBusy(true);
-    setModeNote(null);
-    try {
-      const r = await getHass().callWS<{ failed: string[] }>({ type: "hive_local/rooms/schedule/mode", room_id: room.id, enabled });
-      const names = valves.filter((v) => r.failed.includes(v.entity_id)).map((v) => v.name);
-      if (names.length) setModeNote({ kind: "error", text: `Didn't take on ${names.join(", ")}. It may be asleep: press its dial to wake it and try again.` });
-      else {
-        setModeNote({ kind: "ok", text: enabled ? "The valves now follow their schedule." : "The valves stay at their target now." });
-        setValves((vs) => vs.map((v) => ({ ...v, schedule_mode: enabled })));
-      }
-    } catch (e) {
-      setModeNote({ kind: "error", text: errorText(e) });
-    } finally {
-      setModeBusy(false);
-    }
-  };
 
   // Anything worth knowing about the valves, from the last read.
   const notes: string[] = [];
@@ -128,17 +108,18 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
     else if (!v.complete) notes.push(`${v.name} sent ${v.days} of 7 days.`);
     if (v.clock && !v.clock.ok && !v.error) notes.push(`${v.name}: ${clockText(v.clock.offset)}. It's set when you save.`);
   }
+  // On Schedule, a valve that didn't take the mode (asleep at the time) still holds its target.
+  const notFollowing = room.mode === "schedule" ? valves.filter((v) => v.schedule_mode === false) : [];
+  if (notFollowing.length) {
+    notes.push(`${notFollowing.map((v) => v.name).join(", ")} ${notFollowing.length === 1 ? "isn't" : "aren't"} following the schedule yet: choose Manual and then Schedule again on the Control tab.`);
+  }
   if (differs.length && valves.length > 1) {
     notes.push(`The valves have different times on ${differs.map(short).join(", ")}. This shows ${valves.find((v) => v.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);
   }
 
   const body = (
     <>
-        {page ? (
-          <div className="room-schedule-head">
-            <span className="chip unsaved">Experimental</span>
-          </div>
-        ) : (
+        {page ? null : (
         <div className="room-schedule-head">
           <button className="round ghost" onClick={() => onClose?.()} aria-label="Back to the room">
             <Icon name="chevron-left" />
@@ -147,29 +128,9 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
             <h2>Schedule</h2>
             <span className="muted small">{room.name} · {room.valves.length} valve{room.valves.length === 1 ? "" : "s"}</span>
           </div>
-          <span className="chip unsaved">Experimental</span>
         </div>
         )}
-        <p className="muted small room-schedule-note">
-          Not yet tried on real Hive valves. The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times.
-        </p>
 
-        {valves.length > 0 && (
-          <div className="room-schedule-mode">
-            <Icon name={following ? "calendar-check-outline" : "calendar-remove-outline"} />
-            <span className="small room-schedule-mode-text">
-              {following
-                ? "The valves follow this schedule."
-                : notFollowing.length
-                  ? `${notFollowing.length === valves.length ? "The valves don't" : `${notFollowing.map((v) => v.name).join(", ")} doesn't`} follow a schedule: ${notFollowing.length === 1 ? "it stays" : "they stay"} at the target.`
-                  : "Couldn't tell whether the valves follow a schedule."}
-            </span>
-            <button className="ghost" onClick={() => setMode(!following)} disabled={modeBusy || reading}>
-              {following ? "Stop" : "Use it"}
-            </button>
-          </div>
-        )}
-        {modeNote && <div className={`status ${modeNote.kind} small`}>{modeNote.text}</div>}
         {notes.length > 0 && (
           <ul className="room-schedule-notes small">
             {notes.map((n) => <li key={n}>{n}</li>)}
@@ -177,6 +138,9 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
         )}
 
         <ScheduleEditor getHass={getHass} limits={limits} source={source} />
+        <p className="muted small room-schedule-note">
+          The valves sleep between check-ins, so reading or saving can take up to a couple of minutes; pressing a valve's dial wakes it. On ZHA, each valve's clock is checked first and set if it's wrong, or the schedule would run at the wrong times.
+        </p>
     </>
   );
   // On the room's page (its Schedule tab), or as a dialog over something else.

@@ -1,6 +1,6 @@
 """A climate entity per room, with the same controls as the heating's.
 
-auto = the valves follow their own weekly schedule (#5, experimental), heat = they hold the
+auto = the valves follow their own weekly schedule (#5), heat = they hold the
 room's target, off = they go to their lowest (5 °C; a Hive valve can't switch off) and get
 their targets back when it's turned on again. Boost is a preset: a room boost (the valves
 for a while, and the boiler), with the receiver's heating boost length and temperature.
