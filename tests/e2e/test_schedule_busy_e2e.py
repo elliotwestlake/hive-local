@@ -26,11 +26,11 @@ async def test_no_writes_while_a_room_schedule_is_read(hass, hass_ws_client):
         await client.send_json({"id": 1, "type": "hive_local/rooms/schedule/get", "room_id": "lounge"})
         await started.wait()
 
-        # Reading: a save and a schedule-mode change are both refused.
+        # Reading: a save and switching the room to Schedule are both refused.
         await client.send_json({"id": 2, "type": "hive_local/rooms/schedule/set", "room_id": "lounge", "schedule": {}})
         msg = await client.receive_json()
         assert msg["id"] == 2 and not msg["success"] and msg["error"]["code"] == "busy"
-        await client.send_json({"id": 3, "type": "hive_local/rooms/schedule/mode", "room_id": "lounge", "enabled": True})
+        await client.send_json({"id": 3, "type": "hive_local/rooms/mode", "room_id": "lounge", "mode": "schedule"})
         msg = await client.receive_json()
         assert msg["id"] == 3 and msg["error"]["code"] == "busy"
         # Another room isn't held up.
