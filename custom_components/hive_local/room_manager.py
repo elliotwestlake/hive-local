@@ -174,6 +174,7 @@ class RoomManager:
     def status(self) -> dict[str, Any]:
         """Everything the Rooms tab shows: the receivers and every room's live state."""
         names = {r["entry_id"]: r["name"] for r in self.receivers()}
+        boosts = self.hass.data.get(f"{DOMAIN}_room_boosts")  # room_boost_controller.DATA_ROOM_BOOSTS
         out = []
         for room in self.rooms:
             valves = [self._valve(v) for v in room["valves"]]
@@ -188,6 +189,7 @@ class RoomManager:
                     "external_sensor": valve_sensor.room_status(
                         [v["external_sensor"] for v in valves if "external_sensor" in v]
                     ),
+                    "boost": boosts.as_dict(room["id"]) if boosts else None,
                 }
                 | summarise(valves, sensor.state if sensor else None)
             )

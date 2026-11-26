@@ -55,6 +55,10 @@ shot heating 900,660 "tab=Overview&open=1"
 shot phone-schedule 390,770 "tab=Overview&narrow=1&open=1&click=Schedule"
 shot phone-room 390,770 "tab=Overview&narrow=1&room=Lounge"
 shot phone-boost 390,770 "tab=Overview&narrow=1&click=Boost"
+# Room boost: a boosted room card, and the boost sheet opened from a room card.
+shot room-boost 900,640 "tab=Overview&roomboost=1"
+shot room-boost-sheet 900,800 "tab=Overview&roomclick=Lounge"
+shot phone-room-boost 390,770 "tab=Overview&narrow=1&roomboost=1&room=Lounge"
 # Room sensor on the valves (#3): the room sheet, two other states and the editor's toggle.
 shot room-sensor 900,760 "tab=Overview&room=Lounge"
 shot room-sensor-partly 900,760 "tab=Overview&room=Lounge&valvesensor=partly"
@@ -99,7 +103,8 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
 # Only for a PR, unquantized: 256 colours lose the light grey boxes.
 for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
            "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
-           "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule"):
+           "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule",
+           "room-boost", "room-boost-sheet", "phone-room-boost"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)

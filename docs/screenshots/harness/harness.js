@@ -111,6 +111,8 @@ const ROOMS = [
     current_temperature: 19.8, temperature_source: VALVE_SENSOR === "lost" ? "valves" : "sensor", target: 21, target_range: null, heating: true,
     heating_valves: ["climate.lounge_bay"], unavailable: [], lowest_battery: 14, battery_low: true,
     sensor_on_valves: true, external_sensor: VALVE_SENSOR === "lost" ? "waiting" : VALVE_SENSOR,
+    // ?roomboost=1: the Lounge is boosted to 22° with 42 min left.
+    boost: params.get("roomboost") === "1" ? { until: new Date(Date.now() + 42 * 60000).toISOString(), temperature: 22, remaining: 42 } : null,
   },
   {
     id: "b2", name: "Bedroom", valves: ["climate.bedroom"], sensor: null, sensor_name: null,
@@ -348,6 +350,13 @@ if (room) {
   [...panel.shadowRoot.querySelectorAll(".room-device .device-head")].find((e) => e.textContent.includes(room))?.click();
   await wait(400);
 }
+// ?roomclick=Lounge presses that room card's Boost button.
+const roomClick = params.get("roomclick");
+if (roomClick) {
+  [...panel.shadowRoot.querySelectorAll(".room-device")].find((e) => e.textContent.includes(roomClick))?.querySelector(".device-action")?.click();
+  await new Promise((r) => setTimeout(r, 300));
+}
+
 // ?click=… (repeatable): exact button text or aria-label, or a button whose text starts with it.
 for (const click of params.getAll("click")) {
   const buttons = [...panel.shadowRoot.querySelectorAll("button")];

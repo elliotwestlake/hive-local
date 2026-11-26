@@ -170,6 +170,8 @@ export interface Room {
   battery_low: boolean;
   sensor_on_valves?: boolean; // push the sensor's reading into the valves (default on)
   external_sensor?: "using" | "partly" | "waiting" | "unsupported" | "off" | null;
+  /** A room boost running now: the valves at `temperature` until `until` (ISO, local). */
+  boost?: { until: string; temperature: number; remaining: number } | null;
 }
 
 export interface Candidate {

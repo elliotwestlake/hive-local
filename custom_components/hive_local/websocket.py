@@ -24,7 +24,9 @@ hive_local/rooms/suggest                           -> {"rooms": a room per area 
 hive_local/rooms/identify {entity_id}              -> presses the valve's Identify button (it flashes its light)
 hive_local/rooms/save {room_id?, name, valves, sensor?, receiver?, sensor_on_valves?}
 hive_local/rooms/delete {room_id}
-hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]}
+hive_local/rooms/set_target {room_id, temperature} -> {"failed": [valves that refused]} (while boosting: the boost's temperature)
+hive_local/rooms/boost {room_id, minutes, temperature} -> {"failed": [...]} (the valves for a while, and the boiler)
+hive_local/rooms/cancel_boost {room_id}            -> {"ok": true} (the valves' own targets back)
 Schedules on the room's valves (#5, experimental; valve_schedule.py):
 hive_local/rooms/schedule/get {room_id}            -> {"schedule", "complete", "differs": [days the valves disagree on], "valves": [per valve: days, error, clock, schedule_mode], "limits"}
 hive_local/rooms/schedule/set {room_id, schedule}  -> {"schedule", "commands", "valves": [per valve: commands, clock, error], "failed"}  (every valve, one command per day)
@@ -73,6 +75,7 @@ from .valve_sensor_controller import SIGNAL_VALVE_SENSORS
 from .settings import DATA_SETTINGS, HouseSettings, SettingsError
 from .schedule import ScheduleError, validate
 from .history import async_outdoor, async_samples, channel_entity_id
+from .room_boost_controller import DATA_ROOM_BOOSTS, RoomBoosts
 from .stats import summarise
 from .z2m import BOOST_MAX_MINUTES, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -107,6 +110,8 @@ def async_register(hass: HomeAssistant) -> None:
         ws_rooms_save,
         ws_rooms_delete,
         ws_rooms_set_target,
+        ws_rooms_boost,
+        ws_rooms_cancel_boost,
         ws_rooms_schedule_get,
         ws_rooms_schedule_set,
         ws_rooms_schedule_mode,
@@ -572,6 +577,7 @@ async def ws_rooms_save(hass, connection, msg: dict[str, Any], rooms: RoomManage
 @websocket_api.async_response
 @_rooms_handler
 async def ws_rooms_delete(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    await hass.data[DATA_ROOM_BOOSTS].async_cancel(msg["room_id"], "room deleted")
     await rooms.async_delete_room(msg["room_id"])
     connection.send_result(msg["id"], {"ok": True})
 
@@ -586,8 +592,35 @@ async def ws_rooms_delete(hass, connection, msg: dict[str, Any], rooms: RoomMana
 @websocket_api.async_response
 @_rooms_handler
 async def ws_rooms_set_target(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
-    failed = await rooms.async_set_target(msg["room_id"], msg["temperature"])
+    boosts: RoomBoosts = hass.data[DATA_ROOM_BOOSTS]
+    if boosts.get(msg["room_id"]) is not None:
+        failed = await boosts.async_set_temperature(msg["room_id"], msg["temperature"])
+    else:
+        failed = await rooms.async_set_target(msg["room_id"], msg["temperature"])
     connection.send_result(msg["id"], {"failed": failed})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/rooms/boost",
+        vol.Required("minutes"): vol.Coerce(int),
+        vol.Required("temperature"): vol.Coerce(float),
+    }
+    | ROOM
+)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_boost(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    failed = await hass.data[DATA_ROOM_BOOSTS].async_boost(msg["room_id"], msg["minutes"], msg["temperature"])
+    connection.send_result(msg["id"], {"failed": failed})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/cancel_boost"} | ROOM)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_cancel_boost(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    await hass.data[DATA_ROOM_BOOSTS].async_cancel(msg["room_id"])
+    connection.send_result(msg["id"], {"ok": True})
 
 
 @websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/schedule/get"} | ROOM)

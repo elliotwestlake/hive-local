@@ -35,6 +35,7 @@ from .health import DATA_VALVE_HEALTH, ReceiverHealth, ValveHealth
 from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .settings import DATA_SETTINGS, HouseSettings
+from .room_boost_controller import DATA_ROOM_BOOSTS, RoomBoosts
 from .room_manager import DATA_ROOMS, RoomManager
 from .valve_sensor_controller import DATA_VALVE_SENSORS, ValveSensors
 from .transports import Transport, Z2MTransport
@@ -66,6 +67,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     rooms = RoomManager(hass)
     await rooms.async_load()
     hass.data[DATA_ROOMS] = rooms
+    room_boosts = RoomBoosts(hass, rooms)
+    await room_boosts.async_load()
+    room_boosts.start()
+    hass.data[DATA_ROOM_BOOSTS] = room_boosts
     valve_sensors = ValveSensors(hass, rooms)
     rooms.valve_sensors = valve_sensors
     valve_sensors.start()

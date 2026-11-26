@@ -134,6 +134,25 @@ class Demand:
         self._notify()
 
     @callback
+    def poke(self) -> None:
+        """Look again now (a room boost started or ended)."""
+        self._evaluate()
+
+    @callback
+    def room_boosted(self) -> None:
+        """Someone boosted a room: a fresh request, so an earlier "Stop for now" no longer holds."""
+        if self.suppressed:
+            self.suppressed = False
+            self._save()
+
+    def _boosted(self) -> list[str]:
+        """The boosted rooms this receiver heats: they call for heat even with this turned off."""
+        from .room_boost_controller import DATA_ROOM_BOOSTS  # noqa: PLC0415 - avoid an import cycle
+
+        boosts = self.hass.data.get(DATA_ROOM_BOOSTS)
+        return boosts.active_rooms(self.entry_id) if boosts else []
+
+    @callback
     def _want_schedule(self) -> None:
         """Pre-heat keeps the onboard schedule; read it if we don't have the whole week."""
         if not self.preheat._complete():  # noqa: SLF001 - same package
@@ -291,9 +310,12 @@ class Demand:
     def _decide(self, status: dict[str, Any] | None, needs: list[d.Need]) -> None:
         self.needs = needs
         now = dt_util.utcnow().timestamp()
-        if not self.enabled:
+        boosted = set(self._boosted())
+        if not self.enabled and not boosted and self.run is None:
             self.calling, self.reason = [], "off"
             return
+        if not self.enabled:
+            needs = [n for n in needs if n.room in boosted]  # only the boosted rooms count
         if not status:
             self.reason = "waiting"
             return
@@ -304,6 +326,9 @@ class Demand:
             self.calling, self.reason = [], blocked
             return
         self.calling = d.calling(needs, running, self.start_below, self.stop_within)
+        # A boosted room wants heat until it's within reach of the boost temperature.
+        forced = [n for n in d.calling([n for n in needs if n.room in boosted], True, self.start_below, self.stop_within)]
+        self.calling += [n for n in forced if n not in self.calling]
         if self.suppressed and not d.calling(needs, True, self.start_below, self.stop_within):
             _LOGGER.info("Rooms are warm again; they can call for heat next time")
             self.suppressed = False
@@ -311,18 +336,24 @@ class Demand:
         scheduled = self._scheduled(status)
         schedule_off = scheduled is not None and scheduled <= HEAT_MIN
         lease = d.lease_minutes(self._until_off(), self.outside_schedule)
+        mode = status.get("mode")
+        if forced:
+            # A room boost is asked for: any time of day, from Manual as well, without the minimum off.
+            lease = d.lease_minutes(self._until_off(), True)
+            if mode == MODE_MANUAL:
+                mode = MODE_SCHEDULE
         verdict = d.decide(
             running=running,
             wanted=bool(self.calling),
-            mode=status.get("mode"),
+            mode=mode,
             schedule_off=schedule_off,
-            outside_schedule=self.outside_schedule,
+            outside_schedule=self.outside_schedule or bool(forced),
             receiver_heating=bool(status.get("heating")),
             now=now,
             started=self.run.started if self.run else None,
             last_end=self.last_end,
             min_on=self.min_on,
-            min_off=self.min_off,
+            min_off=0 if forced else self.min_off,
             suppressed=self.suppressed,
             lease=lease,
         )

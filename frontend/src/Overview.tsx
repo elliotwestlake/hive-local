@@ -89,7 +89,14 @@ export function Overview({
                 />
               ))}
             {(filter === "all" || filter === "rooms") &&
-              rooms.map((r) => <RoomCard key={r.id} room={r} showReceiver={several} onOpen={() => onOpenRoom(r.id)} />)}
+              rooms.map((r) => {
+                // The room's receiver's heating boost defaults (the only one with a single receiver).
+                const heat = status[r.receiver ?? devices[0]?.entry_id ?? ""]?.heat;
+                return (
+                  <RoomCard key={r.id} getHass={getHass} room={r} showReceiver={several} limits={limits}
+                    defaultMinutes={heat?.boost_minutes ?? 60} defaultTemp={heat?.boost_temperature ?? 21} onOpen={() => onOpenRoom(r.id)} />
+                );
+              })}
           </div>
         </>
       )}
@@ -198,9 +205,47 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
   );
 }
 
-function RoomCard({ room, showReceiver, onOpen }: { room: Room; showReceiver: boolean; onOpen: () => void }) {
-  const target = room.target != null ? `${room.target}°` : room.target_range ? `${room.target_range[0]}–${room.target_range[1]}°` : null;
-  const valves = `${room.valves.length} valve${room.valves.length === 1 ? "" : "s"}`;
+/** Room boosts: 15 min to 6 h, at what the valves take. */
+const ROOM_BOOST_MINUTES = [30, 60, 120, 180];
+
+function RoomCard({
+  getHass,
+  room,
+  showReceiver,
+  limits,
+  defaultMinutes,
+  defaultTemp,
+  onOpen,
+}: {
+  getHass: () => Hass;
+  room: Room;
+  showReceiver: boolean;
+  limits: Limits | null;
+  defaultMinutes: number;
+  defaultTemp: number;
+  onOpen: () => void;
+}) {
+  const [sheet, setSheet] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const send = async (msg: Record<string, unknown>) => {
+    setBusy(true);
+    try {
+      await getHass().callWS({ room_id: room.id, ...msg });
+      setError("");
+      setSheet(false);
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const boost = room.boost ?? null;
+  const target = boost ? `${boost.temperature}°` : room.target != null ? `${room.target}°` : room.target_range ? `${room.target_range[0]}–${room.target_range[1]}°` : null;
+  const valves = boost ? `Boost · ${formatMinutes(boost.remaining)} left` : `${room.valves.length} valve${room.valves.length === 1 ? "" : "s"}`;
+  const clampTemp = (t: number) => Math.min(limits?.heat_max ?? 32, Math.max(5, Math.round(t * 2) / 2));
+  const minutes = Math.min(360, Math.max(15, defaultMinutes));
+  const durations = [...new Set([...ROOM_BOOST_MINUTES, minutes])].sort((a, b) => a - b);
   return (
     <section className={`card device room-device ${room.heating ? "heating" : "idle"}`}>
       <div className="device-head" role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
@@ -222,8 +267,31 @@ function RoomCard({ room, showReceiver, onOpen }: { room: Room; showReceiver: bo
             {room.current_temperature != null ? room.current_temperature.toFixed(1) : "–"}<span>°</span>
             <small>{room.temperature_source === "sensor" ? "Actual" : "Valves"}</small>
           </div>
+          <button className={`device-action ${boost ? "boosting" : ""}`} disabled={busy} onClick={(e) => { e.stopPropagation(); setSheet(true); }}>
+            <Icon name="rocket-launch" /> {boost ? "Boosting" : "Boost"}
+          </button>
         </div>
       </div>
+      {error && <div className="status error">{error}</div>}
+      {sheet && (
+        <BoostSheet
+          title={boost ? "Boosting" : "Boost"}
+          subtitle={room.name}
+          water={false}
+          boosting={!!boost}
+          preheatFor={null}
+          remaining={boost?.remaining ?? null}
+          boostTarget={boost?.temperature ?? null}
+          defaultMinutes={minutes}
+          defaultTemp={clampTemp(defaultTemp)}
+          durations={durations}
+          clampTemp={clampTemp}
+          busy={busy}
+          onBoost={(m, t) => send({ type: "hive_local/rooms/boost", minutes: m, temperature: t })}
+          onStop={() => send({ type: "hive_local/rooms/cancel_boost" })}
+          onClose={() => setSheet(false)}
+        />
+      )}
     </section>
   );
 }

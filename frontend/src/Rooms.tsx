@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { formatMinutes } from "./api";
 import { Icon } from "./Icon";
 import { RoomScheduleDialog } from "./RoomSchedule";
 import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveInfo, type ValveState } from "./types";
@@ -372,7 +373,7 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
   // The valves' own schedule (experimental, #5), in place of this sheet; back returns here.
   if (scheduling) return <RoomScheduleDialog getHass={getHass} room={room} onClose={() => setScheduling(false)} />;
 
-  const shown = pending ?? room.target ?? room.target_range?.[1] ?? 20;
+  const shown = pending ?? room.boost?.temperature ?? room.target ?? room.target_range?.[1] ?? 20;
   const change = (value: number) => {
     const next = Math.min(35, Math.max(5, value));
     setPending(next);
@@ -402,7 +403,7 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
         <span className="sheet-handle" />
         <div className="sheet-title">
           <h2>{room.name}</h2>
-          <span className="muted">{[room.heating ? "Heating" : "Idle", several ? room.receiver_name : null, valves].filter(Boolean).join(" · ")}</span>
+          <span className="muted">{[room.boost ? `Boost · ${formatMinutes(room.boost.remaining)} left` : room.heating ? "Heating" : "Idle", several ? room.receiver_name : null, valves].filter(Boolean).join(" · ")}</span>
         </div>
         <div className="sheet-live">
           <Icon name={room.heating ? "fire" : "thermometer"} className={room.heating ? "heating" : ""} />
@@ -417,7 +418,7 @@ export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () =
         )}
         <div className="sheet-field">
           <span className="sheet-label">
-            {room.target_range && pending == null ? `Target (valves set to ${fmt(room.target_range[0])}–${fmt(room.target_range[1])})` : "Target"}
+            {room.boost ? "Boost to (keeps the time left)" : room.target_range && pending == null ? `Target (valves set to ${fmt(room.target_range[0])}–${fmt(room.target_range[1])})` : "Target"}
           </span>
           <div className="sheet-temp">
             <button className="round sheet-step" onClick={() => change(shown - 0.5)} aria-label="Lower"><Icon name="minus" /></button>
