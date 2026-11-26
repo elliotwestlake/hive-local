@@ -88,6 +88,18 @@
       },
       "heat_preheat_max_lead": {
         "name": "Pre-heat starts at most"
+      },
+      "heat_room_demand_start": {
+        "name": "Rooms call for heat below target by"
+      },
+      "heat_room_demand_stop": {
+        "name": "Rooms are warm within"
+      },
+      "heat_room_demand_min_on": {
+        "name": "Rooms' heat stays on at least"
+      },
+      "heat_room_demand_min_off": {
+        "name": "Rooms' heat stays off at least"
       }
     },
     "button": {
@@ -123,6 +135,15 @@
     "switch": {
       "heat_preheat": {
         "name": "Pre-heat"
+      },
+      "heat_room_demand": {
+        "name": "Rooms call for heat"
+      },
+      "heat_room_demand_outside_schedule": {
+        "name": "Rooms can heat outside the schedule"
+      },
+      "away": {
+        "name": "Away"
       }
     }
   },
@@ -181,7 +202,7 @@
     },
     "set_holiday": {
       "name": "Set holiday",
-      "description": "Hold frost protection until a date and time (hot water off), then go back to the previous mode.",
+      "description": "Hold frost protection until a date and time (hot water off, rooms at frost protection), then go back to the previous mode.",
       "fields": {
         "device_id": {
           "name": "Receiver",
@@ -190,16 +211,32 @@
         "until": {
           "name": "Until",
           "description": "When the holiday ends. Without a time zone it's Home Assistant's local time."
-        },
-        "temperature": {
-          "name": "Temperature",
-          "description": "Heating temperature while away (5-32 °C). Defaults to the heating frost protection setting."
         }
       }
     },
     "cancel_holiday": {
       "name": "Cancel holiday",
       "description": "End a holiday now and go back to the previous mode.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Leave out for every receiver."
+        }
+      }
+    },
+    "set_away": {
+      "name": "Set away",
+      "description": "Away until you're back: heating holds frost protection, hot water is off and the rooms' valves hold frost protection, until Cancel away. The same as the Away switch.",
+      "fields": {
+        "device_id": {
+          "name": "Receiver",
+          "description": "Which receiver. Leave out for every receiver."
+        }
+      }
+    },
+    "cancel_away": {
+      "name": "Cancel away",
+      "description": "I'm back: end away (or a holiday) now and put the heating, hot water and rooms back to what they were doing.",
       "fields": {
         "device_id": {
           "name": "Receiver",

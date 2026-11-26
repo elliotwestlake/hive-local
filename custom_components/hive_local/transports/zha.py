@@ -116,6 +116,87 @@ class _ScheduleListener:
             self.all_days.set()
 
 
+# A sleepy device (a Hive valve) that misses a request fails its delivery: try again this often.
+WAKE_RETRY = 5.0
+
+
+async def send_when_awake(request: Any, *args: Any, wake_wait: float = 0, label: str = "", **kwargs: Any) -> Any:
+    """Make a zigpy request, trying again for up to `wake_wait` seconds while it fails to deliver.
+
+    A Hive valve sleeps and only checks in now and then; a message its parent holds for it
+    expires if it doesn't, and zigpy reports a delivery failure. Zigbee2MQTT queues them.
+    """
+    deadline = asyncio.get_running_loop().time() + wake_wait
+    while True:
+        try:
+            return await request(*args, **kwargs)
+        except (TimeoutError, ZigbeeException) as err:
+            if asyncio.get_running_loop().time() + WAKE_RETRY > deadline:
+                raise
+            _LOGGER.debug("%s didn't get it (%s); trying again while it's asleep", label or "The device", err)
+            await asyncio.sleep(WAKE_RETRY)
+
+
+async def read_weekly_schedule(
+    cluster: Cluster, timeout: float, *, wake_wait: float = 0, label: str = ""
+) -> tuple[Schedule, list[dict[str, Any]]]:
+    """Ask a Thermostat cluster for its whole week: (days that came back, raw replies).
+
+    Hive receivers and valves answer with one response per day, all with our TSN. With
+    expect_reply zigpy would swallow the first as the request's reply, so don't wait for
+    one and collect them all through a legacy listener instead.
+    """
+    listener = _ScheduleListener()
+    cluster.add_listener(listener)
+    try:
+        await send_when_awake(
+            cluster.get_weekly_schedule,
+            days_to_return=ALL_DAYS,
+            mode_to_return=SEQ_MODE_HEAT,
+            expect_reply=False,
+            wake_wait=wake_wait,
+            label=label,
+        )
+        try:
+            await asyncio.wait_for(listener.all_days.wait(), timeout)
+        except TimeoutError:
+            pass
+    except ZigbeeException as err:
+        raise HomeAssistantError(f"Couldn't send the request: {err}") from err
+    finally:
+        cluster.remove_listener(listener)
+    return {d: listener.collected[d] for d in DAYS if d in listener.collected}, listener.raw
+
+
+async def write_weekly_schedule(
+    cluster: Cluster, schedule: Schedule, *, label: str, confirm: bool = False, pad: bool = True, wake_wait: float = 0
+) -> int:
+    """One set_weekly_schedule per day (schedule.per_day), half a second apart.
+
+    Without confirm the command goes with "disable default response" and nothing is
+    awaited (as for the receivers); with it, each day waits for the default response
+    and a refusal raises.
+    """
+    commands = schedule_commands(schedule, pad)
+    for command in commands:
+        _LOGGER.debug("%s set_weekly_schedule: %s", label, command)
+        try:
+            if confirm:
+                result = await send_when_awake(cluster.set_weekly_schedule, **command, wake_wait=wake_wait, label=label)
+                status = getattr(result, "status", Status.SUCCESS)
+                if status != Status.SUCCESS:
+                    raise HomeAssistantError(f"It refused the schedule ({status!r})")
+            else:
+                await cluster.set_weekly_schedule(
+                    **command, disable_default_response=True, expect_reply=False
+                )
+        except (TimeoutError, ZigbeeException) as err:
+            raise HomeAssistantError(f"Couldn't send the schedule: {err}") from err
+        # Same pacing as Z2M writes.
+        await asyncio.sleep(0.5)
+    return len(commands)
+
+
 def _plain(value: Any) -> Any:
     """A zigpy attribute value as JSON (enums and bitmaps become ints)."""
     if value is None or isinstance(value, (bool, str)):
@@ -413,28 +494,9 @@ class ZHATransport(Transport):
         await self._write(channel, boost_attributes(minutes, setpoint))
 
     async def async_read(self, channel: str) -> tuple[Schedule, bool]:
-        cluster = self._cluster(channel)
-        listener = _ScheduleListener()
-        cluster.add_listener(listener)
-        try:
-            # The receiver answers with one response per day, all with our TSN. With
-            # expect_reply zigpy would swallow the first as the request's reply, so
-            # don't wait for one and collect them all through the listener instead.
-            await cluster.get_weekly_schedule(
-                days_to_return=ALL_DAYS, mode_to_return=SEQ_MODE_HEAT, expect_reply=False
-            )
-            try:
-                await asyncio.wait_for(listener.all_days.wait(), READ_TIMEOUT)
-            except TimeoutError:
-                pass
-        except ZigbeeException as err:
-            raise HomeAssistantError(f"Couldn't send the request: {err}") from err
-        finally:
-            cluster.remove_listener(listener)
-
-        schedule = {d: listener.collected[d] for d in DAYS if d in listener.collected}
+        schedule, raw = await read_weekly_schedule(self._cluster(channel), READ_TIMEOUT)
         complete = len(schedule) == len(DAYS)
-        self._record_read(channel, listener.raw, schedule, complete)
+        self._record_read(channel, raw, schedule, complete)
         return schedule, complete
 
     def diagnostics(self) -> dict[str, Any]:
@@ -462,19 +524,7 @@ class ZHATransport(Transport):
         }
 
     async def async_write(self, channel: str, schedule: Schedule) -> int:
-        cluster = self._cluster(channel)
-        commands = schedule_commands(schedule)
-        for command in commands:
-            _LOGGER.debug("%s set_weekly_schedule: %s", channel, command)
-            try:
-                # Z2M sends every command to Hive receivers with "disable default
-                # response" (meta.disableDefaultResponse), so don't wait for one either.
-                # Read the schedule back to check it.
-                await cluster.set_weekly_schedule(
-                    **command, disable_default_response=True, expect_reply=False
-                )
-            except (TimeoutError, ZigbeeException) as err:
-                raise HomeAssistantError(f"Couldn't send the schedule: {err}") from err
-            # Same pacing as Z2M writes.
-            await asyncio.sleep(0.5)
-        return len(commands)
+        # Z2M sends every command to Hive receivers with "disable default response"
+        # (meta.disableDefaultResponse), so don't wait for one either. Read the schedule
+        # back to check it.
+        return await write_weekly_schedule(self._cluster(channel), schedule, label=channel)

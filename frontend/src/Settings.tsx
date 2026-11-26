@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 
 import { Icon } from "./Icon";
 import { RoomEditorDialog, RoomSetupDialog } from "./Rooms";
 import { unitPrice } from "./Stats";
-import { errorText, type Candidate, type Channel, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
+import { roomsLabel, useSender } from "./api";
+import { errorText, type Candidate, type Channel, type DemandInfo, type Device, type Hass, type Receiver, type Room, type StatusMap } from "./types";
 
 /**
  * Settings: the outside temperature and heating cost (house-wide), rooms (setting them up; using them is on
@@ -94,10 +95,81 @@ export function Settings({ getHass, devices, status }: { getHass: () => Hass; de
             {d.channels.map((ch) => (
               <BoostRows key={ch} getHass={getHass} device={d} channel={ch} info={status[d.entry_id]?.[ch]} />
             ))}
+            {status[d.entry_id]?.heat?.demand && <DemandRows getHass={getHass} device={d} info={status[d.entry_id]!.heat!.demand!} />}
           </div>
         </section>
       ))}
+
+      <TidySettings getHass={getHass} />
     </div>
+  );
+}
+
+interface TidyRow {
+  entity_id: string;
+  name: string;
+  done: boolean;
+  ours: boolean;
+}
+interface TidyData {
+  receiver: TidyRow[];
+  valves: TidyRow[];
+  pending: number;
+  undoable: number;
+}
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/** Disable the receiver's own ZHA / Z2M thermostat and hide the room valves' entities (Hive Local's replace them). */
+function TidySettings({ getHass }: { getHass: () => Hass }) {
+  const [data, setData] = useState<TidyData | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const run = (type: string) => {
+    setBusy(true);
+    getHass()
+      .callWS<TidyData>({ type })
+      .then((r) => {
+        setData(r);
+        setError("");
+      })
+      .catch((e) => setError(errorText(e)))
+      .finally(() => setBusy(false));
+  };
+  useEffect(() => run("hive_local/tidy"), [getHass]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!data || (!data.receiver.length && !data.valves.length)) return null;
+
+  const what = [
+    data.receiver.length ? `${plural(data.receiver.length, "receiver thermostat")} from ZHA or Zigbee2MQTT ${data.receiver.length === 1 ? "is" : "are"} disabled` : null,
+    data.valves.length ? `${plural(data.valves.length, "room valve")} ${data.valves.length === 1 ? "is" : "are"} hidden` : null,
+  ].filter(Boolean);
+  const note = data.pending
+    ? "Hive Local's heating and room entities replace them. Valves are only hidden: rooms still use them."
+    : `Done: ${what.join(", and ")}. Switch any back in their entity settings, or Undo.`;
+  return (
+    <section className="settings-section">
+      <h3>Entities</h3>
+      {error && <div className="status error">{error}</div>}
+      <div className="settings-group">
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="broom" /></span>
+          <div className="settings-text">
+            <span>{data.pending ? "Tidy up duplicate entities" : "Duplicate entities tidied up"}</span>
+            <span className="muted small">{note}</span>
+          </div>
+          <div className="settings-controls">
+            {data.undoable > 0 && (
+              <button className="ghost" disabled={busy} onClick={() => run("hive_local/tidy/undo")}>Undo</button>
+            )}
+            {data.pending > 0 && (
+              <button className="device-action tidy-action" disabled={busy} onClick={() => run("hive_local/tidy/apply")}>
+                Tidy up {data.pending}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -373,6 +445,67 @@ function BoostRows({ getHass, device, channel, info }: { getHass: () => Hass; de
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+const DEMAND_REASON: Record<string, string> = {
+  warm: "On. The rooms are warm.",
+  no_rooms: "On, but no room has recent valve readings.",
+  stopped: "Stopped for now: it starts again once the rooms are warm.",
+  mode: "On. It only acts while the heating is on Schedule.",
+  schedule_off: "On. The schedule has the heating off now.",
+  heating: "On. The receiver is already heating.",
+  holiday: "On, but not while you're away.",
+  preheat: "On. Pre-heating comes first.",
+  waiting: "On. The boiler rests a few minutes between requests.",
+};
+
+/** Rooms call for heat (per receiver): when a room is cold or a valve is heating, the heating comes on for it. */
+function DemandRows({ getHass, device, info }: { getHass: () => Hass; device: Device; info: DemandInfo }) {
+  const { busy, result, send } = useSender(getHass, device.entry_id, "heat");
+  const note = !info.enabled
+    ? "When a room this receiver heats is cold, or one of its valves is heating, the heating comes on for it. Each request lasts 30 min at a time, so it stops by itself if Home Assistant does."
+    : info.active
+      ? `On. Heating for ${roomsLabel(info.rooms)} now.`
+      : DEMAND_REASON[info.reason ?? ""] ?? "On.";
+  const onOff = (value: boolean, field: "enabled" | "outside_schedule", label: string) => (
+    <div className="segmented" role="radiogroup" aria-label={label}>
+      {[true, false].map((on) => (
+        <button
+          key={String(on)}
+          role="radio"
+          aria-checked={value === on}
+          className={value === on ? "on" : ""}
+          disabled={busy}
+          onClick={() => send({ type: "hive_local/demand", [field]: on }, on ? `${label}: on` : `${label}: off`)}
+        >
+          {on ? "On" : "Off"}
+        </button>
+      ))}
+    </div>
+  );
+  return (
+    <>
+      <div className="settings-row">
+        <span className="device-icon"><Icon name="home-thermometer-outline" /></span>
+        <div className="settings-text">
+          <span>Rooms call for heat</span>
+          <span className="muted small">{note}</span>
+        </div>
+        <div className="settings-controls">{onOff(info.enabled, "enabled", "Rooms call for heat")}</div>
+      </div>
+      {info.enabled && (
+        <div className="settings-row">
+          <span className="device-icon"><Icon name="calendar-remove-outline" /></span>
+          <div className="settings-text">
+            <span>Outside the schedule</span>
+            <span className="muted small">Rooms can heat while the schedule has the heating off. Never while the heating is Off.</span>
+          </div>
+          <div className="settings-controls">{onOff(info.outside_schedule, "outside_schedule", "Outside the schedule")}</div>
+        </div>
+      )}
+      {result?.kind === "error" && <div className="status error">{result.text}</div>}
     </>
   );
 }

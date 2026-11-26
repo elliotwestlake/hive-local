@@ -36,6 +36,12 @@ async def async_setup_entry(
         entities.append(BoostTemperature(entry, CHANNEL_HEAT))
         entities.append(FrostTemperature(entry, CHANNEL_HEAT))
         entities.append(PreheatMaxLead(entry, CHANNEL_HEAT))
+        entities += [
+            DemandNumber(entry, "room_demand_start", "start_below", 0.2, 3.0, 0.1, UnitOfTemperature.CELSIUS),
+            DemandNumber(entry, "room_demand_stop", "stop_within", 0.0, 1.0, 0.1, UnitOfTemperature.CELSIUS),
+            DemandNumber(entry, "room_demand_min_on", "min_on", 0, 60, 1, UnitOfTime.MINUTES),
+            DemandNumber(entry, "room_demand_min_off", "min_off", 0, 60, 1, UnitOfTime.MINUTES),
+        ]
     async_add_entities(entities)
 
 
@@ -125,3 +131,33 @@ class PreheatMaxLead(HiveEntity, RestoreNumber):
         await super().async_added_to_hass()
         if (last := await self.async_get_last_number_data()) and last.native_value is not None:
             self._data.preheat.set_max_lead(int(last.native_value))
+
+
+class DemandNumber(HiveEntity, RestoreNumber):
+    """Rooms calling for heat: how far below target starts it, how close ends it, minimum on/off times."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+
+    def __init__(
+        self, entry: HiveConfigEntry, key: str, field: str, low: float, high: float, step: float, unit: str
+    ) -> None:
+        super().__init__(entry, CHANNEL_HEAT, key)
+        self._field = field
+        self._attr_native_min_value = low
+        self._attr_native_max_value = high
+        self._attr_native_step = step
+        self._attr_native_unit_of_measurement = unit
+
+    @property
+    def native_value(self) -> float:
+        return getattr(self._data.demand, self._field)
+
+    async def async_set_native_value(self, value: float) -> None:
+        self._data.demand.set_number(self._field, round(float(value), 1))
+        self.async_write_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (last := await self.async_get_last_number_data()) and last.native_value is not None:
+            self._data.demand.set_number(self._field, round(float(last.native_value), 1))

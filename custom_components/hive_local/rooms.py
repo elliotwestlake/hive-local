@@ -5,7 +5,10 @@ entities, on ZHA or Zigbee2MQTT), an optional temperature sensor, and the receiv
 (config entry) whose zone heats it:
 
     {"id": "a1b2c3", "name": "Lounge", "valves": ["climate.lounge_trv"],
-     "sensor": "sensor.lounge_temp", "receiver": "<entry_id>"}
+     "sensor": "sensor.lounge_temp", "receiver": "<entry_id>", "sensor_on_valves": true}
+
+sensor_on_valves (default true; missing in rooms saved before it) pushes the sensor's
+reading into each valve (valve_sensor.py).
 
 Each valve's live state comes in as:
 
@@ -68,7 +71,14 @@ def clean_room(
         raise RoomError("Choose which receiver heats this room")
     if receiver not in receivers:
         raise RoomError("That receiver isn't set up in Hive Local")
-    return {"name": name, "valves": valves, "sensor": sensor, "receiver": receiver}
+    sensor_on_valves = raw.get("sensor_on_valves")
+    return {
+        "name": name,
+        "valves": valves,
+        "sensor": sensor,
+        "receiver": receiver,
+        "sensor_on_valves": True if sensor_on_valves is None else bool(sensor_on_valves),
+    }
 
 
 def suggest_rooms(
@@ -99,6 +109,19 @@ def _number(value: Any) -> float | None:
     return number if number == number else None  # drop NaN
 
 
+def _heating(valve: dict[str, Any], room_temperature: float | None) -> bool:
+    """A valve heating: it says so and the room is below its target (or either isn't known).
+
+    A Hive valve turned down, or set to frost protection, closes over several minutes and
+    keeps reporting "heating" meanwhile, which showed "Heating to 6.5°" in a warm room.
+    """
+    if valve.get("hvac_action") != "heating":
+        return False
+    target = _number(valve.get("target"))
+    reading = room_temperature if room_temperature is not None else _number(valve.get("current_temperature"))
+    return target is None or reading is None or reading < target
+
+
 def summarise(valves: list[dict[str, Any]], sensor_temperature: Any = None) -> dict[str, Any]:
     """One room's status from its valves' states and its sensor's reading."""
     live = [v for v in valves if v.get("available")]
@@ -113,7 +136,7 @@ def summarise(valves: list[dict[str, Any]], sensor_temperature: Any = None) -> d
 
     targets = sorted({t for v in live if (t := _number(v.get("target"))) is not None})
     batteries = [b for v in valves if (b := _number(v.get("battery"))) is not None]
-    heating = [v["entity_id"] for v in live if v.get("hvac_action") == "heating"]
+    heating = [v["entity_id"] for v in live if _heating(v, current)]
     return {
         "current_temperature": current,
         "temperature_source": source,

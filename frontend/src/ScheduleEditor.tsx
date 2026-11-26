@@ -18,6 +18,25 @@ type Status = { kind: "idle" | "busy" | "ok" | "error"; text?: string };
 const WEEKDAYS: Day[] = ["monday", "tuesday", "wednesday", "thursday", "friday"];
 const WEEKEND: Day[] = ["saturday", "sunday"];
 const label = (d: Day) => d[0].toUpperCase() + d.slice(1, 3);
+/**
+ * Where a schedule is read from and written to. The receiver's channel by default; a
+ * room passes one for its valves (RoomSchedule.tsx).
+ */
+export interface ScheduleSource {
+  /** What it's stored on, for messages: "receiver", "valves". */
+  noun: string;
+  /** `edited`: the schedule to show, when it differs from what was read (its changes are unsaved); `note` says why. */
+  read: () => Promise<{ schedule: Schedule; complete: boolean; edited?: Schedule; note?: string }>;
+  /** Write the changed days; note replaces the usual "Wrote …" message. */
+  write: (changed: Schedule) => Promise<{ schedule: Schedule; note?: string; error?: boolean }>;
+  /** The line at the top, instead of the receiver's mode. */
+  statusLine?: string;
+  /** Inside a dialog: the ⋯ button and the save bar stick to the dialog, not the page. */
+  embedded?: boolean;
+  /** Told when a read starts and ends (so the dialog can hold its own controls). */
+  onReading?: (reading: boolean) => void;
+}
+
 const toMin = (t: string) => {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
@@ -30,46 +49,65 @@ export function ScheduleEditor({
   limits,
   mode,
   preheatFor,
+  demandFor,
+  source,
 }: {
   getHass: () => Hass;
-  device: Device;
-  channel: Channel;
+  device?: Device;
+  channel?: Channel;
   limits: Limits;
   mode?: Mode | null;
   /** "06:30" while pre-heating for that change. */
   preheatFor?: string | null;
+  /** "Bedroom" while rooms are calling for heat. */
+  demandFor?: string | null;
+  source?: ScheduleSource;
 }) {
   const [schedule, setSchedule] = useState<Schedule>({});
   const [loaded, setLoaded] = useState<Schedule>({});
   const [day, setDay] = useState<Day>("monday");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  // While reading, nothing can be edited or saved: the read would overwrite it.
+  const [reading, setReading] = useState(false);
 
-  const entryId = device.entry_id;
+  const entryId = device?.entry_id;
   const isWater = channel === "water";
   const dirty = JSON.stringify(schedule) !== JSON.stringify(loaded);
+  const noun = source?.noun ?? "receiver";
 
   const read = useCallback(async () => {
-    setStatus({ kind: "busy", text: "Reading from receiver…" });
+    setStatus({ kind: "busy", text: `Reading from the ${noun}…` });
+    setReading(true);
+    source?.onReading?.(true);
     try {
-      const r = await getHass().callWS<{ schedule: Schedule; complete: boolean }>({
-        type: "hive_local/get",
-        entry_id: entryId,
-        channel,
-      });
-      setSchedule(r.schedule);
+      const r: { schedule: Schedule; complete: boolean; edited?: Schedule; note?: string } = source
+        ? await source.read()
+        : await getHass().callWS<{ schedule: Schedule; complete: boolean }>({
+            type: "hive_local/get",
+            entry_id: entryId,
+            channel,
+          });
+      setSchedule(r.edited ?? r.schedule);
       setLoaded(r.schedule);
       const n = Object.keys(r.schedule).length;
       setStatus(
-        r.complete
-          ? { kind: "ok", text: "Schedule read from receiver" }
+        r.complete && r.note
+          ? { kind: "ok", text: r.note }
+          : r.complete
+          ? { kind: "ok", text: `Schedule read from the ${noun}` }
           : n
             ? { kind: "error", text: `Only got ${n}/7 days — try reading again` }
-            : { kind: "error", text: "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." },
+            : { kind: "error", text: source ? `No reply from the ${noun}. They sleep between check-ins: press a valve's dial to wake it and try again.` : "No reply. On Zigbee2MQTT, check the receiver's friendly name; on ZHA, check the receiver is online." },
       );
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
+    } finally {
+      setReading(false);
+      source?.onReading?.(false);
     }
-  }, [entryId, channel, getHass]);
+    // source is made once per dialog; reading again on every render would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryId, channel, getHass, noun]);
 
   useEffect(() => {
     read();
@@ -89,21 +127,23 @@ export function ScheduleEditor({
       DAYS.filter((d) => JSON.stringify(schedule[d]) !== JSON.stringify(loaded[d]) && schedule[d]?.length).map((d) => [d, schedule[d]]),
     ) as Schedule;
     if (!Object.keys(changed).length) return;
-    setStatus({ kind: "busy", text: "Writing to receiver…" });
+    setStatus({ kind: "busy", text: `Writing to the ${noun}…` });
     try {
-      const r = await getHass().callWS<{ commands: number; schedule: Schedule }>({
-        type: "hive_local/set",
-        entry_id: entryId,
-        channel,
-        schedule: changed,
-      });
+      const r: { schedule: Schedule; note?: string; error?: boolean } = source
+        ? await source.write(changed)
+        : await getHass().callWS<{ commands: number; schedule: Schedule }>({
+            type: "hive_local/set",
+            entry_id: entryId,
+            channel,
+            schedule: changed,
+          });
       const merged = { ...schedule, ...r.schedule };
       setSchedule(merged);
       setLoaded(merged);
       const names = Object.keys(r.schedule).map((d) => d[0].toUpperCase() + d.slice(1, 3));
       setStatus({
-        kind: "ok",
-        text: `Wrote ${names.join(", ")}. Read back to confirm the receiver kept it.`,
+        kind: r.error ? "error" : "ok",
+        text: r.note ?? `Wrote ${names.join(", ")}. Read back to confirm the ${noun} kept it.`,
       });
     } catch (e) {
       setStatus({ kind: "error", text: errorText(e) });
@@ -144,17 +184,19 @@ export function ScheduleEditor({
   // Each slot runs until the next one; the day's last runs until the next day's first.
   const nextDay = DAYS[(DAYS.indexOf(day) + 1) % 7];
   const nextFirst = (schedule[nextDay] ?? [])[0]?.time;
-  const isOff = (t: Transition) => (isWater ? t.setpoint < limits.water_on : t.setpoint <= limits.heat_min);
+  const isOff = (t: Transition) => (isWater ? t.setpoint < limits.water_on : offSetpoint(t.setpoint, limits));
 
   let statusLine = "Stored on the receiver, so it keeps running without Home Assistant.";
-  if (mode === "schedule") statusLine = "Your schedule is running.";
+  if (source?.statusLine) statusLine = source.statusLine;
+  else if (mode === "schedule") statusLine = "Your schedule is running.";
   else if (mode === "manual") statusLine = `Your schedule isn't being used: ${isWater ? "hot water is always on" : "heating is on Manual"}.`;
   else if (mode === "off") statusLine = `Your schedule isn't being used: ${isWater ? "hot water" : "heating"} is off.`;
   else if (mode === "boost" && preheatFor) statusLine = `Your schedule is running, starting early so it's warm by ${preheatFor}.`;
+  else if (mode === "boost" && demandFor) statusLine = `Your schedule is running, with extra heat for ${demandFor}.`;
   else if (mode === "boost") statusLine = "Boosting now. Your schedule carries on after the boost.";
 
   return (
-    <div className="sched">
+    <div className={`sched ${source?.embedded ? "embedded" : ""}`}>
       <p className="sched-status muted">{statusLine}</p>
 
       <div className="sched-days" role="tablist" aria-label="Day">
@@ -181,7 +223,7 @@ export function ScheduleEditor({
           const end = transitions[i + 1]?.time ?? (nextFirst ? `${nextFirst} (${label(nextDay)})` : "00:00");
           const off = isOff(t);
           return (
-            <button key={i} className="slot" onClick={() => setEditing(i)}>
+            <button key={i} className="slot" onClick={() => setEditing(i)} disabled={reading}>
               <span
                 className={`slot-badge ${off ? "off" : ""}`}
                 style={off ? undefined : { borderColor: isWater ? "var(--hl-brand)" : heatColor(t.setpoint, range, limits) }}
@@ -193,7 +235,7 @@ export function ScheduleEditor({
             </button>
           );
         })}
-        <button className="slot slot-add" onClick={() => { addTransition(); setEditing(transitions.length); }} disabled={transitions.length >= max}>
+        <button className="slot slot-add" onClick={() => { addTransition(); setEditing(transitions.length); }} disabled={reading || transitions.length >= max}>
           <span className="slot-badge add"><Icon name="plus" /></span>
           <span className="slot-time">{transitions.length >= max ? `${max} times a day at most` : "Add a time"}</span>
         </button>
@@ -205,7 +247,7 @@ export function ScheduleEditor({
           <span className="sched-changed" title={`Changed: ${changedDays.map(label).join(", ")}`}>
             Unsaved changes
           </span>
-          <button className="sched-undo" onClick={() => { setSchedule(loaded); setEditing(null); }}>Undo</button>
+          <button className="sched-undo" onClick={() => { setSchedule(loaded); setEditing(null); }} disabled={reading}>Undo</button>
           <button className="sched-write" onClick={write} disabled={status.kind === "busy"}>
             Save
           </button>
@@ -218,15 +260,15 @@ export function ScheduleEditor({
             <div className="fab-backdrop" onClick={() => setMenu(false)} />
             <div className="fab-menu" role="menu">
               <button role="menuitem" onClick={() => { setMenu(false); read(); }} disabled={status.kind === "busy"}>
-                <Icon name="download" /> Read from the receiver
+                <Icon name="download" /> Read from the {noun}
               </button>
-              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKDAYS); }} disabled={!transitions.length}>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKDAYS); }} disabled={reading || !transitions.length}>
                 <Icon name="content-copy" /> Copy {label(day)} to weekdays
               </button>
-              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKEND); }} disabled={!transitions.length}>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo(WEEKEND); }} disabled={reading || !transitions.length}>
                 <Icon name="content-copy" /> Copy {label(day)} to the weekend
               </button>
-              <button role="menuitem" onClick={() => { setMenu(false); copyTo([...DAYS]); }} disabled={!transitions.length}>
+              <button role="menuitem" onClick={() => { setMenu(false); copyTo([...DAYS]); }} disabled={reading || !transitions.length}>
                 <Icon name="content-copy" /> Copy {label(day)} to every day
               </button>
             </div>
@@ -292,7 +334,7 @@ function SlotSheet({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-  const off = isWater ? slot.setpoint < limits.water_on : slot.setpoint <= limits.heat_min;
+  const off = isWater ? slot.setpoint < limits.water_on : offSetpoint(slot.setpoint, limits);
   const clamp = (t: number) => Math.min(limits.heat_max, Math.max(5, Math.round(t * 2) / 2));
   const warm = off ? 20 : slot.setpoint;
 
@@ -316,7 +358,7 @@ function SlotSheet({
             <button className={!off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_on : warm })}>
               {isWater ? "On" : "Heat to"}
             </button>
-            <button className={off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_off : limits.heat_min })}>
+            <button className={off ? "on" : ""} onClick={() => onChange({ ...slot, setpoint: isWater ? limits.water_off : limits.frost ?? limits.heat_min })}>
               Off
             </button>
           </div>
@@ -332,7 +374,13 @@ function SlotSheet({
             </div>
           </div>
         )}
-        {!isWater && off && <p className="muted small sheet-note">Off means the thermostat only keeps the house above its frost protection temperature.</p>}
+        {!isWater && off && (
+          <p className="muted small sheet-note">
+            {limits.frost != null
+              ? `Off holds the room at frost protection, ${limits.frost}° (a Hive valve can't switch off). Change it in Settings → Frost protection.`
+              : "Off means the thermostat only keeps the house above its frost protection temperature."}
+          </p>
+        )}
 
         <button className="sheet-go" onClick={onClose}>Done</button>
         {canDelete && (
@@ -343,4 +391,9 @@ function SlotSheet({
       </div>
     </div>
   );
+}
+
+/** An "off" slot: the heating's 1° (or anything at or below the minimum), or the valves' frost protection temperature. */
+function offSetpoint(setpoint: number, limits: Limits): boolean {
+  return setpoint <= limits.heat_min || (limits.frost != null && setpoint === limits.frost);
 }

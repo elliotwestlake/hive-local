@@ -34,6 +34,8 @@ export interface Limits {
   boost_max_minutes: number;
   water_on: number;
   water_off: number;
+  /** Valves only: what "Off" writes (they can't switch off): the heating's frost protection. */
+  frost?: number;
 }
 
 export type Mode = "schedule" | "manual" | "off" | "boost";
@@ -53,11 +55,24 @@ export interface ChannelInfo {
   frost_temperature: number; // HA-side setting, shown during schedule "off" periods
   preheat?: PreheatInfo; // heating only
   holiday?: HolidayInfo | null; // while away
+  demand?: DemandInfo; // heating only
+}
+
+/** Rooms call for heat (heating): boost while a room this receiver heats is cold. Off by default. */
+export interface DemandInfo {
+  enabled: boolean;
+  outside_schedule: boolean; // may heat during the schedule's "off" periods
+  active: boolean; // our boost is running now
+  rooms: string[]; // the rooms it's heating for, while active
+  calling: string[]; // rooms that want heat now
+  setpoint: number | null;
+  /** Why it isn't heating: off, warm, no_rooms, stopped, mode, schedule_off, heating, holiday, preheat, waiting. */
+  reason: string | null;
 }
 
 /** Holiday (away): heating holds `temperature`, hot water is off, until `until`. */
 export interface HolidayInfo {
-  until: string; // ISO, HA's local time
+  until: string | null; // ISO, HA's local time; null: until you're back (the Away toggle)
   temperature: number | null; // heating only
   restore_mode: Exclude<Mode, "boost">; // what it goes back to
   holding: boolean; // heating is on the holiday's own boost (its fail-safe), not one started on top
@@ -124,6 +139,11 @@ export interface ValveState {
   hvac_action: string | null;
   battery: string | null; // the battery sensor's state, e.g. "85"
   identify?: boolean; // HA has an Identify button for it (Find flashes its light)
+  /** Whether it heats to the room sensor's reading (issue #3). */
+  external_sensor?: "using" | "waiting" | "unsupported" | "off";
+  external_sensor_sent?: number | null; // °C last given to it
+  external_sensor_reported?: number | null; // °C it reports holding (-80: its own sensor)
+  radiator_covered?: boolean | null;
 }
 
 /** hive_local/rooms/valves: any Hive valve, for the Devices tab. */
@@ -150,6 +170,16 @@ export interface Room {
   unavailable: string[];
   lowest_battery: number | null;
   battery_low: boolean;
+  sensor_on_valves?: boolean; // push the sensor's reading into the valves (default on)
+  external_sensor?: "using" | "partly" | "waiting" | "unsupported" | "off" | null;
+  /** A room boost running now: the valves at `temperature` until `until` (ISO, local). */
+  boost?: { until: string; temperature: number; remaining: number } | null;
+  /** Like the room's climate entity: schedule (the valves' own), manual (hold the target) or off (5 °C). */
+  mode?: RoomMode;
+  /** Held Off by Away (the holiday or the Away toggle); its own mode comes back after. */
+  away?: boolean;
+  /** What Off holds the valves at: the room's receiver's frost protection. */
+  frost?: number;
 }
 
 export interface Candidate {
@@ -224,3 +254,5 @@ export interface Stats {
   period_end: number;
   series: StatsBucket[];
 }
+
+export type RoomMode = "schedule" | "manual" | "off";

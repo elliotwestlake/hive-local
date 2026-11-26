@@ -243,6 +243,29 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .room-sheet .sheet-live .heating { color: var(--hl-heat); }
 .room-sheet-actions { display: flex; justify-content: space-between; align-items: center; }
 .room-sheet-actions .sheet-cancel { align-self: auto; }
+.room-sensor-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: -8px; text-align: center; --mdc-icon-size: 16px; }
+.room-sensor-note.warn { color: var(--warning-color, #ffa600); }
+.sensor-toggle { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+.sensor-toggle-main { justify-content: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--divider-color); border-radius: 12px; background: transparent; text-align: left; }
+.sensor-toggle-main:hover:not(:disabled) { background: transparent; }
+.sensor-toggle .warn { color: var(--warning-color, #ffa600); }
+.room-sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--divider-color); background: transparent; text-align: left; justify-content: flex-start; }
+.room-sheet-row > span:nth-child(2) { flex: 1; }
+.room-sheet-row .icon-wrap { color: var(--secondary-text-color); }
+.room-schedule { max-width: 520px; gap: 14px; }
+.room-schedule-head { display: flex; align-items: center; gap: 10px; }
+.room-schedule-head .page-title { flex: 1; min-width: 0; }
+.room-schedule-head h2 { font-size: 20px; }
+.room-schedule-note { margin: 0; }
+.room-schedule-mode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--divider-color); }
+.room-schedule-mode-text { flex: 1; }
+.room-schedule-mode .icon-wrap { color: var(--secondary-text-color); }
+.room-schedule-notes { margin: 0; padding: 10px 14px 10px 28px; border-radius: 10px; background: color-mix(in srgb, var(--warning-color, #ffa600) 12%, transparent); display: flex; flex-direction: column; gap: 4px; }
+/* In a dialog the save bar and the ... button stick to its bottom instead of the page's. */
+.sched.embedded { padding-bottom: 0; }
+.sched.embedded .sched-save { bottom: 0; }
+.sched.embedded .fab-wrap { position: sticky; right: auto; bottom: 0; align-self: flex-end; }
+.sched.embedded .fab-wrap.raised { bottom: 64px; }
 .valve-count { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--hl-brand) 14%, transparent); color: var(--hl-brand); }
 .valve-picker { display: flex; flex-direction: column; gap: 8px; }
 .valve-search { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--hl-soft); color: var(--secondary-text-color); --mdc-icon-size: 20px; }
@@ -392,6 +415,12 @@ select, input[type=time], input[type=text] { font: inherit; font-size: 14px; pad
 .settings-row.add .settings-text > span:first-child { color: var(--hl-brand); font-weight: 500; }
 .settings-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 15px; }
 .settings-row select { max-width: 220px; }
+.room-control { display: flex; flex-direction: column; gap: 14px; }
+.room-control .room-sensor-note { margin-top: 0; justify-content: flex-start; text-align: left; }
+.room-mode-note { margin: -4px 0 0; }
+.room-schedule-page { max-width: none; display: flex; flex-direction: column; gap: 12px; }
+.room-schedule-page .room-schedule-head { justify-content: flex-end; }
+.tidy-action { min-width: 0; height: 40px; padding: 0 18px; font-size: 15px; }
 .stepper .round { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .settings-chevron { color: var(--secondary-text-color); }
 .settings-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
@@ -412,6 +441,8 @@ code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--
   /* Above the bottom tab bar. */
   .sched-save { bottom: calc(84px + env(safe-area-inset-bottom)); }
   .fab-wrap.raised { bottom: calc(156px + env(safe-area-inset-bottom)); }
+  .sched.embedded .sched-save, .sched.embedded .fab-wrap { bottom: 0; right: auto; }
+  .sched.embedded .fab-wrap.raised { bottom: 64px; }
   .sheet { max-width: none; border-radius: 24px 24px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); animation: hl-rise .2s ease-out; }
   /* Phones: the tabs become a bar along the bottom, in thumb reach. */
   .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; margin: 0; gap: 0; justify-content: space-around;

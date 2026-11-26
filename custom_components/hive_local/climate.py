@@ -27,6 +27,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import BOOST_MIN_TEMP, CHANNEL_HEAT, HEAT_MAX, HEAT_MIN
 from .data import HiveConfigEntry
 from .entity import HiveStatusEntity
+from .room_climate import async_setup_rooms
 from .schedule import ScheduleError
 from .z2m import MODE_BOOST, MODE_MANUAL, MODE_OFF, MODE_SCHEDULE
 
@@ -41,6 +42,8 @@ async def async_setup_entry(
 ) -> None:
     if CHANNEL_HEAT in entry.runtime_data.transport.channels:
         async_add_entities([HiveClimate(entry)])
+        # A climate entity per room this receiver heats.
+        async_setup_rooms(hass, entry, async_add_entities)
 
 
 class HiveClimate(HiveStatusEntity, ClimateEntity):
@@ -157,7 +160,12 @@ class HiveClimate(HiveStatusEntity, ClimateEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         # Stats counts a pre-heat as following the schedule, not as a boost.
         until = self._data.holiday.until(self._channel)
-        return {"preheat": self._data.preheat.is_active, "holiday_until": until.isoformat() if until else None}
+        # Rooms calling for heat is a boost underneath too, but it's still the schedule.
+        return {
+            "preheat": self._data.preheat.is_active,
+            "holiday_until": until.isoformat() if until else None,
+            "room_demand": self._data.demand.rooms_heating(),
+        }
 
     def _boost_minutes_left(self) -> int | None:
         """Changing the temperature mid-boost keeps the time left (None: use the default)."""

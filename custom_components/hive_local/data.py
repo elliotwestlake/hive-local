@@ -11,6 +11,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import CHANNEL_HEAT, DEFAULT_BOOST_MINUTES, DEFAULT_BOOST_TEMP, DEFAULT_FROST_TEMP, SIGNAL_STATUS
 from .schedule import ScheduleError
+from .demand_controller import Demand
 from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .transports import Transport
@@ -38,6 +39,7 @@ class HiveData:
     transport: Transport
     preheat: Preheat
     holiday: Holiday
+    demand: Demand
     boost: dict[str, BoostDefaults] = field(default_factory=dict)
     health: ReceiverHealth | None = None
 
@@ -59,8 +61,9 @@ class HiveData:
             temperature if temperature is not None else defaults.temperature,
         )
 
-    async def async_set_holiday(self, until: datetime, temperature: float | None = None) -> None:
-        """Away until `until`: heating holds `temperature` (default: frost protection), hot water off."""
+    async def async_set_holiday(self, until: datetime | None, temperature: float | None = None) -> None:
+        """Away until `until` (None: until you're back): heating holds `temperature` (default:
+        frost protection), hot water off, and the rooms Off."""
         if temperature is None:
             temperature = self.boost_defaults(CHANNEL_HEAT).frost
         await self.holiday.async_set(until, temperature)
@@ -69,6 +72,8 @@ class HiveData:
         """Schedule | manual | off, from the panel, the climate entity or the mode select."""
         if channel == CHANNEL_HEAT and mode == MODE_SCHEDULE and self.preheat.is_active:
             return  # a pre-heat is the schedule starting early: ending it would skip that change
+        if channel == CHANNEL_HEAT and mode == MODE_SCHEDULE and self.demand.is_active:
+            return  # rooms calling for heat is part of following the schedule (Stop ends it)
         await self.transport.async_set_mode(channel, mode, setpoint)
 
     async def async_set_target(self, channel: str, temperature: float) -> None:

@@ -42,12 +42,13 @@ DROP = "drop"  # someone changed the mode: leave it, the holiday is over
 
 @dataclass(frozen=True)
 class Away:
-    """One channel's holiday: until when (UTC epoch seconds), and what to go back to.
+    """One channel's holiday: until when (UTC epoch seconds; None = until you're back, the
+    Away toggle), and what to go back to.
 
     `lease_end` is when our current heating boost runs out on the receiver (epoch).
     """
 
-    until: float
+    until: float | None
     temperature: float | None  # heating only
     restore_mode: str
     restore_setpoint: float | None
@@ -63,7 +64,7 @@ class Away:
 
         try:
             away = cls(
-                until=float(data["until"]),
+                until=num("until"),
                 temperature=num("temperature"),
                 restore_mode=str(data["restore_mode"]),
                 restore_setpoint=num("restore_setpoint"),
@@ -87,9 +88,16 @@ def restore_point(
     return mode, setpoint if mode == MODE_MANUAL else None
 
 
-def lease_minutes(now: float, until: float) -> int:
+def lease_minutes(now: float, until: float | None) -> int:
     """How long the heating boost should run from now: up to the lease, never past the end."""
+    if until is None:
+        return LEASE_MINUTES
     return max(1, min(LEASE_MINUTES, math.ceil((until - now) / 60)))
+
+
+def overdue(away: Away, now: float) -> bool:
+    """Past its end time (never, for an open-ended one)."""
+    return away.until is not None and now >= away.until
 
 
 def needs_renewal(remaining: int | None, wanted: int) -> bool:

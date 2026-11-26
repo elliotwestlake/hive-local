@@ -8,6 +8,7 @@ RoomManager per HA, in hass.data[DATA_ROOMS], stored in .storage/hive_local.room
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from homeassistant.components.climate import ATTR_CURRENT_TEMPERATURE, ATTR_HVAC_ACTION
@@ -20,13 +21,24 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
+from . import valve_sensor
 from .const import DOMAIN
 from .rooms import RoomError, clean_room, is_hive_valve, new_room_id, suggest_rooms, summarise
 
 STORAGE_VERSION = 1
 DATA_ROOMS = f"{DOMAIN}_rooms"
 # Fired when rooms are added, changed or removed.
+_LOGGER = logging.getLogger(__name__)
 SIGNAL_ROOMS = f"{DOMAIN}_rooms"
+
+# A room's mode, as its climate entity shows it (auto / heat / off).
+ROOM_SCHEDULE = "schedule"
+ROOM_MANUAL = "manual"
+ROOM_OFF = "off"
+ROOM_MODES = (ROOM_SCHEDULE, ROOM_MANUAL, ROOM_OFF)
+# A Hive valve can't switch off: "off" holds the room at frost protection, the same number the
+# heating shows in its schedule's off periods (Settings → Frost protection, default 12 °C).
+ROOM_OFF_TEMPERATURE = 12.0
 
 
 class RoomManager:
@@ -34,6 +46,8 @@ class RoomManager:
         self.hass = hass
         self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.rooms")
         self.rooms: list[dict[str, Any]] = []
+        # valve_sensor_controller.ValveSensors, set in async_setup: each valve's use of the room sensor.
+        self.valve_sensors: Any = None
 
     async def async_load(self) -> None:
         data = await self._store.async_load()
@@ -165,12 +179,13 @@ class RoomManager:
             "battery": battery.state if battery else None,
             "battery_entity": battery_id,
             "identify": self._identify_button(entity_id) is not None,
-        }
+        } | (self.valve_sensors.valve_status(entity_id) if self.valve_sensors else {})
 
     @callback
     def status(self) -> dict[str, Any]:
         """Everything the Rooms tab shows: the receivers and every room's live state."""
         names = {r["entry_id"]: r["name"] for r in self.receivers()}
+        boosts = self.hass.data.get(f"{DOMAIN}_room_boosts")  # room_boost_controller.DATA_ROOM_BOOSTS
         out = []
         for room in self.rooms:
             valves = [self._valve(v) for v in room["valves"]]
@@ -181,6 +196,13 @@ class RoomManager:
                     "sensor_name": sensor.name if sensor else None,
                     "receiver_name": names.get(room.get("receiver")),
                     "valve_states": valves,
+                    "sensor_on_valves": room.get("sensor_on_valves", True),
+                    "external_sensor": valve_sensor.room_status(
+                        [v["external_sensor"] for v in valves if "external_sensor" in v]
+                    ),
+                    "boost": boosts.as_dict(room["id"]) if boosts else None,
+                    "frost": self.frost(room["id"]),
+                    "away": "away_restore" in room,
                 }
                 | summarise(valves, sensor.state if sensor else None)
             )
@@ -210,6 +232,9 @@ class RoomManager:
 
     async def async_save_room(self, raw: dict[str, Any], room_id: str | None = None) -> dict[str, Any]:
         found = self.candidates()
+        if raw.get("sensor_on_valves") is None and room_id is not None:
+            # Not given (an older panel): keep the room's setting.
+            raw = raw | {"sensor_on_valves": self._room(room_id).get("sensor_on_valves", True)}
         room = clean_room(
             raw,
             known_valves={v["entity_id"] for v in found["valves"]},
@@ -226,14 +251,90 @@ class RoomManager:
         await self._async_save()
         return room
 
+    # --- the room's mode (its climate entity: auto / heat / off) ---------------------
+
+    def frost(self, room_id: str) -> float:
+        """The frost protection temperature of the receiver that heats the room: what "off" means
+        for its valves, which can't switch off."""
+        room = self._room(room_id)
+        entries = self.hass.config_entries.async_loaded_entries(DOMAIN)
+        entry = next((e for e in entries if e.entry_id == room.get("receiver")), entries[0] if entries else None)
+        if entry is None:
+            return ROOM_OFF_TEMPERATURE
+        return float(entry.runtime_data.boost_defaults("heat").frost)
+
+    def mode(self, room_id: str) -> str:
+        """"schedule" (the valves follow their own schedule), "manual" (they hold the target) or "off"."""
+        return self._room(room_id).get("mode", ROOM_MANUAL)
+
+    async def async_set_mode(self, room_id: str, mode: str, *, away: bool = False) -> list[str]:
+        """Change the room's mode. Returns the valves that didn't take it.
+
+        Off: a Hive valve can't switch off, so each goes to its lowest (5 °C) and its target
+        is kept to go back to. Schedule turns on the valves' own weekly schedule (#5).
+        """
+        from . import valve_schedule  # noqa: PLC0415 - avoid an import cycle
+
+        if mode not in ROOM_MODES:
+            raise RoomError(f"Unknown mode: {mode}")
+        room = self._room(room_id)
+        if not away and room.pop("away_restore", None) is not None:
+            # Changed by hand while away: it stays as set when you come back.
+            await self._async_save()
+        before = room.get("mode", ROOM_MANUAL)
+        if mode == before:
+            return []
+        failed: set[str] = set()
+        if before == ROOM_SCHEDULE:
+            failed |= set((await valve_schedule.async_set_room_schedule_mode(self.hass, self, room_id, False))["failed"])
+        if mode == ROOM_OFF:
+            room["off_targets"] = {v: self._target(v) for v in room["valves"]}
+            failed |= set(await self.async_set_target(room_id, self.frost(room_id)))
+        elif before == ROOM_OFF:
+            for entity_id, target in (room.pop("off_targets", None) or {}).items():
+                if target is not None and entity_id in room["valves"]:
+                    failed |= set(await self._async_set_valves([entity_id], target))
+        if mode == ROOM_SCHEDULE:
+            failed |= set((await valve_schedule.async_set_room_schedule_mode(self.hass, self, room_id, True))["failed"])
+        room["mode"] = mode
+        await self._async_save()
+        return sorted(failed)
+
+    async def async_away(self, entry_id: str, away: bool) -> None:
+        """Away (the holiday or the Away toggle) on a receiver: its rooms go Off (frost
+        protection) and remember their mode; coming back puts each one back."""
+        entries = self.hass.config_entries.async_loaded_entries(DOMAIN)
+        first = entries[0].entry_id if entries else None
+        for room in list(self.rooms):
+            if (room.get("receiver") or first) != entry_id:
+                continue
+            try:
+                if away and "away_restore" not in room:
+                    room["away_restore"] = room.get("mode", ROOM_MANUAL)
+                    await self.async_set_mode(room["id"], ROOM_OFF, away=True)
+                elif not away and "away_restore" in room:
+                    mode = room.pop("away_restore")
+                    await self.async_set_mode(room["id"], mode, away=True)
+            except Exception:  # noqa: BLE001 - one room mustn't stop the others
+                _LOGGER.warning("Away: couldn't change %s", room.get("name"), exc_info=True)
+        await self._async_save()
+
+    def _target(self, entity_id: str) -> float | None:
+        state = self.hass.states.get(entity_id)
+        value = state.attributes.get(ATTR_TEMPERATURE) if state else None
+        return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
     async def async_delete_room(self, room_id: str) -> None:
         self.rooms.remove(self._room(room_id))
         await self._async_save()
 
     async def async_set_target(self, room_id: str, temperature: float) -> list[str]:
         """Set every valve in the room to temperature. Returns the valves that refused."""
+        return await self._async_set_valves(self._room(room_id)["valves"], temperature)
+
+    async def _async_set_valves(self, valves: list[str], temperature: float) -> list[str]:
         failed = []
-        for entity_id in self._room(room_id)["valves"]:
+        for entity_id in valves:
             try:
                 await self.hass.services.async_call(
                     "climate",

@@ -57,15 +57,22 @@ set_holiday:
       required: true
       selector:
         datetime:
-    temperature:
-      selector:
-        number:
-          min: 5
-          max: 32
-          step: 0.5
-          unit_of_measurement: "°C"
 
 cancel_holiday:
+  fields:
+    device_id:
+      selector:
+        device:
+          integration: hive_local
+
+set_away:
+  fields:
+    device_id:
+      selector:
+        device:
+          integration: hive_local
+
+cancel_away:
   fields:
     device_id:
       selector:

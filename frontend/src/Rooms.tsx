@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { formatMinutes } from "./api";
 import { Icon } from "./Icon";
-import { errorText, type Candidate, type Hass, type Receiver, type Room, type ValveInfo, type ValveState } from "./types";
+import { errorText, type Candidate, type Hass, type Receiver, type Room, type RoomMode, type ValveInfo, type ValveState } from "./types";
 
 const LOW_BATTERY = 20;
 const fmt = (t: number | null) => (t == null ? "–" : `${t.toFixed(1)}°`);
@@ -26,6 +27,23 @@ function ValveRow({ valve, heating }: { valve: ValveState; heating: boolean }) {
       )}
     </li>
   );
+}
+
+/** Whether the room's valves heat to its sensor's reading (null when it has no sensor). */
+function sensorNote(room: Room): { text: string; warn: boolean } | null {
+  if (!room.sensor || !room.external_sensor) return null;
+  const n = room.valve_states.length;
+  const names = (s: string) => room.valve_states.filter((v) => v.external_sensor === s).map((v) => v.name);
+  if (room.external_sensor === "off") return { text: n === 1 ? "The valve uses its own sensor" : "The valves use their own sensors", warn: false };
+  if (room.external_sensor === "using") return { text: n === 1 ? "The valve uses the room sensor" : "The valves use the room sensor", warn: false };
+  if (room.external_sensor === "unsupported") return { text: n === 1 ? "This valve can't use the room sensor" : "These valves can't use the room sensor", warn: false };
+  if (room.temperature_source !== "sensor") return { text: "Room sensor not responding: the valves use their own", warn: true };
+  if (room.external_sensor === "partly") {
+    const cant = names("unsupported");
+    const using = names("using").length;
+    return { text: `${using} of ${n} valves ${using === 1 ? "uses" : "use"} the room sensor${cant.length ? `; ${cant.join(", ")} can't` : ""}`, warn: false };
+  }
+  return { text: "Giving the valves the room temperature…", warn: false };
 }
 
 interface EditorProps {
@@ -172,6 +190,7 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
   const [name, setName] = useState(room?.name ?? "");
   const [valves, setValves] = useState<Set<string>>(new Set(room?.valves ?? []));
   const [sensor, setSensor] = useState(room?.sensor ?? "");
+  const [onValves, setOnValves] = useState(room?.sensor_on_valves ?? true);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
@@ -189,6 +208,8 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
       .catch(() => {});
   }, [getHass]);
   const manyReceivers = (candidates?.receivers.length ?? 0) > 1;
+  // How the valves are doing with the saved sensor (not shown for unsaved changes).
+  const editorNote = room && room.sensor === sensor && onValves && (room.sensor_on_valves ?? true) ? sensorNote(room) : null;
 
   const run = async (msg: Record<string, unknown>) => {
     setBusy(true);
@@ -224,6 +245,7 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
             valves: [...valves],
             sensor: sensor || null,
             receiver: receiver || null,
+            sensor_on_valves: onValves,
           });
         }}
       >
@@ -256,6 +278,19 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
             ))}
           </select>
         </label>
+
+        {sensor && (
+          <div className="sensor-toggle">
+            <button type="button" role="checkbox" aria-checked={onValves} className="sensor-toggle-main" onClick={() => setOnValves((v) => !v)}>
+              <span className={`valve-check ${onValves ? "on" : ""}`} aria-hidden="true">{onValves && <Icon name="check" />}</span>
+              <span className="valve-pick-text">
+                <span>Use the room sensor on the valves</span>
+                <span className="muted small">The valves heat to this reading instead of their own, taken beside the radiator.</span>
+              </span>
+            </button>
+            {editorNote && <span className={`small ${editorNote.warn ? "warn" : "muted"}`}>{editorNote.text}.</span>}
+          </div>
+        )}
 
         {manyReceivers && (
           <label className="field">
@@ -309,93 +344,123 @@ export function RoomEditor({ getHass, room, onDone, dialog }: EditorProps) {
  * A room in a sheet over the Overview (from the bottom on phones, a dialog on wide screens),
  * like the boost sheet: its temperature, target and valves.
  */
-export function RoomSheet({ getHass, roomId, several, onClose }: { getHass: () => Hass; roomId: string; several: boolean; onClose: () => void }) {
-  const [room, setRoom] = useState<Room | null>(null);
+const ROOM_MODES: { id: RoomMode; label: string }[] = [
+  { id: "schedule", label: "Schedule" },
+  { id: "manual", label: "Manual" },
+  { id: "off", label: "Off" },
+];
+
+/** What a room's mode means, for its page's subtitle. */
+export function roomModeText(room: Room): string {
+  if (room.boost) return `Boost · ${formatMinutes(room.boost.remaining)} left`;
+  if (room.away) return "Away";
+  return room.mode === "schedule" ? "On the valves' schedule" : room.mode === "off" ? "Off" : "Manual";
+}
+
+/**
+ * A room's Control tab (its page, like the heating's): the target, Schedule / Manual / Off,
+ * whether the valves use the room sensor, the valves, and Edit room.
+ */
+export function RoomControl({ getHass, room }: { getHass: () => Hass; room: Room }) {
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const timer = useRef<number>();
-  useEffect(() => {
-    const unsub = getHass().connection.subscribeMessage<{ rooms: Room[] }>(
-      (msg) => setRoom(msg.rooms.find((r) => r.id === roomId) ?? null),
-      { type: "hive_local/rooms/subscribe" },
-    );
-    return () => {
-      unsub.then((u) => u()).catch(() => {});
-    };
-  }, [getHass, roomId]);
-  useEffect(() => {
-    if (editing) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, editing]);
-  if (!room) return null;
-  // Editing replaces this sheet with the editor's; done returns here.
-  if (editing) return <RoomEditor getHass={getHass} room={room} onDone={() => setEditing(false)} dialog />;
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const mode: RoomMode = room.mode ?? "manual";
+  const failedText = (failed: string[]) => {
+    const names = room.valve_states.filter((v) => failed.includes(v.entity_id)).map((v) => v.name);
+    return `Didn't take on ${names.join(", ")}. It may be asleep: press its dial to wake it and try again.`;
+  };
 
-  const shown = pending ?? room.target ?? room.target_range?.[1] ?? 20;
+  const shown = pending ?? room.boost?.temperature ?? room.target ?? room.target_range?.[1] ?? 20;
+  const canAdjust = mode !== "off" || !!room.boost;
   const change = (value: number) => {
-    const next = Math.min(35, Math.max(5, value));
+    const next = Math.min(32, Math.max(5, value));
     setPending(next);
     setMessage("");
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(async () => {
       try {
         const r = await getHass().callWS<{ failed: string[] }>({ type: "hive_local/rooms/set_target", room_id: room.id, temperature: next });
-        if (r.failed.length) {
-          const names = room.valve_states.filter((v) => r.failed.includes(v.entity_id)).map((v) => v.name);
-          setMessage(`Didn't take on ${names.join(", ")}. It may be asleep; try again shortly.`);
-        }
+        if (r.failed.length) setMessage(failedText(r.failed));
       } catch (e) {
         setMessage(errorText(e));
       } finally {
         setPending(null);
       }
-    }, 700);
+    }, 1200);
   };
-  const valves = `${room.valves.length} valve${room.valves.length === 1 ? "" : "s"}`;
-  const source = room.temperature_source === "sensor" ? room.sensor_name : room.temperature_source === "valves" ? "Average of the valves" : "No reading";
+  const setMode = async (next: RoomMode) => {
+    setBusy(true);
+    setMessage("");
+    try {
+      const r = await getHass().callWS<{ failed: string[] }>({ type: "hive_local/rooms/mode", room_id: room.id, mode: next });
+      if (r.failed.length) setMessage(failedText(r.failed));
+    } catch (e) {
+      setMessage(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const note = sensorNote(room);
+  const targetHint = room.boost
+    ? "Keeps the boost's time left"
+    : mode === "off"
+      ? "Turn the room on to set a target"
+      : mode === "schedule"
+        ? "Until the valves' next scheduled change"
+        : room.target_range && pending == null
+          ? `The valves are set to ${fmt(room.target_range[0])}–${fmt(room.target_range[1])}`
+          : "Held until you change it";
 
   return (
-    <div className="sheet-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }}>
-      <div className="sheet heat room-sheet" role="dialog" aria-modal="true" aria-label={room.name} onClick={(e) => e.stopPropagation()}>
-        <span className="sheet-handle" />
-        <div className="sheet-title">
-          <h2>{room.name}</h2>
-          <span className="muted">{[room.heating ? "Heating" : "Idle", several ? room.receiver_name : null, valves].filter(Boolean).join(" · ")}</span>
+    <section className="card room-control">
+      {note && (
+        <div className={`room-sensor-note small ${note.warn ? "warn" : "muted"}`}>
+          <Icon name={note.warn ? "thermometer-alert" : "thermometer-check"} /> {note.text}
         </div>
-        <div className="sheet-live">
-          <Icon name={room.heating ? "fire" : "thermometer"} className={room.heating ? "heating" : ""} />
-          <span>
-            <b>{room.current_temperature == null ? "–" : `${room.current_temperature.toFixed(1)}°`}</b> <span className="muted">{source}</span>
-          </span>
+      )}
+      <div className="target-row">
+        <div className="target-text">
+          <span className="target-label">{room.boost ? "Boost to" : mode === "off" ? "Off" : "Target"}</span>
+          <span className="muted small">{targetHint}</span>
         </div>
-        <div className="sheet-field">
-          <span className="sheet-label">
-            {room.target_range && pending == null ? `Target (valves set to ${fmt(room.target_range[0])}–${fmt(room.target_range[1])})` : "Target"}
-          </span>
-          <div className="sheet-temp">
-            <button className="round sheet-step" onClick={() => change(shown - 0.5)} aria-label="Lower"><Icon name="minus" /></button>
-            <span className="sheet-temp-value">{shown.toFixed(1)}°</span>
-            <button className="round sheet-step" onClick={() => change(shown + 0.5)} aria-label="Raise"><Icon name="plus" /></button>
-          </div>
-        </div>
-        <div className="sheet-field">
-          <span className="sheet-label">Valves</span>
-          <ul className="valves">
-            {room.valve_states.map((v) => (
-              <ValveRow key={v.entity_id} valve={v} heating={room.heating_valves.includes(v.entity_id)} />
-            ))}
-          </ul>
-        </div>
-        {message && <div className="status error">{message}</div>}
-        <div className="room-sheet-actions">
-          <button className="ghost" onClick={() => setEditing(true)}><Icon name="pencil-outline" /> Edit room</button>
-          <button className="ghost sheet-cancel" onClick={onClose}>Close</button>
+        <div className="target-control">
+          <button className="round target-btn" disabled={!canAdjust} onClick={() => change(shown - 0.5)} aria-label="Lower the target">
+            <Icon name="minus" />
+          </button>
+          <span className={`target-value ${pending != null ? "pending" : ""}`}>{canAdjust ? `${shown.toFixed(1)}°` : "–"}</span>
+          <button className="round target-btn" disabled={!canAdjust} onClick={() => change(shown + 0.5)} aria-label="Raise the target">
+            <Icon name="plus" />
+          </button>
         </div>
       </div>
-    </div>
+      <div className="segmented full" role="radiogroup" aria-label="Mode">
+        {ROOM_MODES.map((m) => (
+          <button key={m.id} role="radio" aria-checked={mode === m.id} className={mode === m.id ? "on" : ""} disabled={busy} onClick={() => mode !== m.id && setMode(m.id)}>
+            {m.label}
+          </button>
+        ))}
+      </div>
+      {mode === "schedule" && <p className="muted small room-mode-note">The valves follow the schedule kept on them (the Schedule tab).</p>}
+      {room.away && <p className="muted small room-mode-note">Away: the valves hold frost protection, {room.frost ?? 12}°. The room goes back to how it was when you're back (choosing a mode here keeps that instead).</p>}
+      {mode === "off" && !room.away && <p className="muted small room-mode-note">A Hive valve can't switch off, so they hold the room at frost protection, {room.frost ?? 12}° (Settings → Frost protection). Their targets come back when you turn the room on.</p>}
+      {message && <div className="status error">{message}</div>}
+      <div className="sheet-field">
+        <span className="sheet-label">Valves</span>
+        <ul className="valves">
+          {room.valve_states.map((v) => (
+            <ValveRow key={v.entity_id} valve={v} heating={room.heating_valves.includes(v.entity_id)} />
+          ))}
+        </ul>
+      </div>
+      <div className="room-sheet-actions">
+        <button className="ghost" onClick={() => setEditing(true)}><Icon name="pencil-outline" /> Edit room</button>
+      </div>
+      {editing && <RoomEditor getHass={getHass} room={room} onDone={() => setEditing(false)} dialog />}
+    </section>
   );
 }
 

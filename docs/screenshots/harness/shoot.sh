@@ -34,12 +34,19 @@ shot overview 900,760 "tab=Overview"
 shot schedule 900,860 "tab=Overview&open=1&click=Schedule"
 shot controls 900,760 "tab=Overview&click=Boost"
 shot rooms 900,760 "tab=Overview&room=Lounge"
+shot room-schedule 900,900 "tab=Overview&room=Lounge&click=Schedule%20on%20the%20valves"
+# Rooms call for heat (#4): the card, its sheet, the device page and the Settings rows.
+shot demand 900,760 "tab=Overview&demand=1"
+shot demand-sheet 900,760 "tab=Overview&demand=1&click=For%20rooms"
+shot demand-page 900,660 "tab=Overview&demand=1&open=1"
+shot demand-settings 900,1350 "tab=Settings&demand=on"
 shot stats 900,780 "tab=Stats"
 shot stats-cost 900,780 "tab=Stats&click=Estimated%20cost"
 shot settings 900,640 "tab=Settings"
 shot settings-fixed-price 900,760 "tab=Settings&price=fixed"
 shot holiday 900,640 "tab=Overview&holiday=1"
-shot holiday-sheet 900,700 "tab=Overview&click=Away%20until%E2%80%A6"
+shot holiday-sheet 900,700 "tab=Overview&click=Away"
+shot away-open 900,900 "tab=Overview&holiday=open"
 shot holiday-page 900,560 "tab=Overview&holiday=1&open=1"
 # A 390×844 phone screen, less the status bar (50) and home indicator (24) drawn by compose.html.
 shot phone 390,770 "tab=Overview&narrow=1"
@@ -49,6 +56,24 @@ shot heating 900,660 "tab=Overview&open=1"
 shot phone-schedule 390,770 "tab=Overview&narrow=1&open=1&click=Schedule"
 shot phone-room 390,770 "tab=Overview&narrow=1&room=Lounge"
 shot phone-boost 390,770 "tab=Overview&narrow=1&click=Boost"
+# A room's page, like heating's: Control, Schedule (on the valves) and History; and on a phone.
+shot room-page 900,1100 "tab=Overview&room=Lounge"
+shot room-page-schedule 900,1100 "tab=Overview&room=Lounge&click=Schedule"
+shot room-page-schedule-old-off 900,1100 "tab=Overview&room=Lounge&click=Schedule&oldoff=1"
+shot room-page-history 900,1100 "tab=Overview&room=Lounge&click=History"
+shot phone-room-page 390,770 "tab=Overview&narrow=1&room=Lounge"
+# Tidy up duplicate entities (Settings → Entities), before and after.
+shot tidy 900,1400 "tab=Settings"
+shot tidy-done 900,1400 "tab=Settings&tidy=done"
+# Room boost: a boosted room card, and the boost sheet opened from a room card.
+shot room-boost 900,640 "tab=Overview&roomboost=1"
+shot room-boost-sheet 900,800 "tab=Overview&roomclick=Lounge"
+shot phone-room-boost 390,770 "tab=Overview&narrow=1&roomboost=1&room=Lounge"
+# Room sensor on the valves (#3): the room sheet, two other states and the editor's toggle.
+shot room-sensor 900,760 "tab=Overview&room=Lounge"
+shot room-sensor-partly 900,760 "tab=Overview&room=Lounge&valvesensor=partly"
+shot room-sensor-lost 900,760 "tab=Overview&room=Lounge&valvesensor=lost"
+shot room-editor-sensor 900,900 "tab=Overview&room=Lounge&click=Edit%20room"
 
 # Framed versions, the hero and the social preview.
 frame_h() { echo $((34 + $1 + 56 + 72)); }
@@ -86,7 +111,10 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
                  ("phones", "phones")):
     dithered(src, f"{docs}/screenshots/{dst}.png")
 # Only for a PR, unquantized: 256 colours lose the light grey boxes.
-for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page"):
+for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
+           "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
+           "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule",
+           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done", "room-page", "room-page-schedule", "room-page-schedule-old-off", "room-page-history", "phone-room-page", "away-open"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(
     f"{docs}/logo/social-preview.png", optimize=True)

@@ -114,7 +114,9 @@ function rows(data: StatsData): Row[] {
  * The Stats tab is heating history, with a tab per receiver (like Hive's zones). A device's
  * page passes `channel` to show just that receiver's heating or hot water.
  */
-export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Hass; devices: Device[]; channel?: Channel }) {
+export function Stats({ getHass, devices, channel: fixedChannel, roomId }: { getHass: () => Hass; devices: Device[]; channel?: Channel; roomId?: string }) {
+  // A room's page shows the room's own history (its climate entity), like a channel's.
+  const fixed = fixedChannel ?? (roomId ? "heat" : undefined);
   const [entryId, setEntryId] = useState(devices[0]?.entry_id);
   const device = devices.find((d) => d.entry_id === entryId) ?? devices[0];
   const ch: Channel = fixed ?? "heat";
@@ -127,9 +129,13 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
   const water = ch === "water";
 
   const load = useCallback(() => {
-    if (!device) return;
+    if (!device && !roomId) return;
     getHass()
-      .callWS<StatsData>({ type: "hive_local/stats", entry_id: device.entry_id, channel: ch, days: period, offset })
+      .callWS<StatsData>(
+        roomId
+          ? { type: "hive_local/rooms/stats", room_id: roomId, days: period, offset }
+          : { type: "hive_local/stats", entry_id: device.entry_id, channel: ch, days: period, offset },
+      )
       .then((r) => {
         setData(r);
         setError("");
@@ -139,7 +145,7 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
         if (!connectionLost(e)) setError(errorText(e));
       })
       .finally(() => setLoading(false));
-  }, [getHass, device, ch, period, offset]);
+  }, [getHass, device, ch, period, offset, roomId]);
 
   // Reload once the websocket reconnects (e.g. the phone app comes back from the background).
   useEffect(() => {
@@ -156,7 +162,7 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
     return () => clearInterval(timer);
   }, [load, offset]);
 
-  if (!device) return null;
+  if (!device && !roomId) return null;
   const shown = data && data.period === period && data.offset === offset ? data : null;
   const list = shown ? rows(shown) : [];
   const units = period === 1 ? "hour" : "day";
@@ -227,7 +233,7 @@ export function Stats({ getHass, devices, channel: fixed }: { getHass: () => Has
 
       {shown?.has_data && (
         <>
-          <Summary data={shown} metric={shownMetric} water={water} units={units} rows={list} cost={cost} />
+          <Summary data={shown} metric={shownMetric} water={water} room={!!roomId} units={units} rows={list} cost={cost} />
           <div className="history-rows">
             {list.length > 0 && !water && (
               <div className={`history-key muted small ${outdoor ? "with-outdoor" : ""}`}>
@@ -272,7 +278,7 @@ function scaleOf(list: Row[], metric: Metric, period: StatsPeriod) {
   return { lo, hi: Math.max(hi, lo + 4) };
 }
 
-function Summary({ data, metric, water, units, rows: list, cost }: { data: StatsData; metric: Metric; water: boolean; units: string; rows: Row[]; cost: StatsData["cost"] }) {
+function Summary({ data, metric, water, room, units, rows: list, cost }: { data: StatsData; metric: Metric; water: boolean; room?: boolean; units: string; rows: Row[]; cost: StatsData["cost"] }) {
   const counted = Math.max(1, list.filter((r) => r.minutes != null).length);
   const prev = data.previous;
   const comparable = !!prev?.has_data && prev.known_minutes >= 0.5 * data.known_minutes;
@@ -283,7 +289,7 @@ function Summary({ data, metric, water, units, rows: list, cost }: { data: Stats
     metric === "cost"
       ? ["Estimated cost", spend(data.heating_minutes), `Average per ${units}`, spend(data.heating_minutes / counted)]
       : metric === "time"
-      ? [water ? "Hot water on" : "Boiler on", duration(data.heating_minutes), `Average per ${units}`, duration(data.heating_minutes / counted)]
+      ? [water ? "Hot water on" : room ? "Valves heating" : "Boiler on", duration(data.heating_minutes), `Average per ${units}`, duration(data.heating_minutes / counted)]
       : ["Average", t.avg != null ? `${t.avg.toFixed(1)}°` : "–", "Lowest – highest", t.min != null && t.max != null ? `${t.min.toFixed(1)}–${t.max.toFixed(1)}°` : "–"];
   return (
     <>
@@ -301,7 +307,7 @@ function Summary({ data, metric, water, units, rows: list, cost }: { data: Stats
       <p className="history-note muted small">
         {metric === "time" && comparable && (Math.abs(diff) < 1 ? "Same as the period before · " : `${duration(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than the period before · `)}
         {metric === "cost" && cost && comparable && (Math.abs(diff) < 1 ? "Same as the period before · " : `${spend(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than the period before · `)}
-        Fired up {data.cycles} time{data.cycles === 1 ? "" : "s"}
+        {room ? "Started heating" : "Fired up"} {data.cycles} time{data.cycles === 1 ? "" : "s"}
         {data.boosts ? ` · ${data.boosts} boost${data.boosts === 1 ? "" : "s"}` : ""}
         {metric === "temp" && data.target_avg != null ? ` · average target ${data.target_avg.toFixed(1)}°` : ""}
         {!water && outdoorNote(data)}

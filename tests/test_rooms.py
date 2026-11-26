@@ -30,12 +30,26 @@ def test_heating_batteries_and_unavailable():
     assert s["unavailable"] == ["c"]
     assert r.summarise([valve("a", battery=90)])["battery_low"] is False
 
+def test_a_valve_heating_above_its_target_isnt_heating():
+    # Turned down (or at frost protection) in a warm room: it still says heating while it closes.
+    s = r.summarise([valve("a", temp=18.0, target=6.5, action="heating")])
+    assert not s["heating"] and s["heating_valves"] == []
+    # Below its target it is; the room sensor's reading is the room's temperature.
+    assert r.summarise([valve("a", temp=18.0, target=21.0, action="heating")])["heating"]
+    assert not r.summarise([valve("a", temp=17.0, target=19.0, action="heating")], "19.5")["heating"]
+    # Without a reading or a target, take its word for it.
+    assert r.summarise([valve("a", action="heating")])["heating"]
+
+
 def test_clean_room():
     known = {"climate.a", "climate.b"}
     room = r.clean_room({"name": "  Front   room ", "valves": ["climate.a", "climate.a", "climate.b"], "sensor": ""},
                         known_valves=known, known_sensors=set(), receivers=["e1"])
     # One receiver: the room is heated by it without asking.
-    assert room == {"name": "Front room", "valves": ["climate.a", "climate.b"], "sensor": None, "receiver": "e1"}
+    assert room == {"name": "Front room", "valves": ["climate.a", "climate.b"], "sensor": None, "receiver": "e1",
+                    "sensor_on_valves": True}
+    assert r.clean_room({"name": "X", "valves": ["climate.a"], "sensor_on_valves": False}, known_valves=known,
+                        known_sensors=set(), receivers=["e1"])["sensor_on_valves"] is False
     for bad in ({"name": "", "valves": ["climate.a"]}, {"name": "X", "valves": []},
                 {"name": "X", "valves": ["climate.nope"]}, {"name": "X", "valves": ["climate.a"], "sensor": "sensor.nope"}):
         with pytest.raises(r.RoomError):

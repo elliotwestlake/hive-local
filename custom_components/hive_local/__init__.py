@@ -30,11 +30,15 @@ from .const import (
     TRANSPORT_ZHA,
 )
 from .data import HiveConfigEntry, HiveData
+from .demand_controller import Demand
 from .health import DATA_VALVE_HEALTH, ReceiverHealth, ValveHealth
 from .holiday_controller import Holiday
 from .preheat_controller import Preheat
 from .settings import DATA_SETTINGS, HouseSettings
+from .room_boost_controller import DATA_ROOM_BOOSTS, RoomBoosts
 from .room_manager import DATA_ROOMS, RoomManager
+from .tidy import DATA_TIDY, Tidy
+from .valve_sensor_controller import DATA_VALVE_SENSORS, ValveSensors
 from .transports import Transport, Z2MTransport
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,6 +68,17 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     rooms = RoomManager(hass)
     await rooms.async_load()
     hass.data[DATA_ROOMS] = rooms
+    room_boosts = RoomBoosts(hass, rooms)
+    await room_boosts.async_load()
+    room_boosts.start()
+    hass.data[DATA_ROOM_BOOSTS] = room_boosts
+    tidy = Tidy(hass)
+    await tidy.async_load()
+    hass.data[DATA_TIDY] = tidy
+    valve_sensors = ValveSensors(hass, rooms)
+    rooms.valve_sensors = valve_sensors
+    valve_sensors.start()
+    hass.data[DATA_VALVE_SENSORS] = valve_sensors
     settings = HouseSettings(hass)
     await settings.async_load()
     hass.data[DATA_SETTINGS] = settings
@@ -83,7 +98,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> bool
     holiday = Holiday(hass, transport)
     await holiday.async_start()
     preheat.blocked = lambda: CHANNEL_HEAT in holiday.away
-    entry.runtime_data = HiveData(transport, preheat, holiday)
+    demand = Demand(hass, transport, preheat, holiday)
+    await demand.async_start()
+    # Pre-heat may start over the rooms' boost (it wins; the rooms step aside).
+    preheat.overridable = demand.owns_boost
+    entry.runtime_data = HiveData(transport, preheat, holiday, demand)
     entry.runtime_data.health = ReceiverHealth(hass, entry)
     entry.runtime_data.health.start()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -132,6 +151,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> boo
         entry.runtime_data.health.stop()
     await entry.runtime_data.preheat.async_stop()
     await entry.runtime_data.holiday.async_stop()
+    await entry.runtime_data.demand.async_stop()
     await entry.runtime_data.transport.async_stop()
     others = [
         e for e in hass.config_entries.async_loaded_entries(DOMAIN) if e.entry_id != entry.entry_id
@@ -148,6 +168,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: HiveConfigEntry) -> Non
     from .transports.base import BOOST_STORE_VERSION  # noqa: PLC0415
 
     await Store(hass, BOOST_STORE_VERSION, f"{DOMAIN}.boost.{entry.entry_id}").async_remove()
+    await Store(hass, 1, f"{DOMAIN}.demand.{entry.entry_id}").async_remove()
 
 
 def _bundle_mtime() -> int:

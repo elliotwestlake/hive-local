@@ -1,4 +1,4 @@
-"""Pre-heat switch (heating): start early so it's warm at the scheduled time. Kept in HA."""
+"""Switches (heating), kept in HA: pre-heat, and rooms calling for heat."""
 
 from __future__ import annotations
 
@@ -20,13 +20,37 @@ async def async_setup_entry(
     entry: HiveConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
+    entities: list[SwitchEntity] = []
     if entry.runtime_data.preheat.available:
-        async_add_entities([PreheatSwitch(entry, CHANNEL_HEAT)])
+        entities.append(PreheatSwitch(entry, CHANNEL_HEAT))
+    # Away: until you're back (the holiday with no end), heating, hot water and the rooms.
+    entities.append(AwaySwitch(entry, CHANNEL_HEAT if entry.runtime_data.preheat.available else entry.runtime_data.transport.channels[0]))
+    if entry.runtime_data.demand.available:
+        entities += [RoomDemandSwitch(entry, CHANNEL_HEAT), RoomDemandOutsideSwitch(entry, CHANNEL_HEAT)]
+    async_add_entities(entities)
 
 
-class PreheatSwitch(HiveEntity, SwitchEntity, RestoreEntity):
+class _RestoredSwitch(HiveEntity, SwitchEntity, RestoreEntity):
     _attr_entity_category = EntityCategory.CONFIG
 
+    async def _async_set(self, on: bool) -> None:
+        raise NotImplementedError
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._async_set(True)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._async_set(False)
+        self.async_write_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (last := await self.async_get_last_state()) and last.state == "on":
+            await self._async_set(True)
+
+
+class PreheatSwitch(_RestoredSwitch):
     def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
         super().__init__(entry, channel, "preheat")
 
@@ -45,15 +69,66 @@ class PreheatSwitch(HiveEntity, SwitchEntity, RestoreEntity):
             "next_start": (info["next"] or {}).get("start"),
         }
 
+    async def _async_set(self, on: bool) -> None:
+        await self._data.preheat.async_set_enabled(on)
+
+
+class RoomDemandSwitch(_RestoredSwitch):
+    """Rooms call for heat: boost the heating while a room of this receiver is cold. Off by default."""
+
+    def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
+        super().__init__(entry, channel, "room_demand")
+
+    @property
+    def is_on(self) -> bool:
+        return self._data.demand.enabled
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        info = self._data.demand.as_dict()
+        return {"heating_for": info["rooms"], "rooms_calling": info["calling"], "reason": info["reason"]}
+
+    async def _async_set(self, on: bool) -> None:
+        await self._data.demand.async_set_enabled(on)
+
+
+class RoomDemandOutsideSwitch(_RestoredSwitch):
+    """Let rooms call for heat during the schedule's "off" periods too. Off by default."""
+
+    def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
+        super().__init__(entry, channel, "room_demand_outside_schedule")
+
+    @property
+    def is_on(self) -> bool:
+        return self._data.demand.outside_schedule
+
+    async def _async_set(self, on: bool) -> None:
+        await self._data.demand.async_set_outside_schedule(on)
+
+
+class AwaySwitch(HiveEntity, SwitchEntity):
+    """Away until you're back: the heating holds frost protection (its self-ending boost,
+    renewed while away), hot water is off, and the rooms go Off; turning it off puts
+    everything back. On while any holiday runs (a dated one too), so off also ends that."""
+
+    _attr_translation_key = "away"
+
+    def __init__(self, entry: HiveConfigEntry, channel: str) -> None:
+        super().__init__(entry, channel, "away")
+        self._attr_translation_key = "away"
+        self._attr_unique_id = f"{entry.entry_id}_away"
+
+    @property
+    def is_on(self) -> bool:
+        return bool(self._data.holiday.away)
+
+    @property
+    def icon(self) -> str:
+        return "mdi:bag-suitcase" if self.is_on else "mdi:home"
+
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await self._data.preheat.async_set_enabled(True)
-        self.async_write_ha_state()
+        if not self.is_on:
+            await self._data.async_set_holiday(None)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await self._data.preheat.async_set_enabled(False)
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self) -> None:
-        await super().async_added_to_hass()
-        if (last := await self.async_get_last_state()) and last.state == "on":
-            await self._data.preheat.async_set_enabled(True)
+        await self._data.holiday.async_cancel()

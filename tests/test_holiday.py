@@ -85,3 +85,11 @@ def test_store_rejects_junk():
     assert h.Away.from_store({}) is None
     assert h.Away.from_store({"until": "soon", "restore_mode": "schedule"}) is None
     assert h.Away.from_store({"until": 1, "restore_mode": "boost"}) is None
+
+
+def test_open_ended_away():
+    open_ended = h.Away(until=None, temperature=12.0, restore_mode="schedule", restore_setpoint=None)
+    assert h.lease_minutes(0, None) == h.LEASE_MINUTES
+    assert not h.overdue(open_ended, 10**12)
+    assert h.overdue(AWAY, 100 * H) and not h.overdue(AWAY, 99 * H)
+    assert h.Away.from_store(open_ended.as_store()) == open_ended

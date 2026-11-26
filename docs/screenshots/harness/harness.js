@@ -74,11 +74,20 @@ const STATUS = {
   },
 };
 
+// Rooms call for heat (#4): off by default; ?demand=on turns it on (rooms warm), ?demand=1 heats for the Bedroom.
+const DEMAND = params.get("demand");
+STATUS.e1.heat.demand = { enabled: !!DEMAND, outside_schedule: false, active: DEMAND === "1", rooms: DEMAND === "1" ? ["Bedroom"] : [],
+  calling: DEMAND === "1" ? ["Bedroom"] : [], setpoint: DEMAND === "1" ? 22.5 : null, reason: DEMAND === "1" ? null : DEMAND ? "warm" : "off" };
+if (DEMAND === "1") STATUS.e1.heat.status = { ...STATUS.e1.heat.status, mode: "boost", boost_remaining: 24, setpoint: 22.5, heating: true };
+if (DEMAND === "1") STATUS.e1.heat.preheat = { ...STATUS.e1.heat.preheat, next: null };
+
 // ?holiday=1: away until four days from now at 14:00 (heating on the holiday's 12° boost, hot water off).
-if (params.get("holiday") === "1") {
+// ?holiday=open: away until you're back (the Away toggle), rooms included.
+const HOLIDAY = params.get("holiday");
+if (HOLIDAY === "1" || HOLIDAY === "open") {
   const until = new Date(Date.now() + 4 * 86400000);
   until.setHours(14, 0, 0, 0);
-  const holiday = { until: until.toISOString(), restore_mode: "schedule" };
+  const holiday = { until: HOLIDAY === "open" ? null : until.toISOString(), restore_mode: "schedule" };
   STATUS.e1.heat = { ...STATUS.e1.heat, status: { ...STATUS.e1.heat.status, mode: "boost", boost_remaining: 312, setpoint: 12, heating: false }, holiday: { ...holiday, temperature: 12, holding: true } };
   STATUS.e1.water = { ...STATUS.e1.water, status: { ...STATUS.e1.water.status, mode: "off", boost_remaining: null, heating: false }, holiday: { ...holiday, temperature: null, holding: false } };
 }
@@ -90,14 +99,23 @@ const TWO = params.get("receivers") === "2";
 const RECEIVERS = TWO
   ? [{ entry_id: "e1", name: "Downstairs" }, { entry_id: "e2", name: "Upstairs" }]
   : [{ entry_id: "e1", name: "Hive Receiver" }];
+// ?valvesensor=partly|lost shows the Lounge valves only partly using, or losing, the room sensor (#3).
+const VALVE_SENSOR = params.get("valvesensor") || "using";
 const ROOMS = [
   {
     id: "a1", name: "Lounge", valves: ["climate.lounge_bay", "climate.lounge_door"], sensor: "sensor.lounge",
     receiver: "e1", receiver_name: RECEIVERS[0].name,
     sensor_name: "Lounge temperature",
-    valve_states: [valve("climate.lounge_bay", "Bay window valve", 19.2, 21, "heating", 78), valve("climate.lounge_door", "Door valve", 20.4, 21, "idle", 14)],
-    current_temperature: 19.8, temperature_source: "sensor", target: 21, target_range: null, heating: true,
+    valve_states: [
+      { ...valve("climate.lounge_bay", "Bay window valve", 19.2, 21, "heating", 78), external_sensor: "using", external_sensor_sent: 19.8 },
+      { ...valve("climate.lounge_door", "Door valve", 20.4, 21, "idle", 14), external_sensor: VALVE_SENSOR === "partly" ? "unsupported" : "using", external_sensor_sent: 19.8 },
+    ],
+    current_temperature: 19.8, temperature_source: VALVE_SENSOR === "lost" ? "valves" : "sensor", target: 21, target_range: null, heating: true,
     heating_valves: ["climate.lounge_bay"], unavailable: [], lowest_battery: 14, battery_low: true,
+    sensor_on_valves: true, external_sensor: VALVE_SENSOR === "lost" ? "waiting" : VALVE_SENSOR,
+    mode: params.get("roommode") || "manual",
+    // ?roomboost=1: the Lounge is boosted to 22° with 42 min left.
+    boost: params.get("roomboost") === "1" ? { until: new Date(Date.now() + 42 * 60000).toISOString(), temperature: 22, remaining: 42 } : null,
   },
   {
     id: "b2", name: "Bedroom", valves: ["climate.bedroom"], sensor: null, sensor_name: null,
@@ -107,6 +125,8 @@ const ROOMS = [
     heating_valves: [], unavailable: [], lowest_battery: 66, battery_low: false,
   },
 ];
+if (HOLIDAY === "open") ROOMS.forEach((r) => Object.assign(r, { away: true, mode: "off", frost: 12, heating: false }));
+
 if (TWO)
   ROOMS.splice(1, 0, {
     id: "c3", name: "Kitchen", valves: ["climate.kitchen"], sensor: null, sensor_name: null, receiver: "e1", receiver_name: "Downstairs",
@@ -240,6 +260,7 @@ const hass = {
             ...MANY.map((m, i) => ({ ...m, available: true, current_temperature: 17 + (i % 5) * 0.6, target: 19, hvac_action: "idle", battery: String(35 + i * 4), room: i % 3 ? "Bedroom" : null })),
           ].map((v) => ({ ...v, identify: true })),
         };
+      case "hive_local/rooms/stats":
       case "hive_local/stats":
         return fakeStats(msg.entry_id, msg.channel, msg.days, msg.offset || 0);
       case "hive_local/rooms/suggest":
@@ -257,6 +278,13 @@ const hass = {
         Object.assign(SETTINGS_CHANGES, change);
         if (SETTINGS_CHANGES.price_source === "fixed") SETTINGS_CHANGES.price = SETTINGS_CHANGES.fixed_price;
         return hass.callWS({ type: "hive_local/settings" });
+      }
+      // ?tidy=done: the duplicate entities have been tidied up.
+      case "hive_local/tidy": {
+        const done = params.get("tidy") === "done";
+        const row = (entity_id, name) => ({ entity_id, name, done, ours: done });
+        return { receiver: [row("climate.receiver", "Receiver")], valves: [row("climate.lounge_bay", "Bay window valve"), row("climate.lounge_door", "Door valve"), row("climate.bedroom", "Bedroom valve")],
+          pending: done ? 0 : 4, undoable: done ? 4 : 0 };
       }
       case "hive_local/settings":
         return { ...(await hass.callWS({ type: "hive_local/settings/base" })), ...SETTINGS_CHANGES };
@@ -284,6 +312,18 @@ const hass = {
         };
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
+      case "hive_local/rooms/schedule/get":
+        return {
+          // The valves' Off is frost protection (12°); ?oldoff=1: days saved before that, at 5°.
+          schedule: Object.fromEntries(Object.entries(SCHEDULES.heat).map(([d, slots]) => [d, slots.map((t) => (t.setpoint <= 1 ? { ...t, setpoint: params.get("oldoff") === "1" ? 5 : 12 } : t))])),
+          complete: true,
+          differs: ["saturday"],
+          limits: { max_transitions: 6, heat_min: 5, heat_max: 32, frost: 12 },
+          valves: [
+            { entity_id: "climate.lounge_bay", name: "Lounge bay valve", transport: "zha", days: 7, complete: true, error: null, clock: { offset: -3600, ok: false, set: false }, schedule_mode: false },
+            { entity_id: "climate.lounge_door", name: "Lounge door valve", transport: "zha", days: 7, complete: true, error: null, clock: { offset: 12, ok: true, set: false }, schedule_mode: false },
+          ],
+        };
       default:
         return { ok: true };
     }
@@ -324,6 +364,13 @@ if (room) {
   [...panel.shadowRoot.querySelectorAll(".room-device .device-head")].find((e) => e.textContent.includes(room))?.click();
   await wait(400);
 }
+// ?roomclick=Lounge presses that room card's Boost button.
+const roomClick = params.get("roomclick");
+if (roomClick) {
+  [...panel.shadowRoot.querySelectorAll(".room-device")].find((e) => e.textContent.includes(roomClick))?.querySelector(".device-action")?.click();
+  await new Promise((r) => setTimeout(r, 300));
+}
+
 // ?click=… (repeatable): exact button text or aria-label, or a button whose text starts with it.
 for (const click of params.getAll("click")) {
   const buttons = [...panel.shadowRoot.querySelectorAll("button")];
