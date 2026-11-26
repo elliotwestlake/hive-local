@@ -333,6 +333,9 @@ class Demand:
             _LOGGER.info("%s calling for heat: boosting the heating to %s °C for %s min", ", ".join(rooms), setpoint, lease)
             self._claim(d.Run(started=now, lease_end=now + lease * 60, setpoint=setpoint, rooms=rooms), lease)
         elif verdict == d.KEEP and self.run is not None:
+            if not self.calling:
+                # Only waiting out the minimum on time: keep the boost as it is.
+                setpoint = self.run.setpoint
             renew = d.needs_renewal(status.get("boost_remaining"), lease)
             if renew or abs(setpoint - self.run.setpoint) >= 0.5:
                 rooms = tuple(n.room for n in self.calling) or self.run.rooms

@@ -49,8 +49,16 @@ def test_hysteresis():
     assert d.calling([colder], running=False) == [colder]
     assert d.calling([cold], running=True) == [cold]  # keeps going until within 0.2
     assert d.calling([close], running=True) == []
-    heating = d.Need("Bed", 21.0, 20.0, True)
-    assert d.calling([heating], running=False) == [heating]  # a valve heating always counts
+    heating = d.Need("Bed", 19.9, 20.0, True)
+    assert d.calling([heating], running=False) == [heating]  # a valve heating counts below the target
+    unknown = d.Need("Bed", None, 20.0, True)
+    assert d.calling([unknown], running=False) == [unknown]
+    # Turned down: the valve still says heating while it closes, but the room's above target.
+    turned_down = d.Need("Bed", 21.0, 17.0, True)
+    assert d.calling([turned_down], running=False) == []
+    assert d.calling([turned_down], running=True) == []
+    at_target = d.Need("Bed", 20.0, 20.0, True)
+    assert d.calling([at_target], running=True) == []
     assert d.calling([colder], running=False, start_below=1.0) == []
 
 

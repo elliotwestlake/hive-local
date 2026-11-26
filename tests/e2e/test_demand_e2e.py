@@ -158,8 +158,8 @@ async def test_rooms_call_for_heat(hass, mqtt_mock, freezer, hass_ws_client):
     await tick(hass, freezer, t0 + timedelta(minutes=41))
     assert not demand.suppressed
 
-    # A valve heating calls for heat too.
-    valve(hass, 20.0, action="heating")
+    # A valve heating calls for heat too, while the room's below its target.
+    valve(hass, 19.9, action="heating")
     await tick(hass, freezer, t0 + timedelta(minutes=42))
     assert sets(mqtt_mock) == [boost(30, 20.0)]
     await report(hass, boosting())
@@ -288,3 +288,28 @@ async def test_preheat_wins(hass, mqtt_mock, freezer):
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
+
+
+@pytest.mark.freeze_time("2026-11-30 10:00:00")
+async def test_turning_the_valve_down_ends_the_request(hass, mqtt_mock, freezer):
+    """A valve turned down keeps saying "heating" while it closes; that mustn't keep the boiler on."""
+    t0 = datetime(2026, 11, 30, 10, 0, 0)
+    entry = await setup(hass, freezer, t0)
+    demand = entry.runtime_data.demand
+    valve(hass, 18.0, action="heating")
+    await hass.services.async_call("switch", "turn_on", {"entity_id": SWITCH}, blocking=True)
+    await hass.async_block_till_done()
+    assert sets(mqtt_mock) == [boost(30, 20.0)]
+    await report(hass, boosting())
+    assert demand.is_active
+
+    # Turned down below the room's temperature, still reporting heating: cancelled once the
+    # minimum on time has run.
+    mqtt_mock.async_publish.reset_mock()
+    valve(hass, 18.0, target=16.0, action="heating")
+    await tick(hass, freezer, t0 + timedelta(minutes=5))
+    assert sets(mqtt_mock) == []  # still inside the 10 min minimum on
+    await tick(hass, freezer, t0 + timedelta(minutes=10, seconds=30))
+    assert sets(mqtt_mock) == [BACK_TO_SCHEDULE]
+    await report(hass, SCHEDULE)
+    assert demand.run is None

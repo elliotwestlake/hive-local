@@ -122,11 +122,16 @@ def room_need(room: str, valves: list[Reading], sensor: float | None = None) -> 
 
 
 def calling(needs: list[Need], running: bool, start_below: float = START_BELOW, stop_within: float = STOP_WITHIN) -> list[Need]:
-    """The rooms that want heat, with hysteresis: harder to start than to keep going."""
+    """The rooms that want heat, with hysteresis: harder to start than to keep going.
+
+    A valve that says it's heating counts only while its room is below the target (or the
+    room's temperature isn't known): a valve turned down closes over several minutes and
+    keeps reporting "heating" meanwhile, which mustn't keep the boiler on.
+    """
     out = []
     for need in needs:
         deficit = need.deficit
-        if need.heating:
+        if need.heating and (deficit is None or deficit > 0):
             out.append(need)
         elif deficit is not None and (deficit > stop_within if running else deficit >= start_below):
             out.append(need)
