@@ -191,10 +191,9 @@ function QuickActions({ getHass, devices, status, limits }: { getHass: () => Has
           hasHeat={all.some(({ c }) => c === "heat")}
           hasWater={all.some(({ c }) => c === "water")}
           frost={heatInfo?.frost_temperature ?? 12}
-          limits={limits}
           busy={busy != null}
-          onGo={(until, temperature) =>
-            run("holiday", [{ type: "hive_local/holiday/set", ...(until ? { until: until.toISOString() } : {}), temperature }], until ? `Away until ${formatUntil(until)}` : "Away until you're back").then(
+          onGo={(until) =>
+            run("holiday", [{ type: "hive_local/holiday/set", ...(until ? { until: until.toISOString() } : {}) }], until ? `Away until ${formatUntil(until)}` : "Away until you're back").then(
               (ok) => ok && setHolidaySheet(false),
             )
           }

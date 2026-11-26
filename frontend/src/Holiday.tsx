@@ -1,31 +1,27 @@
 import { useEffect, useState } from "react";
 import { formatUntil } from "./api";
-import { Icon } from "./Icon";
-import type { Limits } from "./types";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 /** A Date as a datetime-local input value (the browser's local time). */
 const toInput = (d: Date) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
-/** Away until…: pick when you're back and what the heating holds meanwhile (every receiver). */
+/** Away: until you're back or until a date (every receiver). Heating always holds frost protection. */
 export function HolidaySheet({
   hasHeat,
   hasWater,
   frost,
-  limits,
   busy,
   onGo,
   onClose,
 }: {
   hasHeat: boolean;
   hasWater: boolean;
-  /** The frost protection setting: the default holiday temperature. */
+  /** The frost protection setting: what the heating holds while away. */
   frost: number;
-  limits: Limits | null;
   busy: boolean;
   /** null: until you're back (the Away toggle). */
-  onGo: (until: Date | null, temperature: number) => void;
+  onGo: (until: Date | null) => void;
   onClose: () => void;
 }) {
   // A week from now, at 14:00.
@@ -35,12 +31,8 @@ export function HolidaySheet({
     d.setHours(14, 0, 0, 0);
     return toInput(d);
   });
-  const [temp, setTemp] = useState(frost);
   // Until you're back (open-ended, the default) or until a date.
   const [dated, setDated] = useState(false);
-  const minTemp = limits?.boost_min_temp ?? 5;
-  const maxTemp = limits?.heat_max ?? 32;
-  const clamp = (t: number) => Math.min(maxTemp, Math.max(minTemp, Math.round(t * 2) / 2));
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -49,7 +41,7 @@ export function HolidaySheet({
 
   const when = new Date(until);
   const valid = !dated || (!Number.isNaN(when.getTime()) && when.getTime() > Date.now() + 60_000);
-  const what = [hasHeat && `heating holds ${temp.toFixed(1)}°`, hasWater && "hot water is off", hasHeat && "the rooms hold frost protection"]
+  const what = [hasHeat && `the heating and rooms hold frost protection (${frost.toFixed(1)}°)`, hasWater && "hot water is off"]
     .filter(Boolean)
     .join(", ")
     .replace(/, ([^,]*)$/, " and $1");
@@ -84,18 +76,7 @@ export function HolidaySheet({
           </div>
         )}
 
-        {hasHeat && (
-          <div className="sheet-field">
-            <span className="sheet-label">Heating while away</span>
-            <div className="sheet-temp">
-              <button className="round sheet-step" onClick={() => setTemp(clamp(temp - 0.5))} aria-label="Lower"><Icon name="minus" /></button>
-              <span className="sheet-temp-value">{temp.toFixed(1)}°</span>
-              <button className="round sheet-step" onClick={() => setTemp(clamp(temp + 0.5))} aria-label="Raise"><Icon name="plus" /></button>
-            </div>
-          </div>
-        )}
-
-        <button className="sheet-go" disabled={busy || !valid} onClick={() => onGo(dated ? when : null, temp)}>
+        <button className="sheet-go" disabled={busy || !valid} onClick={() => onGo(dated ? when : null)}>
           {!dated ? "Away until I'm back" : valid ? `Away until ${formatUntil(when)}` : "Pick a time in the future"}
         </button>
         <button className="ghost sheet-cancel" onClick={onClose}>Cancel</button>

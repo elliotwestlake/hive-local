@@ -211,10 +211,6 @@
         "until": {
           "name": "Until",
           "description": "When the holiday ends. Without a time zone it's Home Assistant's local time."
-        },
-        "temperature": {
-          "name": "Temperature",
-          "description": "Heating temperature while away (5-32 °C). Defaults to the heating frost protection setting."
         }
       }
     },
