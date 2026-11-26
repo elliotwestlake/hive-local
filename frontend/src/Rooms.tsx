@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatMinutes } from "./api";
 import { Icon } from "./Icon";
+import { overshootText, ValveSettingsDialog } from "./ValveSettings";
 import { errorText, type Candidate, type Hass, type Receiver, type Room, type RoomMode, type ValveInfo, type ValveState } from "./types";
 
 const LOW_BATTERY = 20;
@@ -363,6 +364,7 @@ export function roomModeText(room: Room): string {
  */
 export function RoomControl({ getHass, room }: { getHass: () => Hass; room: Room }) {
   const [editing, setEditing] = useState(false);
+  const [tuning, setTuning] = useState(false);
   const [pending, setPending] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -405,6 +407,7 @@ export function RoomControl({ getHass, room }: { getHass: () => Hass; room: Room
     }
   };
   const note = sensorNote(room);
+  const overshoot = overshootText(room);
   const targetHint = room.boost
     ? "Keeps the boost's time left"
     : mode === "off"
@@ -456,10 +459,17 @@ export function RoomControl({ getHass, room }: { getHass: () => Hass; room: Room
           ))}
         </ul>
       </div>
+      {overshoot && (
+        <p className="muted small room-overshoot">
+          <Icon name="chart-bell-curve-cumulative" /> {overshoot}
+        </p>
+      )}
       <div className="room-sheet-actions">
+        <button className="ghost" onClick={() => setTuning(true)}><Icon name="tune-variant" /> Valve settings</button>
         <button className="ghost" onClick={() => setEditing(true)}><Icon name="pencil-outline" /> Edit room</button>
       </div>
       {editing && <RoomEditor getHass={getHass} room={room} onDone={() => setEditing(false)} dialog />}
+      {tuning && <ValveSettingsDialog getHass={getHass} room={room} onClose={() => setTuning(false)} />}
     </section>
   );
 }

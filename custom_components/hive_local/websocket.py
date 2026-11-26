@@ -30,6 +30,8 @@ hive_local/rooms/mode {room_id, mode: schedule|manual|off} -> {"failed": [...]} 
 hive_local/rooms/stats {room_id, days?, offset?}      -> like hive_local/stats, from the room's climate entity
 hive_local/rooms/boost {room_id, minutes, temperature} -> {"failed": [...]} (the valves for a while, and the boiler)
 hive_local/rooms/cancel_boost {room_id}            -> {"ok": true} (the valves' own targets back)
+hive_local/rooms/valve_settings {room_id}          -> {"settings": {key: {value, mixed, supported}}, "valves", "count", "response_minutes"} (valve_settings.py)
+hive_local/rooms/valve_settings/set {room_id, key, value?} -> {"failed": [...]} (every valve in the room that has it)
 Schedules on the room's valves (#5; valve_schedule.py):
 hive_local/rooms/schedule/get {room_id}            -> {"schedule", "complete", "differs": [days the valves disagree on], "valves": [per valve: days, error, clock, schedule_mode], "limits"}
 hive_local/rooms/schedule/set {room_id, schedule}  -> {"schedule", "commands", "valves": [per valve: commands, clock, error], "failed"}  (every valve, one command per day)
@@ -122,6 +124,8 @@ def async_register(hass: HomeAssistant) -> None:
         ws_rooms_stats,
         ws_rooms_mode,
         ws_rooms_cancel_boost,
+        ws_rooms_valve_settings,
+        ws_rooms_valve_settings_set,
         ws_rooms_schedule_get,
         ws_rooms_schedule_set,
     ):
@@ -694,6 +698,28 @@ async def ws_rooms_boost(hass, connection, msg: dict[str, Any], rooms: RoomManag
 async def ws_rooms_cancel_boost(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
     await hass.data[DATA_ROOM_BOOSTS].async_cancel(msg["room_id"])
     connection.send_result(msg["id"], {"ok": True})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/valve_settings"} | ROOM)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_valve_settings(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    connection.send_result(msg["id"], rooms.valve_settings(msg["room_id"]))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "hive_local/rooms/valve_settings/set",
+        vol.Required("key"): vol.In(["response", "adaptation", "adaptation_run"]),
+        vol.Optional("value"): vol.Any(bool, vol.Coerce(int)),
+    }
+    | ROOM
+)
+@websocket_api.async_response
+@_rooms_handler
+async def ws_rooms_valve_settings_set(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    failed = await rooms.async_set_valve_setting(msg["room_id"], msg["key"], msg.get("value"))
+    connection.send_result(msg["id"], {"failed": failed})
 
 
 @websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/schedule/get"} | ROOM)

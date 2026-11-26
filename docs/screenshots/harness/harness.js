@@ -116,6 +116,8 @@ const ROOMS = [
     mode: params.get("roommode") || "manual",
     // ?roomboost=1: the Lounge is boosted to 22° with 42 min left.
     boost: params.get("roomboost") === "1" ? { until: new Date(Date.now() + 42 * 60000).toISOString(), temperature: 22, remaining: 42 } : null,
+    // ?overshoot=learning: 1 run so far; otherwise a median from 4.
+    overshoot: params.get("overshoot") === "learning" ? { median: null, runs: 1 } : { median: 0.6, runs: 4 },
   },
   {
     id: "b2", name: "Bedroom", valves: ["climate.bedroom"], sensor: null, sensor_name: null,
@@ -260,6 +262,23 @@ const hass = {
             ...MANY.map((m, i) => ({ ...m, available: true, current_temperature: 17 + (i % 5) * 0.6, target: 19, hvac_action: "idle", battery: String(35 + i * 4), room: i % 3 ? "Bedroom" : null })),
           ].map((v) => ({ ...v, identify: true })),
         };
+      // The Hive valves' own settings (?valvesettings=mixed: the valves differ).
+      case "hive_local/rooms/valve_settings": {
+        const mixed = params.get("valvesettings") === "mixed";
+        return {
+          count: 2,
+          response_minutes: [5, 10, 15, 25, 30, 40, 50, 60, 70, 80],
+          settings: {
+            response: { value: 30, mixed, supported: 2 },
+            adaptation: { value: true, mixed: false, supported: 2 },
+            adaptation_run: { value: null, mixed: false, supported: 2 },
+            adaptation_status: { value: "found", mixed: false, supported: 2 },
+          },
+          valves: [],
+        };
+      }
+      case "hive_local/rooms/valve_settings/set":
+        return { failed: [] };
       case "hive_local/rooms/stats":
       case "hive_local/stats":
         return fakeStats(msg.entry_id, msg.channel, msg.days, msg.offset || 0);
