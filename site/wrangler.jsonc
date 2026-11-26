@@ -5,6 +5,10 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "hive-local",
   "compatibility_date": "2026-11-20",
+  // Other branches are uploaded as versions with a preview URL (on workers.dev),
+  // so the site needs one too.
+  "workers_dev": true,
+  "preview_urls": true,
   "assets": {
     "directory": "./dist",
     // Astro builds /docs/schedules/index.html: serve it at /docs/schedules/.
