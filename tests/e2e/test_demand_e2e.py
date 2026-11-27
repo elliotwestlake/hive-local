@@ -313,3 +313,50 @@ async def test_turning_the_valve_down_ends_the_request(hass, mqtt_mock, freezer)
     assert sets(mqtt_mock) == [BACK_TO_SCHEDULE]
     await report(hass, SCHEDULE)
     assert demand.run is None
+
+
+@pytest.mark.freeze_time("2026-11-30 10:00:00")
+async def test_a_quiet_room_sensor_still_counts(hass, mqtt_mock, freezer):
+    """A room sensor that hasn't reported for over an hour (steady room, battery sensor) is
+    still the room's temperature, as on its card: the valve's own lower reading mustn't keep
+    or start the boiler in a room that's warm."""
+    t0 = datetime(2026, 11, 30, 10, 0, 0)
+    entry = await setup(hass, freezer, t0)
+    demand = entry.runtime_data.demand
+    sensor = "sensor.bedroom_temperature"
+    hass.states.async_set(sensor, "19.0", {"device_class": "temperature", "unit_of_measurement": "°C"})
+    rooms = hass.data["hive_local_rooms"]
+    room = rooms.rooms[0]
+    await rooms.async_save_room({"name": "Bedroom", "valves": [VALVE], "sensor": sensor}, room["id"])
+    valve(hass, 19.5, action="heating")
+    await hass.services.async_call("switch", "turn_on", {"entity_id": SWITCH}, blocking=True)
+    await hass.async_block_till_done()
+    assert sets(mqtt_mock) == [boost(30, 20.0)]
+    await report(hass, boosting())
+
+    # The room reaches 20.2 and the sensor goes quiet; the valve still reads 19.5 and says heating.
+    mqtt_mock.async_publish.reset_mock()
+    hass.states.async_set(sensor, "20.2", {"device_class": "temperature", "unit_of_measurement": "°C"})
+    for minute in (5, 11):
+        valve(hass, 19.5, action="heating")
+        await tick(hass, freezer, t0 + timedelta(minutes=minute))
+    assert sets(mqtt_mock) == [BACK_TO_SCHEDULE]
+    await report(hass, SCHEDULE)
+    assert demand.run is None
+
+    # Over an hour later, nothing new from the sensor: still warm, so nothing starts.
+    for minute in (40, 70, 95):
+        valve(hass, 19.5, action="heating")
+        await tick(hass, freezer, t0 + timedelta(minutes=minute))
+    assert sets(mqtt_mock) == [BACK_TO_SCHEDULE]
+    assert demand.run is None
+    assert demand.as_dict()["reason"] == "warm"
+
+    # Gone unavailable: the valve's reading is used instead.
+    hass.states.async_set(sensor, "unavailable")
+    valve(hass, 19.0, action="heating")
+    await tick(hass, freezer, t0 + timedelta(minutes=100))
+    assert sets(mqtt_mock)[-1] == boost(30, 20.0)
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()

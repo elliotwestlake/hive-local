@@ -13,8 +13,8 @@ within `STOP_WITHIN`; the boiler stays on at least `MIN_ON` minutes and off at l
 default not during the schedule's "off" periods (1 °C) unless the user allows it.
 
 Readings: a valve that's unavailable, off, or hasn't reported for `STALE_MINUTES` is
-ignored; so is a stale room sensor (the valves' readings are used instead). A room with
-no usable valves is ignored.
+ignored. The room sensor is used whenever it has a reading (unavailable: the valves'
+readings instead), as everywhere else. A room with no usable valves is ignored.
 """
 
 from __future__ import annotations
