@@ -184,10 +184,13 @@ class Demand:
                     continue
                 if reading := d.valve_reading(state.state, dict(state.attributes), self._age(state, now)):
                     readings.append(reading)
+            # The room sensor counts whenever it has a reading, as on the room's card, its climate
+            # entity and the valves it's sent to: a battery sensor in a steady room can go well over
+            # an hour without reporting, and falling back to the valves' own (lower) readings then
+            # kept the boiler on in a room the panel showed as warm. A dead sensor goes unavailable.
             sensor = None
             if room.get("sensor") and (s := self.hass.states.get(room["sensor"])) is not None:
-                if self._age(s, now) <= d.STALE_MINUTES:
-                    sensor = d._number(s.state)  # noqa: SLF001
+                sensor = d._number(s.state)  # noqa: SLF001
             if need := d.room_need(room.get("name") or room.get("id", "?"), readings, sensor):
                 needs.append(need)
         return needs
