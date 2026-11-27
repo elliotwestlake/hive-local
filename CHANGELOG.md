@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/elliotwestlake/hive-local/compare/v0.11.0...v0.11.1) (2026-11-27)
+
+
+### Fixed
+
+* **rooms:** use the room sensor for calling for heat even when it's been quiet ([#46](https://github.com/elliotwestlake/hive-local/issues/46)) ([061b209](https://github.com/elliotwestlake/hive-local/commit/061b20944b3dc1f1f7d6a8ef4a91407b7e06178e))
+
 ## [0.11.0](https://github.com/elliotwestlake/hive-local/compare/v0.10.0...v0.11.0) (2026-11-26)
 
 
