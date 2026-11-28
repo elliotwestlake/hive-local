@@ -9616,7 +9616,7 @@ function Ct({ getHass: e, room: t, onClose: n, page: r }) {
 		t.id,
 		t.mode
 	]), _ = [];
-	d && _.push(`This is the schedule last read from or saved to the valves, ${St(d)}. They sleep, so they aren't asked again each time you open this; use ⋯ → Read from the valves if it's been changed somewhere else.`);
+	d && _.push(`Last saved to or read from the valves ${St(d)}. Only Hive Local changes it, so the valves aren't asked again; ⋯ → Read from the valves checks them, for example after a valve's been reset or swapped.`);
 	for (let e of i) e.error ? _.push(`${e.name} didn't answer: ${e.error}`) : e.complete || _.push(`${e.name} sent ${e.days} of 7 days.`), e.clock && !e.clock.ok && !e.error && _.push(`${e.name}: ${bt(e.clock.offset)}. It's set when you save.`);
 	let v = t.mode === "schedule" ? i.filter((e) => e.schedule_mode === !1) : [];
 	v.length && _.push(`${v.map((e) => e.name).join(", ")} ${v.length === 1 ? "isn't" : "aren't"} following the schedule yet: choose Manual and then Schedule again on the Control tab.`), o.length && i.length > 1 && _.push(`The valves have different times on ${o.map(I).join(", ")}. This shows ${i.find((e) => e.days)?.name ?? "the first valve"}'s; saving a day writes it to them all.`);

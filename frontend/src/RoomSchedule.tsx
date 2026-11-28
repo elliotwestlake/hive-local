@@ -142,7 +142,7 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
   // Anything worth knowing about the valves, from the last read.
   const notes: string[] = [];
   if (knownAt) {
-    notes.push(`This is the schedule last read from or saved to the valves, ${whenText(knownAt)}. They sleep, so they aren't asked again each time you open this; use ⋯ → Read from the valves if it's been changed somewhere else.`);
+    notes.push(`Last saved to or read from the valves ${whenText(knownAt)}. Only Hive Local changes it, so the valves aren't asked again; ⋯ → Read from the valves checks them, for example after a valve's been reset or swapped.`);
   }
   for (const v of valves) {
     if (v.error) notes.push(`${v.name} didn't answer: ${v.error}`);
