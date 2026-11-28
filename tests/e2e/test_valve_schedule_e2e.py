@@ -386,3 +386,45 @@ async def test_requests_to_a_sleeping_valve_are_tried_again():
     with pytest.raises(DeliveryError):
         await send_when_awake(request, wake_wait=0)  # without a wait: the first failure stands
     assert len(calls) == 1
+
+
+@pytest.mark.freeze_time(NOW)
+async def test_room_schedule_remembered(hass: HomeAssistant, hass_storage, hass_ws_client, valve) -> None:
+    """The last read or write is kept, so the panel can show it without waking the valves."""
+    await _setup(hass, hass_storage, valve)
+    client = await hass_ws_client(hass)
+
+    async def get(msg_id: int, **extra):
+        await client.send_json({"id": msg_id, "type": "hive_local/rooms/schedule/get", "room_id": "lounge"} | extra)
+        msg = await client.receive_json()
+        assert msg["success"], msg
+        return msg["result"]
+
+    # Nothing known yet.
+    result = await get(1, cached=True)
+    assert result["schedule"] is None and result["cached"] is True and result["at"] is None
+    assert valve.schedule_requests == []
+
+    await get(2)
+    assert len(valve.schedule_requests) == 1
+    result = await get(3, cached=True)
+    assert result["schedule"] == {day: DAY_READ for day in WEEK} and result["complete"] is True
+    assert datetime.fromisoformat(result["at"]) == datetime.fromisoformat(NOW)
+    assert result["limits"]["frost"] == 12.0
+    # Not asked again.
+    assert len(valve.schedule_requests) == 1
+
+    # A write is merged into it, and kept across a restart (in the rooms store).
+    new = [{"time": "07:00", "setpoint": 20.5}, {"time": "22:30", "setpoint": 12.0}]
+    with patch("asyncio.sleep"):
+        await client.send_json({"id": 4, "type": "hive_local/rooms/schedule/set", "room_id": "lounge", "schedule": {"monday": new}})
+        assert (await client.receive_json())["success"]
+    result = await get(5, cached=True)
+    assert result["schedule"]["monday"] == new and result["schedule"]["tuesday"] == DAY_READ
+    stored = hass_storage["hive_local.rooms"]["data"]
+    assert stored["schedules"]["lounge"]["schedule"]["monday"] == new
+
+    # Deleting the room forgets it.
+    await client.send_json({"id": 6, "type": "hive_local/rooms/delete", "room_id": "lounge"})
+    assert (await client.receive_json())["success"]
+    assert "lounge" not in hass_storage["hive_local.rooms"]["data"]["schedules"]

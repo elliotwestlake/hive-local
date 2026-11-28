@@ -198,12 +198,28 @@ async def async_read_room(hass: HomeAssistant, rooms: RoomManager, room_id: str)
     results = await asyncio.gather(*(_read_one(hass, v) for v in room["valves"]))
     valves = [info for info, _ in results]
     schedule, differs = combine_reads([s for _, s in results if s])
+    await rooms.async_schedule_seen(room_id, schedule)
     return {
         "schedule": schedule,
         "complete": len(schedule) == len(DAYS),
         "differs": differs,
         "valves": valves,
         # "Off" on the valves is frost protection (they can't switch off), as on the heating.
+        "limits": LIMITS | {"frost": rooms.frost(room_id)},
+    }
+
+
+def cached_room(rooms: RoomManager, room_id: str) -> dict[str, Any]:
+    """What was last read from or written to the room's valves, without asking them."""
+    seen = rooms.cached_schedule(room_id)
+    schedule = seen["schedule"] if seen else None
+    return {
+        "schedule": schedule,
+        "complete": bool(schedule) and len(schedule) == len(DAYS),
+        "cached": True,
+        "at": seen["at"] if seen else None,
+        "differs": [],
+        "valves": [],
         "limits": LIMITS | {"frost": rooms.frost(room_id)},
     }
 
@@ -236,6 +252,7 @@ async def async_write_room(
         raise HomeAssistantError(
             "No valve took the schedule: " + "; ".join(f"{v['name']}: {v['error']}" for v in valves)
         )
+    await rooms.async_schedule_seen(room_id, clean)
     return {
         "schedule": clean,
         "commands": sum(v["commands"] for v in valves),

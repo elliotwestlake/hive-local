@@ -315,6 +315,8 @@ const hass = {
       case "hive_local/get":
         return { schedule: SCHEDULES[msg.channel], complete: true };
       case "hive_local/rooms/schedule/get":
+        // ?cachedschedule=1: the room's schedule from the last read, shown without asking the valves.
+        if (msg.cached && params.get("cachedschedule") !== "1") return { schedule: null, cached: true, at: null, limits: { frost: 12 } };
         return {
           // The valves' Off is frost protection (12°); ?oldoff=1: days saved before that, at 5°.
           schedule: Object.fromEntries(Object.entries(SCHEDULES.heat).map(([d, slots]) => [d, slots.map((t) => (t.setpoint <= 1 ? { ...t, setpoint: params.get("oldoff") === "1" ? 5 : 12 } : t))])),
@@ -325,6 +327,7 @@ const hass = {
             { entity_id: "climate.lounge_bay", name: "Lounge bay valve", transport: "zha", days: 7, complete: true, error: null, clock: { offset: -3600, ok: false, set: false }, schedule_mode: false },
             { entity_id: "climate.lounge_door", name: "Lounge door valve", transport: "zha", days: 7, complete: true, error: null, clock: { offset: 12, ok: true, set: false }, schedule_mode: false },
           ],
+          ...(msg.cached ? { cached: true, at: new Date(Date.now() - 26 * 3600000).toISOString(), valves: [], differs: [] } : {}),
         };
       default:
         return { ok: true };

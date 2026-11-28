@@ -27,6 +27,11 @@ export interface ScheduleSource {
   noun: string;
   /** `edited`: the schedule to show, when it differs from what was read (its changes are unsaved); `note` says why. */
   read: () => Promise<{ schedule: Schedule; complete: boolean; edited?: Schedule; note?: string }>;
+  /**
+   * What's already known (the last read or write), shown instead of reading when the editor
+   * opens; null to read. The valves sleep, so a read can take minutes and locks the editor.
+   */
+  cached?: () => Promise<{ schedule: Schedule; edited?: Schedule; note?: string } | null>;
   /** Write the changed days; note replaces the usual "Wrote …" message. */
   write: (changed: Schedule) => Promise<{ schedule: Schedule; note?: string; error?: boolean }>;
   /** The line at the top, instead of the receiver's mode. */
@@ -110,7 +115,20 @@ export function ScheduleEditor({
   }, [entryId, channel, getHass, noun]);
 
   useEffect(() => {
-    read();
+    let gone = false;
+    (async () => {
+      const known = source?.cached ? await source.cached().catch(() => null) : null;
+      if (gone) return;
+      if (!known) return read();
+      setSchedule(known.edited ?? known.schedule);
+      setLoaded(known.schedule);
+      if (known.note) setStatus({ kind: "ok", text: known.note });
+    })();
+    return () => {
+      gone = true;
+    };
+    // As above: once per editor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [read]);
 
   // Success messages fade after a few seconds; errors stay until the next action.

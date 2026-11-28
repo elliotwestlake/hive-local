@@ -20,6 +20,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
 
 from . import valve_sensor
 from .const import DOMAIN
@@ -46,6 +47,9 @@ class RoomManager:
         self.hass = hass
         self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.rooms")
         self.rooms: list[dict[str, Any]] = []
+        # The last schedule read from or written to each room's valves ({room_id: {schedule, at}}),
+        # so the panel can show it without waking every valve (valve_schedule.py).
+        self.schedules: dict[str, dict[str, Any]] = {}
         # valve_sensor_controller.ValveSensors, set in async_setup: each valve's use of the room sensor.
         self.valve_sensors: Any = None
 
@@ -55,6 +59,7 @@ class RoomManager:
             await self._async_import_per_receiver()
             return
         self.rooms = data.get("rooms", [])
+        self.schedules = data.get("schedules", {})
 
     async def _async_import_per_receiver(self) -> None:
         """0.3.0 kept rooms per receiver; bring them into the house-wide list."""
@@ -64,11 +69,25 @@ class RoomManager:
                 self.rooms += [room | {"receiver": entry.entry_id} for room in data.get("rooms", [])]
             await old.async_remove()
         if self.rooms:
-            await self._store.async_save({"rooms": self.rooms})
+            await self._store.async_save({"rooms": self.rooms, "schedules": self.schedules})
 
     async def _async_save(self) -> None:
-        await self._store.async_save({"rooms": self.rooms})
+        await self._store.async_save({"rooms": self.rooms, "schedules": self.schedules})
         async_dispatcher_send(self.hass, SIGNAL_ROOMS)
+
+    @callback
+    def cached_schedule(self, room_id: str) -> dict[str, Any] | None:
+        """The room's schedule as last read from or written to its valves, with when."""
+        self._room(room_id)
+        return self.schedules.get(room_id)
+
+    async def async_schedule_seen(self, room_id: str, schedule: dict[str, Any]) -> None:
+        """Remember the days read from or written to the valves (days not in it are kept)."""
+        if not schedule:
+            return  # nothing came back: keep what we knew
+        old = (self.schedules.get(room_id) or {}).get("schedule", {})
+        self.schedules[room_id] = {"schedule": old | schedule, "at": dt_util.utcnow().isoformat()}
+        await self._store.async_save({"rooms": self.rooms, "schedules": self.schedules})
 
     @callback
     def receivers(self) -> list[dict[str, str]]:
@@ -326,6 +345,7 @@ class RoomManager:
 
     async def async_delete_room(self, room_id: str) -> None:
         self.rooms.remove(self._room(room_id))
+        self.schedules.pop(room_id, None)
         await self._async_save()
 
     async def async_set_target(self, room_id: str, temperature: float) -> list[str]:

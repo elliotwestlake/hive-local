@@ -67,6 +67,8 @@ shot phone-onboarding 390,770 "tab=Overview&narrow=1&onboarding=1"
 shot room-page 900,1100 "tab=Overview&room=Lounge"
 shot room-page-schedule 900,1100 "tab=Overview&room=Lounge&click=Schedule"
 shot room-page-schedule-old-off 900,1100 "tab=Overview&room=Lounge&click=Schedule&oldoff=1"
+# Opened again later: the last read, without waking the valves.
+shot room-page-schedule-cached 900,1100 "tab=Overview&room=Lounge&click=Schedule&cachedschedule=1"
 shot room-page-history 900,1100 "tab=Overview&room=Lounge&click=History"
 shot phone-room-page 390,770 "tab=Overview&narrow=1&room=Lounge"
 # Tidy up duplicate entities (Settings → Entities), before and after.
@@ -121,7 +123,7 @@ for src, dst in (("hero", "hero"), ("frame-schedule", "schedule"), ("frame-contr
 for pr in ("settings-fixed-price", "holiday", "holiday-sheet", "holiday-page",
            "room-sensor", "room-sensor-partly", "room-sensor-lost", "room-editor-sensor",
            "demand", "demand-sheet", "demand-page", "demand-settings", "room-schedule",
-           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done", "room-page", "room-page-schedule", "room-page-schedule-old-off", "room-page-history", "phone-room-page", "away-open",
+           "room-boost", "room-boost-sheet", "phone-room-boost", "tidy", "tidy-done", "room-page", "room-page-schedule", "room-page-schedule-old-off", "room-page-schedule-cached", "room-page-history", "phone-room-page", "away-open",
            "onboarding-rooms", "onboarding-demand", "onboarding-tidy", "onboarding-outside", "onboarding-done", "phone-onboarding"):
     Image.open(f"{work}/{pr}.png").convert("RGB").save(f"{docs}/screenshots/raw/{pr}.png", optimize=True)
 Image.open(f"{work}/social.png").convert("RGB").resize((1280, 640), Image.LANCZOS).save(

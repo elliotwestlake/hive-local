@@ -23,6 +23,14 @@ interface ValveWrite {
   clock?: { offset: number | null; ok: boolean; set: boolean; was?: number | null };
 }
 
+interface ScheduleRead {
+  schedule: Schedule;
+  complete: boolean;
+  differs: string[];
+  valves: ValveRead[];
+  limits: Partial<Limits>;
+}
+
 const LIMITS: Limits = { max_transitions: 6, heat_min: 5, heat_max: 32, boost_min_temp: 5, boost_max_minutes: 360, water_on: 22, water_off: 1 };
 const short = (d: string) => d[0].toUpperCase() + d.slice(1, 3);
 
@@ -30,6 +38,34 @@ function clockText(offset: number | null) {
   if (offset == null) return "its clock isn't set";
   const minutes = Math.round(Math.abs(offset) / 60);
   return `its clock is ${minutes} min ${offset < 0 ? "behind" : "ahead"}`;
+}
+
+/**
+ * Off used to be written as 5° (the valve's lowest); now it's frost protection. Show those
+ * slots at the frost temperature, as unsaved changes, so one Save moves the valves to it.
+ */
+function withFrost<T extends { schedule: Schedule }>(r: T, frost: number | undefined): T & { edited?: Schedule; note?: string } {
+  if (frost == null) return r;
+  let changed = 0;
+  const edited = Object.fromEntries(
+    Object.entries(r.schedule).map(([day, slots]) => [
+      day,
+      (slots ?? []).map((t) => (t.setpoint <= LIMITS.heat_min && t.setpoint !== frost ? (changed++, { ...t, setpoint: frost }) : t)),
+    ]),
+  ) as Schedule;
+  return changed
+    ? { ...r, edited, note: `Off used to keep the valves at ${LIMITS.heat_min}°; it's now frost protection, ${frost}°. Save to write the change to the valves.` }
+    : r;
+}
+
+/** "today 14:02", "yesterday 09:15", "Tue 24 Nov 18:40". */
+function whenText(iso: string) {
+  const d = new Date(iso);
+  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const days = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / 86400000);
+  if (days === 0) return `today ${time}`;
+  if (days === 1) return `yesterday ${time}`;
+  return `${d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })} ${time}`;
 }
 
 /**
@@ -41,6 +77,8 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
   const [valves, setValves] = useState<ValveRead[]>([]);
   const [differs, setDiffers] = useState<string[]>([]);
   const [limits, setLimits] = useState<Limits>(LIMITS);
+  // Set while showing the last read or write rather than a fresh read.
+  const [knownAt, setKnownAt] = useState<string | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => !page && e.key === "Escape" && onClose?.();
@@ -57,28 +95,27 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
         room.mode === "schedule"
           ? "Your schedule is running. It's kept on each valve, so it runs without Home Assistant; saving writes the changed days to every valve."
           : `Your schedule isn't being used: the room is ${room.mode === "off" ? "off" : "on Manual"}. Choose Schedule on the Control tab to use it.`,
+      cached: async () => {
+        const r = await getHass().callWS<ScheduleRead & { at: string | null }>({
+          type: "hive_local/rooms/schedule/get",
+          room_id: room.id,
+          cached: true,
+        });
+        if (!r.schedule || !Object.keys(r.schedule).length) return null;
+        setKnownAt(r.at);
+        setLimits({ ...LIMITS, ...r.limits });
+        return withFrost(r, r.limits.frost);
+      },
       read: async () => {
-        const r = await getHass().callWS<{ schedule: Schedule; complete: boolean; differs: string[]; valves: ValveRead[]; limits: Partial<Limits> }>({
+        const r = await getHass().callWS<ScheduleRead>({
           type: "hive_local/rooms/schedule/get",
           room_id: room.id,
         });
+        setKnownAt(null);
         setValves(r.valves);
         setDiffers(r.differs);
         setLimits({ ...LIMITS, ...r.limits });
-        // Off used to be written as 5° (the valve's lowest); now it's frost protection. Show those
-        // slots at the frost temperature, as unsaved changes, so one Save moves the valves to it.
-        const frost = r.limits.frost;
-        if (frost == null) return r;
-        let changed = 0;
-        const edited = Object.fromEntries(
-          Object.entries(r.schedule).map(([day, slots]) => [
-            day,
-            (slots ?? []).map((t) => (t.setpoint <= LIMITS.heat_min && t.setpoint !== frost ? (changed++, { ...t, setpoint: frost }) : t)),
-          ]),
-        ) as Schedule;
-        return changed
-          ? { ...r, edited, note: `Off used to keep the valves at ${LIMITS.heat_min}°; it's now frost protection, ${frost}°. Save to write the change to the valves.` }
-          : r;
+        return withFrost(r, r.limits.frost);
       },
       write: async (changed) => {
         const r = await getHass().callWS<{ schedule: Schedule; failed: string[]; valves: ValveWrite[] }>({
@@ -86,6 +123,7 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
           room_id: room.id,
           schedule: changed,
         });
+        setKnownAt((at) => (at ? new Date().toISOString() : at));
         const days = DAYS.filter((d) => d in r.schedule).map(short).join(", ");
         const clocks = r.valves.filter((v) => v.clock?.set).map((v) => v.name);
         const failed = r.valves.filter((v) => v.error);
@@ -103,6 +141,9 @@ export function RoomScheduleDialog({ getHass, room, onClose, page }: { getHass: 
 
   // Anything worth knowing about the valves, from the last read.
   const notes: string[] = [];
+  if (knownAt) {
+    notes.push(`This is the schedule last read from or saved to the valves, ${whenText(knownAt)}. They sleep, so they aren't asked again each time you open this; use ⋯ → Read from the valves if it's been changed somewhere else.`);
+  }
   for (const v of valves) {
     if (v.error) notes.push(`${v.name} didn't answer: ${v.error}`);
     else if (!v.complete) notes.push(`${v.name} sent ${v.days} of 7 days.`);

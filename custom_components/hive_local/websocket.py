@@ -32,6 +32,7 @@ hive_local/rooms/boost {room_id, minutes, temperature} -> {"failed": [...]} (the
 hive_local/rooms/cancel_boost {room_id}            -> {"ok": true} (the valves' own targets back)
 Schedules on the room's valves (#5; valve_schedule.py):
 hive_local/rooms/schedule/get {room_id}            -> {"schedule", "complete", "differs": [days the valves disagree on], "valves": [per valve: days, error, clock, schedule_mode], "limits"}
+hive_local/rooms/schedule/get {room_id, cached: true} -> the same, from the last read or write (no valves asked): "schedule" null if none, "at", "cached"
 hive_local/rooms/schedule/set {room_id, schedule}  -> {"schedule", "commands", "valves": [per valve: commands, clock, error], "failed"}  (every valve, one command per day)
 """
 
@@ -696,10 +697,16 @@ async def ws_rooms_cancel_boost(hass, connection, msg: dict[str, Any], rooms: Ro
     connection.send_result(msg["id"], {"ok": True})
 
 
-@websocket_api.websocket_command({vol.Required("type"): "hive_local/rooms/schedule/get"} | ROOM)
+@websocket_api.websocket_command(
+    {vol.Required("type"): "hive_local/rooms/schedule/get", vol.Optional("cached", default=False): bool} | ROOM
+)
 @websocket_api.async_response
 @_rooms_handler
 async def ws_rooms_schedule_get(hass, connection, msg: dict[str, Any], rooms: RoomManager) -> None:
+    if msg["cached"]:
+        # The valves sleep, so a read can take minutes; the panel shows this first.
+        connection.send_result(msg["id"], valve_schedule.cached_room(rooms, msg["room_id"]))
+        return
     with _reading(hass, ("room", msg["room_id"])):
         result = await valve_schedule.async_read_room(hass, rooms, msg["room_id"])
     connection.send_result(msg["id"], result)
